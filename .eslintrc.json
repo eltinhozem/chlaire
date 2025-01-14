@@ -5,7 +5,6 @@
     "jest": true,
     "node": true
   },
-
   "settings": {
     "react": {
       "version": "detect"
@@ -19,7 +18,8 @@
     "plugin:prettier/recommended",
     "plugin:@next/next/recommended",
     "next/core-web-vitals",
-    "prettier"
+    "prettier",
+    "plugin:storybook/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -29,7 +29,11 @@
     "ecmaVersion": 2020,
     "sourceType": "module"
   },
-  "plugins": ["react", "react-hooks", "@typescript-eslint"],
+  "plugins": [
+    "react",
+    "react-hooks",
+    "@typescript-eslint"
+  ],
   "rules": {
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
