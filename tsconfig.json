@@ -15,7 +15,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "skipLibCheck": true, // Opcional: melhora a performance
-    "jsx": "react-jsx", // Suporte ao React JSX
+    "jsx": "preserve", // Suporte ao React JSX
     "incremental": true,
     "types": [
       "jest",
