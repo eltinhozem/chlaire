@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'jsdom',
+  preset: 'ts-jest', // Usa o preset ts-jest
   testPathIgnorePatterns: ['/node_modules/', '/.next/'],
   collectCoverage: true,
   collectCoverageFrom: ['src/**/*.ts(x)?'],
