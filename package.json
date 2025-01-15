@@ -59,6 +59,7 @@
     "plop": "^4.0.1",
     "postcss": "^8",
     "prettier": "3.4.2",
+    "prettier-plugin-hbs": "^1.0.1",
     "storybook": "^8.4.7",
     "tailwindcss": "^3.4.1",
     "ts-jest": "^29.2.5",

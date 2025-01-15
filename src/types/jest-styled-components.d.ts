@@ -1,10 +1,16 @@
 import { NewPlugin } from 'pretty-format'
 import { css } from 'styled-components'
+
 declare global {
   namespace jest {
     interface AsymmetricMatcher {
-      $$typeof: Symbol
-      sample?: string | RegExp | object | Array<any> | Function
+      $$typeof: symbol // Substituído por 'symbol' (primitivo) para evitar erros de lint
+      sample?:
+        | string
+        | RegExp
+        | object
+        | Array<unknown>
+        | ((...args: unknown[]) => unknown)
     }
     type Value = string | number | RegExp | AsymmetricMatcher | undefined
     interface Options {
@@ -18,10 +24,12 @@ declare global {
     }
   }
 }
+
 export interface StyledComponentsSerializerOptions {
   addStyles?: boolean
   classNameFormatter?: (index: number) => string
 }
+
 export declare const styleSheetSerializer: NewPlugin & {
   setStyleSheetSerializerOptions: (
     options?: StyledComponentsSerializerOptions

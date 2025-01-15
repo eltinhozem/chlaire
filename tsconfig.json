@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "es6", // Nível de suporte ao JavaScript
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "strict": true,
     "noEmit": true,
@@ -17,19 +13,14 @@
     "skipLibCheck": true, // Opcional: melhora a performance
     "jsx": "preserve", // Suporte ao React JSX
     "incremental": true,
-    "types": [
-      "jest",
-      "node"
-    ], // Adiciona tipos do Jest
+    "types": ["jest", "node"], // Adiciona tipos do Jest
     "plugins": [
       {
         "name": "next"
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
@@ -39,7 +30,5 @@
     "**/*.tsx",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
