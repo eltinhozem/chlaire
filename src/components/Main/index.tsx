@@ -1,7 +1,7 @@
 import * as S from './styles'
 const Main = () => (
   <S.Wrapper>
-    <h1>React Avançado</h1>
+    <h1>Chlaire</h1>
   </S.Wrapper>
 )
 
