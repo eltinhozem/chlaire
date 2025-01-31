@@ -1,23 +1,9 @@
-import { Meta, StoryObj } from '@storybook/react'
+import { StoryFn, Meta } from '@storybook/react/types-6-0'
 import Logo, { LogoProps } from '.'
 
 export default {
   title: 'Logo',
-  component: Logo,
-  args: {
-    color: 'url(#dDourado)',
-    size: 'medium'
-  },
-  argTypes: {
-    color: {
-      control: 'select', // Controle para escolher entre opções
-      options: ['url(#dDourado)', 'black', 'white'] // Opções disponíveis
-    },
-    size: {
-      control: 'select', // Controle para tamanhos
-      options: ['small', 'medium', 'large'] // Tamanhos disponíveis
-    }
-  }
-} as Meta<LogoProps>
+  component: Logo
+} as Meta
 
-export const Default: StoryObj<LogoProps> = {}
+export const Default: StoryFn<LogoProps> = (args) => <Logo {...args} />

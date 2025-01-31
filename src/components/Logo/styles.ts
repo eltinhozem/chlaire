@@ -40,7 +40,7 @@ export const Wrapper = styled.div.withConfig({
   ${({ theme, color, size, hideOnMobile }) => css`
     color: ${theme.colors[color!]};
 
-    ${size && wrapperModifiers[size]()} 
+    ${size && wrapperModifiers[size]()}
     ${hideOnMobile && wrapperModifiers.hideOnMobile()}
   `}
 `

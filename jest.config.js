@@ -1,3 +1,5 @@
+import 'jest-styled-components'
+
 module.exports = {
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: ['/node_modules/', '/.next/'],
@@ -6,6 +8,6 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/.jest/setup.ts'],
   modulePaths: ['<rootDir>/src/'],
   transform: {
-    '^.+\\.tsx?$': 'babel-jest', 
-  },
-};
+    '^.+\\.tsx?$': 'babel-jest'
+  }
+}

@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<MediaMatch /> should show or hide based on the media passed 1`] = `
+.c1 {
+  display: none;
+}
+
+.c0 {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .c1 {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+
+}
+
+<div
+  class="c0"
+>
+  <div
+    class="c1"
+    greaterthan="medium"
+  >
+    <h1
+      data-testid="desktop"
+    >
+      Desktop
+    </h1>
+  </div>
+</div>
+`;

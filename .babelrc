@@ -19,9 +19,7 @@
     [
       "module-resolver",
       {
-        "root": [
-          "./src"
-        ],
+        "root": ["./src"],
         "alias": {
           "@": "./src"
         }
@@ -42,9 +40,7 @@
         [
           "module-resolver",
           {
-            "root": [
-              "./src"
-            ],
+            "root": ["./src"],
             "alias": {
               "@": "./src"
             }
