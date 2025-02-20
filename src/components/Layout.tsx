@@ -14,7 +14,7 @@ export default function Layout() {
             {/* Logo */}
             <Link to="/search" className="flex items-center">
               {' '}
-              {/* Alterado para /search */}
+             
               <Logo size="medium" color="url(#dDourado)" className="max-h-16" />
             </Link>
 

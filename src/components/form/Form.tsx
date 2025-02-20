@@ -1,8 +1,11 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
-import { PlusCircle, Upload } from 'lucide-react'
-import Pedra from '../pedra/pedra'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { PlusCircle, Upload } from 'lucide-react';
+import ImageUploadComponent from './ImageUploadComponent';
+import ProductDetailsComponent from './ProductDetailsComponent';
+import StoneComponent from './StoneComponent';
+import Pedra from '../pedra/pedra';
 import {
   formContainer,
   formTitle,
@@ -20,40 +23,40 @@ import {
   submitButton,
   imageUploadContainer,
   imagePreview,
-  imageUploadButton
-} from './styles'
+  imageUploadButton,
+} from './styles';
 
 interface JewelryFormData {
-  reference_name: string
-  category: string
-  weight: number | null
-  finish: string
-  size: string
-  designer: string
-  target_audience: string
-  client_name: string
-  observations: string
-  stones: Stone[]
-  image_url?: string
+  reference_name: string;
+  category: string;
+  weight: number | null;
+  finish: string;
+  size: string;
+  designer: string;
+  target_audience: string;
+  client_name: string;
+  observations: string;
+  stones: Stone[];
+  image_url?: string;
 }
 
 interface Stone {
-  stone_type: string
-  cut: string
-  quantity: number
-  quilates?: number
-  pts?: number
-  largura?: string
-  altura?: string
-  comprimento?: string
+  stone_type: string;
+  cut: string;
+  quantity: number;
+  quilates?: number;
+  pts?: number;
+  largura?: string;
+  altura?: string;
+  comprimento?: string;
 }
 
 export default function JewelryForm() {
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
-  const [stones, setStones] = useState<Stone[]>([])
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('')
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [stones, setStones] = useState<Stone[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
   const [formData, setFormData] = useState<JewelryFormData>({
     reference_name: '',
     category: '',
@@ -64,113 +67,108 @@ export default function JewelryForm() {
     target_audience: '',
     client_name: '',
     observations: '',
-    stones: []
-  })
+    stones: [],
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setImageFile(file)
-      setImagePreviewUrl(URL.createObjectURL(file))
+      const file = e.target.files[0];
+      setImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
     }
-  }
+  };
 
   const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random()}.${fileExt}`
-    const filePath = `${fileName}`
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('jewelry-images')
-      .upload(filePath, file)
+      .upload(filePath, file);
 
     if (uploadError) {
-      throw uploadError
+      throw uploadError;
     }
 
     const { data } = supabase.storage
       .from('jewelry-images')
-      .getPublicUrl(filePath)
+      .getPublicUrl(filePath);
 
-    return data.publicUrl
-  }
+    return data.publicUrl;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const {
-        data: { user }
-      } = await supabase.auth.getUser()
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('Usuário não autenticado');
 
-      if (!user) throw new Error('Usuário não autenticado')
-
-      let image_url = formData.image_url
+      let image_url = formData.image_url;
       if (imageFile) {
-        image_url = await uploadImage(imageFile)
+        image_url = await uploadImage(imageFile);
       }
 
-      const { error } = await supabase.from('jewelry').insert([
-        {
-          ...formData,
-          stones,
-          image_url,
-          user_id: user.id
-        }
-      ])
+      const { error } = await supabase
+        .from('jewelry')
+        .insert([
+          {
+            ...formData,
+            stones,
+            image_url,
+            user_id: user.id,
+          },
+        ]);
 
-      if (error) throw error
+      if (error) throw error;
 
-      navigate('/search')
+      navigate('/search');
     } catch (error: any) {
-      alert(error.message)
+      alert(error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
       ...prev,
-      [name]: name === 'weight' ? (value ? parseFloat(value) : null) : value
-    }))
-  }
+      [name]: name === 'weight' ? (value ? parseFloat(value) : null) : value,
+    }));
+  };
 
   const addStone = () => {
-    setStones([
-      ...stones,
-      {
-        stone_type: '',
-        cut: 'Redonda',
-        quantity: 1
-      }
-    ])
-  }
+    setStones([...stones, {
+      stone_type: '',
+      cut: 'Redonda',
+      quantity: 1,
+    }]);
+  };
 
   const removeStone = (index: number) => {
-    setStones(stones.filter((_, i) => i !== index))
-  }
+    setStones(stones.filter((_, i) => i !== index));
+  };
 
   const handleStoneChange = (index: number, updatedStone: Stone) => {
-    const updatedStones = [...stones]
-    updatedStones[index] = updatedStone
-    setStones(updatedStones)
-  }
+    const updatedStones = [...stones];
+    updatedStones[index] = updatedStone;
+    setStones(updatedStones);
+  };
 
   return (
     <div className={formContainer}>
       <h2 className={formTitle}>Cadastrar Nova Joia</h2>
-
+      
       <form className="space-y-6" onSubmit={handleSubmit}>
         {/* Image Upload Section */}
         <div className={imageUploadContainer}>
-          <label className={inputLabel}>Imagem da Joia</label>
+          <label className={inputLabel}>
+            Imagem da Joia
+          </label>
           <div className="mt-1 flex items-center space-x-4">
             {imagePreviewUrl && (
               <div className={imagePreview}>
@@ -229,8 +227,8 @@ export default function JewelryForm() {
               <option value="pendant">Pingente</option>
               <option value="earring">Brinco</option>
               <option value="necklace">Colar</option>
-              <option value="bracelet">Pulseira</option>
-              <option value="brooch">Broche</option>
+              <option value="bracelet">Pulseira</option>           
+              <option value="brooch">Broche</option>              
               <option value="rivi">Rivieira</option>
             </select>
           </div>
@@ -343,7 +341,11 @@ export default function JewelryForm() {
         <div>
           <div className={stoneHeader}>
             <h3 className={stoneTitle}>Pedras</h3>
-            <button type="button" onClick={addStone} className={addStoneButton}>
+            <button
+              type="button"
+              onClick={addStone}
+              className={addStoneButton}
+            >
               <PlusCircle className="h-4 w-4 mr-2" />
               Adicionar Pedra
             </button>
@@ -356,9 +358,7 @@ export default function JewelryForm() {
                 index={index}
                 stone={stone}
                 onRemove={removeStone}
-                onChange={(updatedStone) =>
-                  handleStoneChange(index, updatedStone)
-                }
+                onChange={(updatedStone) => handleStoneChange(index, updatedStone)}
                 onSave={() => {}} // Placeholder for stone save functionality
               />
             ))}
@@ -387,11 +387,15 @@ export default function JewelryForm() {
           >
             Cancelar
           </button>
-          <button type="submit" disabled={loading} className={submitButton}>
+          <button
+            type="submit"
+            disabled={loading}
+            className={submitButton}
+          >
             {loading ? 'Salvando...' : 'Salvar Joia'}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }
