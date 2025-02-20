@@ -2,9 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { PlusCircle, Upload } from 'lucide-react';
-import ImageUploadComponent from './ImageUploadComponent';
-import ProductDetailsComponent from './ProductDetailsComponent';
-import StoneComponent from './StoneComponent';
 import Pedra from '../pedra/pedra';
 import {
   formContainer,

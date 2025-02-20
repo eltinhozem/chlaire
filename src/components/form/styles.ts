@@ -86,10 +86,10 @@ export const submitButton = `
   cursor-pointer
 
 /* Gradiente normal */
-  bg-[linear-gradient(to_right,_#fad2a4_3%,_#f6cda0_15%,_#ca9674_65%,_#aa6e55_85%,_#965641_95%,_#8f4d3a_99%)]
+  bg-[linear-gradient(to_right,_#fad2a4_50%,_#ca9674_90%)]
 
   /* Para hover, mudamos levemente as paradas */
-  hover:bg-[linear-gradient(to_right,_#f6cda0_0%,_#fad2a4_10%,_#ca9674_40%,_#aa6e55_60%,_#965641_80%,_#8f4d3a_95%)]
+  hover:bg-[linear-gradient(to_right,_#f6cda0_0%,_#fad2a4_10%,_#ca9674_40%,_#aa6e55_90%)]
 
   /* Foco */
   focus:ring-[#ca9674]
@@ -103,7 +103,7 @@ export const addStoneButton = `
   cursor-pointer
 
   /* Gradiente normal */
- bg-[linear-gradient(to_right,_#fad2a4_3%,_#f6cda0_15%,_#ca9674_65%,_#aa6e55_85%,_#965641_95%,_#8f4d3a_99%)]
+ bg-[linear-gradient(to_right,_#fad2a4_50%,_#ca9674_90%)]
 
   /* Para hover, mudamos levemente as paradas */
   hover:bg-[linear-gradient(to_right,_#f6cda0_0%,_#fad2a4_10%,_#ca9674_40%,_#aa6e55_60%,_#965641_80%,_#8f4d3a_95%)]

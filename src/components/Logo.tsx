@@ -16,7 +16,7 @@ const Logo = ({
   const getWidth = () => {
     switch (size) {
       case 'small':
-        return '6rem'
+        return '2rem'
       case 'large':
         return '13rem'
       default:
