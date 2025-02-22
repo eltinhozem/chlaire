@@ -1,6 +1,6 @@
 import React from 'react'
 import { MinusCircle, Save } from 'lucide-react'
-import { classes, usePedraLogic } from './styles' // Importa classes e usePedraLogic
+import { classes, usePedraLogic, SaveButton} from './styles' // Importa classes e usePedraLogic
 
 interface Stone {
   stone_type: string
@@ -105,14 +105,10 @@ const Pedra: React.FC<PedraProps> = ({
       <div className={classes.header}>
         <h4 className={classes.headerTitle}>Grupo Pedra {index + 1}</h4>
         <div className="flex space-x-2">
-          <button
-            type="button"
-            onClick={handleSaveClick}
-            className={classes.saveButton}
-            aria-label="Salvar pedra"
-          >
-            Gravar
-          </button>
+        <SaveButton type="button" onClick={handleSaveClick}>
+        Salvar Pedra 
+    </SaveButton>        
+          
           <button
             type="button"
             onClick={() => onRemove(index)}

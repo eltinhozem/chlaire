@@ -1,5 +1,5 @@
 // styles.ts
-
+import styled from 'styled-components';
 // ---------------------
 // 1. Container com fundo degradê multi-stop
 // ---------------------
@@ -78,39 +78,153 @@ export const cancelButton = `
 `
 
 // Botão “Salvar” com gradiente multi-stop
-export const submitButton = `
+export const SubmitButton = styled.button `
+/* Define a posição relativa do botão, permitindo que elementos internos (como ::before) sejam posicionados em relação a ele */
+position: relative;
 
-  inline-flex justify-center py-2.5 px-8  rounded-lg shadow-sm 
-  text-sm font-medium text-black 
-  transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 
-  cursor-pointer
+/* Centraliza os itens horizontalmente e verticalmente dentro do botão */
+display: inline-flex;
+align-items: center;
+justify-content: center;
 
-/* Gradiente normal */
-  bg-[linear-gradient(to_right,_#fad2a4_50%,_#ca9674_90%)]
+/* Padding interno: controla o espaço entre o conteúdo (texto/ícone) e as bordas do botão */
+padding: 7px 15px; // Altere aqui para diminuir/aumentar o tamanho do botão
 
-  /* Para hover, mudamos levemente as paradas */
-  hover:bg-[linear-gradient(to_right,_#f6cda0_0%,_#fad2a4_10%,_#ca9674_40%,_#aa6e55_90%)]
+/* Tamanho da fonte do texto dentro do botão */
+font-size: 14px; // Altere aqui para mudar o tamanho do texto
 
-  /* Foco */
-  focus:ring-[#ca9674]
+/* Cor do texto */
+color: brown;
 
-`
+/* Gradiente de fundo do botão */
+background: linear-gradient(to right, #fad2a4, #f6cda0, #ca9674);
+
+/* Remove a borda padrão do botão */
+border: none;
+
+/* Define o raio das bordas (quanto maior, mais arredondado será o botão) */
+border-radius: 30px; // Altere aqui para ajustar o quão arredondado é o botão
+
+/* Define o cursor como "pointer" quando o usuário passa o mouse sobre o botão */
+cursor: pointer;
+
+/* Garante que o pseudo-elemento ::before não "vaze" para fora do botão */
+overflow: hidden;
+
+/* Adiciona transições suaves para transformações (ex.: escala) e sombra */
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+/* Sombra inicial do botão */
+box-shadow: 0 10px 30px rgba(250, 210, 164, 0.5); // Altere aqui para ajustar a intensidade da sombra
+
+/* Z-index garante que o botão fique acima de outros elementos */
+z-index: 1;
+
+/* Efeito de luz em movimento */
+&::before {
+  content: ''; // Cria um pseudo-elemento vazio
+  position: absolute; // Posiciona o pseudo-elemento em relação ao botão
+  top: 0; // Alinha o topo do pseudo-elemento com o topo do botão
+  left: -100%; // Inicia o pseudo-elemento fora da área visível do botão
+  width: 100%; // Largura igual à do botão
+  height: 100%; // Altura igual à do botão
+  background: rgba(255, 255, 255, 0.3); // Cor do efeito de luz (brilho)
+  transform: skewX(-45deg); // Distorce o brilho para criar um efeito dinâmico
+  transition: left 0.5s ease; // Animação suave do movimento do brilho
+  z-index: -1; // Coloca o brilho atrás do conteúdo do botão
+}
+
+/* Efeito ao passar o mouse sobre o botão */
+&:hover {
+  transform: scale(1.05); // Aumenta ligeiramente o tamanho do botão
+  box-shadow: 0 15px 40px rgba(250, 210, 164, 0.7); // Intensifica a sombra
+}
+
+/* Movimento do efeito de luz ao passar o mouse */
+&:hover::before {
+  left: 100%; // Move o brilho para fora da área visível do botão
+}
+
+/* Estilo para quando o botão está em foco (ex.: navegando com o teclado) */
+&:focus {
+  outline: none; // Remove o contorno padrão do foco
+  box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5); // Adiciona uma borda destacada para acessibilidade
+}
+`;
 // Botão com gradiente multi-stop
-export const addStoneButton = `
-  inline-flex items-center px-4 py-2 
-  text-sm font-medium rounded-lg text-black shadow-sm 
-  transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 
-  cursor-pointer
+export const AddStoneButton = styled.button `
+  /* Define a posição relativa do botão, permitindo que elementos internos (como ::before) sejam posicionados em relação a ele */
+  position: relative;
 
-  /* Gradiente normal */
- bg-[linear-gradient(to_right,_#fad2a4_50%,_#ca9674_90%)]
+  /* Centraliza os itens horizontalmente e verticalmente dentro do botão */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  /* Para hover, mudamos levemente as paradas */
-  hover:bg-[linear-gradient(to_right,_#f6cda0_0%,_#fad2a4_10%,_#ca9674_40%,_#aa6e55_60%,_#965641_80%,_#8f4d3a_95%)]
+  /* Padding interno: controla o espaço entre o conteúdo (texto/ícone) e as bordas do botão */
+  padding: 7px 15px; // Altere aqui para diminuir/aumentar o tamanho do botão
 
-  /* Foco */
-  focus:ring-[#ca9674]
-`
+  /* Tamanho da fonte do texto dentro do botão */
+  font-size: 14px; // Altere aqui para mudar o tamanho do texto
+
+  /* Cor do texto */
+  color: brown;
+
+  /* Gradiente de fundo do botão */
+  background: linear-gradient(to right, #fad2a4, #f6cda0, #ca9674);
+
+  /* Remove a borda padrão do botão */
+  border: none;
+
+  /* Define o raio das bordas (quanto maior, mais arredondado será o botão) */
+  border-radius: 30px; // Altere aqui para ajustar o quão arredondado é o botão
+
+  /* Define o cursor como "pointer" quando o usuário passa o mouse sobre o botão */
+  cursor: pointer;
+
+  /* Garante que o pseudo-elemento ::before não "vaze" para fora do botão */
+  overflow: hidden;
+
+  /* Adiciona transições suaves para transformações (ex.: escala) e sombra */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  /* Sombra inicial do botão */
+  box-shadow: 0 10px 30px rgba(250, 210, 164, 0.5); // Altere aqui para ajustar a intensidade da sombra
+
+  /* Z-index garante que o botão fique acima de outros elementos */
+  z-index: 1;
+
+  /* Efeito de luz em movimento */
+  &::before {
+    content: ''; // Cria um pseudo-elemento vazio
+    position: absolute; // Posiciona o pseudo-elemento em relação ao botão
+    top: 0; // Alinha o topo do pseudo-elemento com o topo do botão
+    left: -100%; // Inicia o pseudo-elemento fora da área visível do botão
+    width: 100%; // Largura igual à do botão
+    height: 100%; // Altura igual à do botão
+    background: rgba(255, 255, 255, 0.3); // Cor do efeito de luz (brilho)
+    transform: skewX(-45deg); // Distorce o brilho para criar um efeito dinâmico
+    transition: left 0.5s ease; // Animação suave do movimento do brilho
+    z-index: -1; // Coloca o brilho atrás do conteúdo do botão
+  }
+
+  /* Efeito ao passar o mouse sobre o botão */
+  &:hover {
+    transform: scale(1.05); // Aumenta ligeiramente o tamanho do botão
+    box-shadow: 0 15px 40px rgba(250, 210, 164, 0.7); // Intensifica a sombra
+  }
+
+  /* Movimento do efeito de luz ao passar o mouse */
+  &:hover::before {
+    left: 100%; // Move o brilho para fora da área visível do botão
+  }
+
+  /* Estilo para quando o botão está em foco (ex.: navegando com o teclado) */
+  &:focus {
+    outline: none; // Remove o contorno padrão do foco
+    box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5); // Adiciona uma borda destacada para acessibilidade
+  }
+`;
 
 
 export const imageUploadContainer = `

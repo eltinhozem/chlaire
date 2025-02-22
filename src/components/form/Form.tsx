@@ -13,15 +13,16 @@ import {
   textAreaField,
   stoneHeader,
   stoneTitle,
-  addStoneButton,
+  AddStoneButton,
   stoneSection,
   actionButtonsContainer,
   cancelButton,
-  submitButton,
+  SubmitButton,
   imageUploadContainer,
   imagePreview,
   imageUploadButton,
 } from './styles';
+import { sub } from 'framer-motion/client';
 
 interface JewelryFormData {
   reference_name: string;
@@ -338,14 +339,10 @@ export default function JewelryForm() {
         <div>
           <div className={stoneHeader}>
             <h3 className={stoneTitle}>Pedras</h3>
-            <button
-              type="button"
-              onClick={addStone}
-              className={addStoneButton}
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Adicionar Pedra
-            </button>
+            <AddStoneButton type="button" onClick={addStone}>
+      <PlusCircle className="h-4 w-4 mr-2" />
+      Adicionar Pedra
+    </AddStoneButton>
           </div>
 
           <div className={stoneSection}>
@@ -384,13 +381,10 @@ export default function JewelryForm() {
           >
             Cancelar
           </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={submitButton}
-          >
-            {loading ? 'Salvando...' : 'Salvar Joia'}
-          </button>
+          <SubmitButton type="submit" disabled={loading}
+            className={SubmitButton}  >
+            Salvar Joia
+    </SubmitButton>          
         </div>
       </form>
     </div>

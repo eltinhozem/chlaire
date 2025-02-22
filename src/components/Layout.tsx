@@ -1,6 +1,7 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { PlusCircle } from 'lucide-react'
-import Logo from './Logo'
+import  Logo, { CadastrosJoia }  from './Logo'
+
 
 export default function Layout() {
   const location = useLocation()
@@ -19,15 +20,15 @@ export default function Layout() {
             </Link>
 
             {/* Botão de Cadastro (exibido apenas fora da página de registro) */}
-            {location.pathname !== '/register' && (
-              <Link
-                to="/register"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200"
-              >
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Cadastrar Nova Joia
-              </Link>
-            )}
+      {location.pathname !== '/register' && (
+        <Link to="/register" className="inline-block">
+          <CadastrosJoia type="button" >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Cadastrar Nova Joia
+          </CadastrosJoia>
+        </Link>
+      )}
+
           </div>
         </div>
       </nav>

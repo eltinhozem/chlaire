@@ -1,11 +1,54 @@
-import React from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { translate } from './Styles'; // Importe a função de tradução
+import { supabase } from '../lib/supabase'; // Importe o cliente do Supabase
 
 export default function Info() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const product = location.state?.product
+  const location = useLocation();
+  const navigate = useNavigate();
+  const product = location.state?.product;
 
+  // Estado para controlar a visibilidade do modal de exclusão
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  // Estado para armazenar a senha digitada pelo usuário
+  const [password, setPassword] = useState('');
+  // Estado para exibir mensagens de erro
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Função para abrir o modal de exclusão
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  // Função para fechar o modal de exclusão
+  const handleCloseModal = () => {
+    setShowDeleteModal(false);
+    setPassword('');
+    setErrorMessage('');
+  };
+
+  // Função para confirmar a exclusão
+  const handleConfirmDelete = async () => {
+    if (password === '1020') {
+      try {
+        const { error } = await supabase
+          .from('jewelry')
+          .delete()
+          .eq('id', product.id);
+
+        if (error) throw error;
+
+        alert('Joia excluída com sucesso!');
+        navigate('/search');
+      } catch (error) {
+        alert('Erro ao excluir a joia: ' );
+      }
+    } else {
+      setErrorMessage('Senha incorreta. Tente novamente.');
+    }
+  };
+
+  // Se o produto não for encontrado, exibe uma mensagem
   if (!product) {
     return (
       <div className="p-6">
@@ -19,7 +62,7 @@ export default function Info() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -38,8 +81,8 @@ export default function Info() {
               alt={product.reference_name}
               className="w-full h-auto object-cover rounded-lg shadow-md"
               onError={(e) => {
-                const target = e.target as HTMLImageElement
-                target.src = 'https://via.placeholder.com/300?text=Sem+Imagem'
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://via.placeholder.com/300?text=Sem+Imagem';
               }}
             />
           ) : (
@@ -55,12 +98,12 @@ export default function Info() {
             <h3 className="text-lg font-semibold text-gray-900">Informações</h3>
             <div className="mt-2 space-y-2">
               <p>
-                <span className="font-medium">Nome de Referência:</span>{' '}
+                <span className="font-medium">Referência:</span>{' '}
                 {product.reference_name}
               </p>
               <p>
                 <span className="font-medium">Categoria:</span>{' '}
-                {product.category}
+                {translate('category', product.category)}
               </p>
               {product.weight && (
                 <p>
@@ -70,7 +113,7 @@ export default function Info() {
               {product.finish && (
                 <p>
                   <span className="font-medium">Acabamento:</span>{' '}
-                  {product.finish}
+                  {translate('finish', product.finish)}
                 </p>
               )}
               {product.size && (
@@ -81,13 +124,13 @@ export default function Info() {
               {product.designer && (
                 <p>
                   <span className="font-medium">Designer:</span>{' '}
-                  {product.designer}
+                  {translate('designer', product.designer)}
                 </p>
               )}
               {product.target_audience && (
                 <p>
                   <span className="font-medium">Público-Alvo:</span>{' '}
-                  {product.target_audience}
+                  {translate('target_audience', product.target_audience)}
                 </p>
               )}
               {product.client_name && (
@@ -113,11 +156,11 @@ export default function Info() {
                 </h4>
                 <div className="space-y-1 text-sm">
                   <p>
-                    <span className="font-medium">Tipo:</span>{' '}
-                    {stone.stone_type}
+                    <span className="font-medium">Tipo:</span> {stone.stone_type}
                   </p>
                   <p>
-                    <span className="font-medium">Lapidação:</span> {stone.cut}
+                    <span className="font-medium">Lapidação:</span>{' '}
+                    {translate('cut', stone.cut)}
                   </p>
                   <p>
                     <span className="font-medium">Quantidade:</span>{' '}
@@ -140,7 +183,7 @@ export default function Info() {
                       {[
                         stone.largura && `L: ${stone.largura}mm`,
                         stone.altura && `A: ${stone.altura}mm`,
-                        stone.comprimento && `C: ${stone.comprimento}mm`
+                        stone.comprimento && `C: ${stone.comprimento}mm`,
                       ]
                         .filter(Boolean)
                         .join(' × ')}
@@ -177,9 +220,53 @@ export default function Info() {
           onClick={() => navigate('/register', { state: { product } })}
           className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700"
         >
-          Editar
+          Alterar
+        </button>
+        <button
+          onClick={handleDeleteClick}
+          className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700"
+        >
+          Excluir
         </button>
       </div>
+
+      {/* Modal de Exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Confirmar Exclusão
+            </h3>
+            <p className="text-gray-700 mb-4">
+              Digite a senha <strong>1020</strong> para confirmar a exclusão:
+            </p>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="Digite a senha"
+            />
+            {errorMessage && (
+              <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+            )}
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  )
+  );
 }
