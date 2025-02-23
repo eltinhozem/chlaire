@@ -1,28 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { PlusCircle, Upload } from 'lucide-react';
 import Pedra from '../pedra/pedra';
 import {
-  formContainer,
-  formTitle,
-  formGrid,
-  inputLabel,
-  inputField,
-  selectField,
-  textAreaField,
-  stoneHeader,
-  stoneTitle,
+  FormContainer,
+  FormTitle,
+  FormGrid,
+  InputLabel,
+  InputField,
+  SelectField,
+  TextAreaField,
+  StoneHeader,
+  StoneTitle,
   AddStoneButton,
-  stoneSection,
-  actionButtonsContainer,
-  cancelButton,
+  StoneSection,
+  ActionButton,
   SubmitButton,
-  imageUploadContainer,
-  imagePreview,
-  imageUploadButton,
+  ImageUploadContainer,
+  ImagePreview,
+  ImageUploadButton,
 } from './styles';
-import { sub } from 'framer-motion/client';
 
 interface JewelryFormData {
   reference_name: string;
@@ -51,22 +49,47 @@ interface Stone {
 
 export default function JewelryForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const product = location.state?.product; // Dados da joia passados pelo botão "Alterar"
+
   const [loading, setLoading] = useState(false);
-  const [stones, setStones] = useState<Stone[]>([]);
+  const [stones, setStones] = useState<Stone[]>(product?.stones || []);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(product?.image_url || '');
   const [formData, setFormData] = useState<JewelryFormData>({
-    reference_name: '',
-    category: '',
-    weight: null,
-    finish: '',
-    size: '',
-    designer: '',
-    target_audience: '',
-    client_name: '',
-    observations: '',
-    stones: [],
+    reference_name: product?.reference_name || '',
+    category: product?.category || '',
+    weight: product?.weight || null,
+    finish: product?.finish || '',
+    size: product?.size || '',
+    designer: product?.designer || '',
+    target_audience: product?.target_audience || '',
+    client_name: product?.client_name || '',
+    observations: product?.observations || '',
+    stones: product?.stones || [],
+    image_url: product?.image_url || '',
   });
+
+  // Preenche os campos automaticamente se houver dados da joia
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        reference_name: product.reference_name,
+        category: product.category,
+        weight: product.weight,
+        finish: product.finish,
+        size: product.size,
+        designer: product.designer,
+        target_audience: product.target_audience,
+        client_name: product.client_name,
+        observations: product.observations,
+        stones: product.stones,
+        image_url: product.image_url,
+      });
+      setStones(product.stones || []);
+      setImagePreviewUrl(product.image_url || '');
+    }
+  }, [product]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -110,20 +133,24 @@ export default function JewelryForm() {
         image_url = await uploadImage(imageFile);
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('jewelry')
-        .insert([
+        .upsert([
           {
             ...formData,
             stones,
             image_url,
             user_id: user.id,
           },
-        ]);
+        ])
+        .select();
 
       if (error) throw error;
 
-      navigate('/search');
+      // Redireciona para a página de detalhes da joia após salvar
+      if (data && data[0]) {
+        navigate('/info', { state: { product: data[0] } });
+      }
     } catch (error: any) {
       alert(error.message);
     } finally {
@@ -156,237 +183,195 @@ export default function JewelryForm() {
     updatedStones[index] = updatedStone;
     setStones(updatedStones);
   };
+  
 
   return (
-    <div className={formContainer}>
-      <h2 className={formTitle}>Cadastrar Nova Joia</h2>
-      
-      <form className="space-y-6" onSubmit={handleSubmit}>
-        {/* Image Upload Section */}
-        <div className={imageUploadContainer}>
-          <label className={inputLabel}>
-            Imagem da Joia
-          </label>
-          <div className="mt-1 flex items-center space-x-4">
+    <FormContainer>
+      <FormTitle>{product ? 'Editar Joia' : 'Cadastrar Nova Joia'}</FormTitle>
+      <form onSubmit={handleSubmit}>
+        <ImageUploadContainer>
+          <InputLabel>Imagem da Joia</InputLabel>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             {imagePreviewUrl && (
-              <div className={imagePreview}>
+              <ImagePreview>
                 <img
                   src={imagePreviewUrl}
                   alt="Preview"
-                  className="h-32 w-32 object-cover rounded-lg"
+                  style={{ width: '8rem', height: '8rem', objectFit: 'cover' }}
                 />
-              </div>
+              </ImagePreview>
             )}
-            <label className={imageUploadButton}>
-              <Upload className="h-5 w-5 mr-2" />
+            <ImageUploadButton>
+              <Upload size={20} style={{ marginRight: '0.5rem' }} />
               {imagePreviewUrl ? 'Trocar Imagem' : 'Adicionar Imagem'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="hidden"
-              />
-            </label>
+              <input type="file" accept="image/*" onChange={handleImageChange} />
+            </ImageUploadButton>
           </div>
-        </div>
+        </ImageUploadContainer>
 
-        <div className={formGrid}>
+        <FormGrid>
           <div>
-            <label htmlFor="reference_name" className={inputLabel}>
-              Nome de Referência *
-            </label>
-            <input
+            <InputLabel htmlFor="reference_name">Referência *</InputLabel>
+            <InputField
               type="text"
               id="reference_name"
               name="reference_name"
               value={formData.reference_name}
               onChange={handleChange}
               required
-              className={inputField}
             />
           </div>
 
           <div>
-            <label htmlFor="category" className={inputLabel}>
-              Categoria *
-            </label>
-            <select
+            <InputLabel htmlFor="category">Categoria *</InputLabel>
+            <SelectField
               id="category"
               name="category"
               value={formData.category}
               onChange={handleChange}
               required
-              className={selectField}
             >
-              <option value="">Selecione uma categoria</option>
               <option value="ring">Anel</option>
               <option value="wedding_ring">Aliança</option>
               <option value="meia_alianca">Meia Aliança</option>
               <option value="pendant">Pingente</option>
               <option value="earring">Brinco</option>
               <option value="necklace">Colar</option>
-              <option value="bracelet">Pulseira</option>           
-              <option value="brooch">Broche</option>              
+              <option value="bracelet">Pulseira</option>
+              <option value="brooch">Broche</option>
               <option value="rivi">Rivieira</option>
-            </select>
+            </SelectField>
           </div>
 
           <div>
-            <label htmlFor="weight" className={inputLabel}>
-              Peso (g)
-            </label>
-            <input
+            <InputLabel htmlFor="weight">Peso (g)</InputLabel>
+            <InputField
               type="number"
               id="weight"
               name="weight"
               value={formData.weight || ''}
               onChange={handleChange}
               step="0.01"
-              className={inputField}
             />
           </div>
 
           <div>
-            <label htmlFor="finish" className={inputLabel}>
-              Acabamento
-            </label>
-            <select
+            <InputLabel htmlFor="finish">Acabamento</InputLabel>
+            <SelectField
               id="finish"
               name="finish"
               value={formData.finish}
               onChange={handleChange}
-              className={selectField}
             >
-              <option value="">Selecione um acabamento</option>
+              <option value="">Selecione</option>
               <option value="polished">Polido</option>
               <option value="matte">Fosco</option>
               <option value="textured">Texturizado</option>
               <option value="hammered">Martelado</option>
               <option value="brushed">Escovado</option>
               <option value="antique">Envelhecido</option>
-            </select>
+            </SelectField>
           </div>
 
           <div>
-            <label htmlFor="size" className={inputLabel}>
-              Tamanho
-            </label>
-            <input
+            <InputLabel htmlFor="size">Tamanho</InputLabel>
+            <InputField
               type="text"
               id="size"
               name="size"
               value={formData.size}
               onChange={handleChange}
-              className={inputField}
             />
           </div>
 
           <div>
-            <label htmlFor="designer" className={inputLabel}>
-              Designer
-            </label>
-            <select
+            <InputLabel htmlFor="designer">Designer</InputLabel>
+            <SelectField
               id="designer"
               name="designer"
               value={formData.designer}
               onChange={handleChange}
-              className={selectField}
             >
-              <option value="">Selecione um estilo</option>
+              <option value="">Selecione</option>
               <option value="classic">Clássico</option>
               <option value="modern">Moderno</option>
               <option value="vintage">Vintage</option>
               <option value="contemporary">Contemporâneo</option>
               <option value="personalizado">Personalizado</option>
               <option value="minimalist">Minimalista</option>
-            </select>
+            </SelectField>
           </div>
 
           <div>
-            <label htmlFor="target_audience" className={inputLabel}>
-              Público-Alvo
-            </label>
-            <select
+            <InputLabel htmlFor="target_audience">Público-Alvo</InputLabel>
+            <SelectField
               id="target_audience"
               name="target_audience"
               value={formData.target_audience}
               onChange={handleChange}
-              className={selectField}
             >
-              <option value="">Selecione o público-alvo</option>
+              <option value="">Selecione</option>
               <option value="female">Feminino</option>
               <option value="male">Masculino</option>
               <option value="children">Infantil</option>
               <option value="unisex">Unissex</option>
-            </select>
+            </SelectField>
           </div>
 
           <div>
-            <label htmlFor="client_name" className={inputLabel}>
-              Nome do Cliente
-            </label>
-            <input
+            <InputLabel htmlFor="client_name">Nome do Cliente</InputLabel>
+            <InputField
               type="text"
               id="client_name"
               name="client_name"
               value={formData.client_name}
               onChange={handleChange}
-              className={inputField}
             />
           </div>
-        </div>
+        </FormGrid>
 
-        <div>
-          <div className={stoneHeader}>
-            <h3 className={stoneTitle}>Pedras</h3>
-            <AddStoneButton type="button" onClick={addStone}>
-      <PlusCircle className="h-4 w-4 mr-2" />
-      Adicionar Pedra
-    </AddStoneButton>
-          </div>
+        <StoneHeader>
+          <StoneTitle>Pedras</StoneTitle>
+          <AddStoneButton type="button" onClick={addStone}>
+            <PlusCircle size={16} style={{ marginRight: '0.5rem' }} />
+            Adicionar Pedra
+          </AddStoneButton>
+        </StoneHeader>
 
-          <div className={stoneSection}>
-            {stones.map((stone, index) => (
-              <Pedra
-                key={index}
-                index={index}
-                stone={stone}
-                onRemove={removeStone}
-                onChange={(updatedStone) => handleStoneChange(index, updatedStone)}
-                onSave={() => {}} // Placeholder for stone save functionality
-              />
-            ))}
-          </div>
-        </div>
+        <StoneSection>
+          {stones.map((stone, index) => (
+            <Pedra
+              key={index}
+              index={index}
+              stone={stone}
+              onRemove={removeStone}
+              onChange={(updatedStone) => handleStoneChange(index, updatedStone)}
+              onSave={() => {}}
+            />
+          ))}
+        </StoneSection>
 
-        <div>
-          <label htmlFor="observations" className={inputLabel}>
-            Observações
-          </label>
-          <textarea
+        <div style={{ marginTop: '2rem', width: '100%' }}>
+          <InputLabel htmlFor="observations">Observações</InputLabel>
+          <TextAreaField
             id="observations"
             name="observations"
             value={formData.observations}
             onChange={handleChange}
             rows={4}
-            className={textAreaField}
+            style={{ width: '100%' }}
           />
         </div>
 
-        <div className={actionButtonsContainer}>
-          <button
-            type="button"
-            onClick={() => navigate('/search')}
-            className={cancelButton}
-          >
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+          <ActionButton type="button" onClick={() => navigate('/search')}>
             Cancelar
-          </button>
-          <SubmitButton type="submit" disabled={loading}
-            className={SubmitButton}  >
-            Salvar Joia
-    </SubmitButton>          
+          </ActionButton>
+          <SubmitButton type="submit" disabled={loading}>
+            {product ? 'Atualizar Joia' : 'Salvar Joia'}
+          </SubmitButton>
         </div>
       </form>
-    </div>
+    </FormContainer>
   );
 }

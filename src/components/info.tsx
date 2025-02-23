@@ -217,11 +217,11 @@ export default function Info() {
           Voltar
         </button>
         <button
-          onClick={() => navigate('/register', { state: { product } })}
-          className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700"
-        >
-          Alterar
-        </button>
+  onClick={() => navigate('/register', { state: { product, stones: product.stones } })}
+  className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700"
+>
+  Alterar
+</button>
         <button
           onClick={handleDeleteClick}
           className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700"

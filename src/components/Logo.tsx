@@ -27,7 +27,7 @@ background: linear-gradient(to right, #fad2a4, #f6cda0, #ca9674);
 border: none;
 
 /* Define o raio das bordas (quanto maior, mais arredondado será o botão) */
-border-radius: 30px; // Altere aqui para ajustar o quão arredondado é o botão
+border-radius: 07px; // Altere aqui para ajustar o quão arredondado é o botão
 
 /* Define o cursor como "pointer" quando o usuário passa o mouse sobre o botão */
 cursor: pointer;
