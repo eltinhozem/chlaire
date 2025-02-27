@@ -23,6 +23,7 @@ import {
 } from './styles';
 
 interface JewelryFormData {
+  id?: string; // Campo id adicionado para identificar a joia
   reference_name: string;
   category: string;
   weight: number | null;
@@ -57,6 +58,7 @@ export default function JewelryForm() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(product?.image_url || '');
   const [formData, setFormData] = useState<JewelryFormData>({
+    id: product?.id || '', // Inicializa o id se estiver presente
     reference_name: product?.reference_name || '',
     category: product?.category || '',
     weight: product?.weight || null,
@@ -74,6 +76,7 @@ export default function JewelryForm() {
   useEffect(() => {
     if (product) {
       setFormData({
+        id: product.id, // Inclui o id no estado
         reference_name: product.reference_name,
         category: product.category,
         weight: product.weight,
@@ -137,7 +140,7 @@ export default function JewelryForm() {
         .from('jewelry')
         .upsert([
           {
-            ...formData,
+            ...formData, // Inclui o id e os demais campos do formData
             stones,
             image_url,
             user_id: user.id,

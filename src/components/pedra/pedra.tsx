@@ -36,8 +36,7 @@ const Pedra: React.FC<PedraProps> = ({
     largura,
     altura,
     comprimento,
-    pts,
-    saved,
+    pts,    
     isViewMode,
     handleTipoChange,
     handleLapidacaoChange,
@@ -48,8 +47,7 @@ const Pedra: React.FC<PedraProps> = ({
     handleComprimentoChange,
     handleAlturaChange,
     handleSave,
-    handleEdit,
-    dimensionsWithUnit,
+    handleEdit,    
   } = usePedraLogic(stone); // Passa a pedra inicial para o hook
 
   const updateStone = () => {
