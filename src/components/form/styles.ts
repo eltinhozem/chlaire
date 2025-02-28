@@ -1,16 +1,16 @@
 import styled from 'styled-components';
 
-// Container principal do formulário
+/* Container principal do formulário */
 export const FormContainer = styled.div`
   max-width: 56rem;
   margin: 0 auto;
   padding: 1rem;
   border-radius: 0.75rem;
-  background: white
+  background: white;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
-// Título do formulário
+/* Título do formulário */
 export const FormTitle = styled.h2`
   font-size: 1.875rem;
   font-weight: bold;
@@ -30,22 +30,28 @@ export const FormTitle = styled.h2`
   text-align: center;
 `;
 
-// Grid do formulário
+/* Grid para a primeira linha: Imagem e Data */
+export const ImageDateGrid = styled.div`
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;  /* 1 coluna em mobile */
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 200px; /* Mantém o layout original em telas maiores */
+  }
+`;
+
+/* Grid para grupos de campos – no mobile 1 coluna, em telas maiores 4 colunas */
 export const FormGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
   gap: 1.5rem;
+  grid-template-columns: 1fr; /* Empilhado no mobile */
   @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  @media (min-width: 1024px) {
     grid-template-columns: repeat(4, 1fr);
   }
 `;
 
-// Label dos campos
+/* Label dos campos */
 export const InputLabel = styled.label`
-
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
@@ -53,7 +59,7 @@ export const InputLabel = styled.label`
   margin-bottom: 0.5rem;
 `;
 
-// Campo de entrada (input, select, textarea)
+/* Campo de entrada (input) */
 export const InputField = styled.input`
   width: 100%;
   padding: 0.5rem;
@@ -71,8 +77,7 @@ export const InputField = styled.input`
 `;
 
 export const SelectField = styled.select`
-  ${InputField}  
-
+  ${InputField}
   resize: vertical;
   min-height: 2.5rem;
   width: 100%;
@@ -83,12 +88,11 @@ export const SelectField = styled.select`
 
 export const TextAreaField = styled.textarea`
   ${InputField}
-
   resize: vertical;
   min-height: 6rem;
 `;
 
-// Seção de pedras
+/* Seção de pedras */
 export const StoneHeader = styled.div`
   display: flex;
   justify-content: space-between;
@@ -120,7 +124,7 @@ export const StoneSection = styled.div`
   gap: 1.5rem;
 `;
 
-// Botão de adicionar pedra
+/* Botão de adicionar pedra */
 export const AddStoneButton = styled.button`
   position: relative;
   display: inline-flex;
@@ -137,7 +141,6 @@ export const AddStoneButton = styled.button`
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 10px 30px rgba(250, 210, 164, 0.5);
   z-index: 1;
-
   &::before {
     content: '';
     position: absolute;
@@ -150,23 +153,20 @@ export const AddStoneButton = styled.button`
     transition: left 0.5s ease;
     z-index: -1;
   }
-
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 15px 40px rgba(250, 210, 164, 0.7);
   }
-
   &:hover::before {
     left: 100%;
   }
-
   &:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5);
   }
 `;
 
-// Botão de ação (Cancelar e Salvar)
+/* Botão de ação (Cancelar e Salvar) */
 export const ActionButton = styled.button`
   padding: 0.5rem 1rem;
   border: 1px solid #d1d5db;
@@ -177,7 +177,6 @@ export const ActionButton = styled.button`
   background-color: white;
   cursor: pointer;
   transition: background-color 0.2s;
-
   &:hover {
     background-color: #f3f4f6;
   }
@@ -199,7 +198,6 @@ export const SubmitButton = styled(ActionButton)`
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 10px 30px rgba(250, 210, 164, 0.5);
   z-index: 1;
-
   &::before {
     content: '';
     position: absolute;
@@ -212,23 +210,20 @@ export const SubmitButton = styled(ActionButton)`
     transition: left 0.5s ease;
     z-index: -1;
   }
-
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 15px 40px rgba(250, 210, 164, 0.7);
   }
-
   &:hover::before {
     left: 100%;
   }
-
   &:focus {
     outline: none;
     box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5);
   }
 `;
 
-// Container de upload de imagem
+/* Container de upload de imagem */
 export const ImageUploadContainer = styled.div`
   margin-bottom: 2rem;
 `;
@@ -252,11 +247,9 @@ export const ImageUploadButton = styled.label`
   background-color: white;
   cursor: pointer;
   transition: background-color 0.2s;
-
   &:hover {
     background-color: #f3f4f6;
   }
-
   input {
     display: none;
   }
