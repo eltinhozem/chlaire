@@ -174,57 +174,57 @@ export default function Info() {
       </div>
 
       {product.stones && product.stones.length > 0 && (
-        <InfoSection>
-          <h3 className="text-lg font-semibold">Pedras</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {product.stones.map((stone: any, index: number) => (
-              <div
-                key={index}
-                className="p-4 rounded-lg"
-                style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-              >
-                <h4 className="font-medium">Pedra {index + 1}</h4>
-                <div className="space-y-1 text-sm">
-                  <InfoText>
-                    <InfoLabel>Tipo:</InfoLabel> {stone.stone_type}
-                  </InfoText>
-                  <InfoText>
-                    <InfoLabel>Lapidação:</InfoLabel>{' '}
-                    {translate('cut', stone.cut)}
-                  </InfoText>
-                  {stone.quantity && (
-                    <InfoText>
-                      <InfoLabel>Quantidade:</InfoLabel> {stone.quantity}
-                    </InfoText>
-                  )}
-                  {stone.quilates && (
-                    <InfoText>
-                      <InfoLabel>Quilates:</InfoLabel> {stone.quilates}
-                    </InfoText>
-                  )}
-                  {stone.pts && (
-                    <InfoText>
-                      <InfoLabel>PTS:</InfoLabel> {stone.pts}
-                    </InfoText>
-                  )}
-                  {(stone.largura || stone.altura || stone.comprimento) && (
-                    <InfoText>
-                      <InfoLabel>Dimensões:</InfoLabel>{' '}
-                      {[
-                        stone.largura && `L: ${stone.largura}mm`,
-                        stone.altura && `A: ${stone.altura}mm`,
-                        stone.comprimento && `C: ${stone.comprimento}mm`
-                      ]
-                        .filter(Boolean)
-                        .join(' × ')}
-                    </InfoText>
-                  )}
-                </div>
-              </div>
-            ))}
+  <InfoSection>
+    <h3 className="text-lg font-semibold">Pedras</h3>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {product.stones.map((stone: any, index: number) => (
+        <div
+          key={index}
+          className="p-4 rounded-lg"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+        >
+          <h4 className="font-medium">Pedra {index + 1}</h4>
+          <div className="space-y-1 text-sm">
+            <InfoText>
+              <InfoLabel>Tipo:</InfoLabel> {stone.stone_type}
+            </InfoText>
+            <InfoText>
+              <InfoLabel>Lapidação:</InfoLabel> {stone.cut}
+            </InfoText>
+            {stone.quantity && (
+              <InfoText>
+                <InfoLabel>Quantidade:</InfoLabel> {stone.quantity}
+              </InfoText>
+            )}
+            {stone.quilates && (
+              <InfoText>
+                <InfoLabel>Quilates:</InfoLabel> {stone.quilates}
+              </InfoText>
+            )}
+            {stone.pts && (
+              <InfoText>
+                <InfoLabel>PTS:</InfoLabel> {stone.pts}
+              </InfoText>
+            )}
+            {(stone.largura || stone.comprimento ||stone.altura ) && (
+              <InfoText>
+                <InfoLabel>Dimensões:</InfoLabel>{' '}
+                {[
+                  stone.largura && `L: ${stone.largura}`,                  
+                  stone.comprimento && `C: ${stone.comprimento}`,
+                  stone.altura && `A: ${stone.altura}     mm`,
+                ]
+                  .filter(Boolean)
+                  .join(' × ')}
+              </InfoText>
+            )}
           </div>
-        </InfoSection>
-      )}
+        </div>
+      ))}
+    </div>
+  </InfoSection>
+)}
+      
 
       {product.observations && (
         <InfoSection>

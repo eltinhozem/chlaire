@@ -45,7 +45,7 @@ export const SearchIconWrapper = styled.div`
   position: absolute;
   inset-y: 0;
   left: 0;
-  padding-left: 0.75rem;
+  padding-left: 0.50rem;
   display: flex;
   align-items: center;
   pointer-events: none;
