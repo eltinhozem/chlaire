@@ -1,33 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MinusCircle } from 'lucide-react';
-import { classes, usePedraLogic, SaveButton, EditButton } from './styles';
+import { Stone, PedraProps } from './types';
+import { usePedraLogic } from './usePedraLogic';
+import {
+  StoneContainer,
+  StoneHeader,
+  StoneTitle,
+  RemoveButton,
+  GridMain,
+  Label,
+  Input,
+  Select,
+  ViewMode,
+  ViewText,
+  EditButton,
+  SaveButton,
+} from './styles';
 
-interface Stone {
-  stone_type: string;
-  cut: string;
-  quantity: number;
-  quilates?: number;
-  pts?: number;
-  largura?: string;
-  altura?: string;
-  comprimento?: string;
-}
-
-interface PedraProps {
-  index: number;
-  stone: Stone;
-  onRemove: (index: number) => void;
-  onChange: (updatedStone: Stone) => void;
-  onSave: (updatedStone: Stone) => void;
-}
-
-const Pedra: React.FC<PedraProps> = ({
-  index,
-  stone,
-  onRemove,
-  onChange,
-  onSave,
-}) => {
+const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave }) => {
   const {
     tipo,
     lapidacao,
@@ -36,7 +26,8 @@ const Pedra: React.FC<PedraProps> = ({
     largura,
     altura,
     comprimento,
-    pts,    
+    pts,
+  //  tipo_cravacao,
     isViewMode,
     handleTipoChange,
     handleLapidacaoChange,
@@ -46,9 +37,18 @@ const Pedra: React.FC<PedraProps> = ({
     handleLarguraChange,
     handleComprimentoChange,
     handleAlturaChange,
+   // handleTipoCravacaoChange,
     handleSave,
-    handleEdit,    
-  } = usePedraLogic(stone); // Passa a pedra inicial para o hook
+    handleEdit,
+  } = usePedraLogic(stone);
+
+  const tiposDePedra = [
+    'Diamante', 'Safira', 'Rubi', 'Esmeralda', 'Topázio', 'Ametista', 'Turmalina', 'Opala', 'Pérola', 'Granada',
+    'Água-marinha', 'Citrino', 'Alexandrita', 'Tanzanita', 'Lápis-lazúli', 'Quartzo Rosa', 'Pedra da Lua', 'Malaquita',
+    'Ônix', 'Coral', 'Zircônia', 'Zircão',
+  ];
+
+  //const tiposDeCravacao = ['Garavé', 'Micro-Pavê', 'Pavê', 'Grife', 'Engaste', 'Cana', 'Outro'];
 
   const updateStone = () => {
     const updatedStone: Stone = {
@@ -60,51 +60,27 @@ const Pedra: React.FC<PedraProps> = ({
       largura: largura || undefined,
       altura: altura || undefined,
       comprimento: comprimento || undefined,
+     // tipo_cravacao: tipo_cravacao || undefined,
     };
-    onChange(updatedStone); // Atualiza a pedra no componente pai
+    onChange(updatedStone);
     return updatedStone;
   };
 
   const handleSaveClick = () => {
     const updatedStone = updateStone();
     handleSave();
-    onSave(updatedStone); // Notifica o componente pai que a pedra foi salva
+    onSave(updatedStone);
   };
 
   const handleEditClick = () => {
-    handleEdit(); // Alternar para o modo de edição
+    handleEdit();
   };
 
-  const tiposDePedra = [
-    'Diamante',
-    'Safira',
-    'Rubi',
-    'Esmeralda',
-    'Topázio',
-    'Ametista',
-    'Turmalina',
-    'Opala',
-    'Pérola',
-    'Granada',
-    'Água-marinha',
-    'Citrino',
-    'Alexandrita',
-    'Tanzanita',
-    'Lápis-lazúli',
-    'Quartzo Rosa',
-    'Pedra da Lua',
-    'Malaquita',
-    'Ônix',
-    'Coral',
-    'Zircônia',
-    'Zircão',
-  ];
-
   return (
-    <div className={classes.container}>
-      <div className={classes.header}>
-        <h4 className={classes.headerTitle}>Grupo Pedra {index + 1}</h4>
-        <div className="flex space-x-2">
+    <StoneContainer>
+      <StoneHeader>
+        <StoneTitle>Grupo Pedra {index + 1}</StoneTitle>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           {isViewMode ? (
             <EditButton type="button" onClick={handleEditClick}>
               Editar
@@ -114,96 +90,59 @@ const Pedra: React.FC<PedraProps> = ({
               Salvar pedra
             </SaveButton>
           )}
-          <button
-            type="button"
-            onClick={() => onRemove(index)}
-            className={classes.removeButton}
-            aria-label="Remover pedra"
-          >
-            <MinusCircle className="h-5 w-5" />
-          </button>
+          <RemoveButton type="button" onClick={() => onRemove(index)}>
+            <MinusCircle size={20} />
+          </RemoveButton>
         </div>
-      </div>
+      </StoneHeader>
 
       {isViewMode ? (
-        // Modo de visualização
-        <div className={classes.viewMode}>
-          <div className={classes.gridMain}>
-            <div>
-              <p>
-                <span className={classes.label}>Tipo:</span> {tipo}
-              </p>
-            </div>
-            <div>
-              <p>
-                <span className={classes.label}>Lapidação:</span> {lapidacao}
-              </p>
-            </div>
-            <div>
-              <p>
-                <span className={classes.label}>Largura:</span> {largura} mm
-              </p>
-            </div>
-          </div>
-          <div className={classes.gridMain}>
-            <div>
-              <p>
-                <span className={classes.label}>Quantidade:</span> {quantidade}
-              </p>
-            </div>
-            <div>
-              <p>
-                <span className={classes.label}>Quilates:</span> {quilates}
-              </p>
-            </div>
-            <div>
-              <p>
-                <span className={classes.label}>Comprimento:</span> {comprimento} mm
-              </p>
-            </div>
-          </div>
-          <div className={classes.gridPTS}>
-            <div>
-              <p>
-                <span className={classes.label}>PTS:</span> {pts}
-              </p>
-            </div>
-            <div>
-              <p>
-                <span className={classes.label}>Altura:</span> {altura} mm
-              </p>
-            </div>
-          </div>
-        </div>
+        <ViewMode>
+          <GridMain>
+            <ViewText>
+              <Label>Tipo:</Label> {tipo}
+            </ViewText>
+            <ViewText>
+              <Label>Lapidação:</Label> {lapidacao}
+            </ViewText>
+            <ViewText>
+              <Label>Quantidade:</Label> {quantidade}
+            </ViewText>
+            <ViewText>
+              <Label>Quilates:</Label> {quilates}
+            </ViewText>
+          </GridMain>
+          <GridMain>
+            <ViewText>
+              <Label>PTS:</Label> {pts}
+            </ViewText>
+            <ViewText>
+              <Label>Largura:</Label> {largura} mm
+            </ViewText>            
+            <ViewText>
+              <Label>Comprimento:</Label> {comprimento} mm
+            </ViewText>
+            <ViewText>
+              <Label>Altura:</Label> {altura} mm
+            </ViewText>
+          </GridMain>          
+        </ViewMode>
       ) : (
-        // Modo de edição
         <div>
-          <div className={classes.gridMain}>
+          <GridMain>
             <div>
-              <label className={classes.label}>Tipo *</label>
-              <select
-                name="stone_type"
-                value={tipo}
-                onChange={handleTipoChange}
-                required
-                className={classes.input}
-              >
+              <Label>Tipo *</Label>
+              <Select name="stone_type" value={tipo} onChange={handleTipoChange} required>
                 {tiposDePedra.map((pedra) => (
                   <option key={pedra} value={pedra}>
                     {pedra}
                   </option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
-              <label className={classes.label}>Lapidação *</label>
-              <select
-                name="cut"
-                value={lapidacao}
-                onChange={handleLapidacaoChange}
-                required
-                className={classes.input}
-              >
+              <Label>Lapidação *</Label>
+              <Select name="cut" value={lapidacao} onChange={handleLapidacaoChange} required>
                 <option value="Redonda">Redonda</option>
                 <option value="Quadrada">Quadrada</option>
                 <option value="Oval">Oval</option>
@@ -213,87 +152,68 @@ const Pedra: React.FC<PedraProps> = ({
                 <option value="Princesa">Princesa</option>
                 <option value="Almofada">Esmeralda quadrada</option>
                 <option value="Outra">Outra</option>
-              </select>
+              </Select>
             </div>
             <div>
-              <label className={classes.label}>Largura (mm)</label>
-              <input
-                type="number"
-                name="largura"
-                step="0.1"
-                placeholder="Largura"
-                value={largura}
-                onChange={handleLarguraChange}
-                className={classes.input}
-              />
-            </div>
-          </div>
-          <div className={classes.gridMain}>
-            <div>
-              <label className={classes.label}>Quantidade *</label>
-              <input
+              <Label>Quantidade *</Label>
+              <Input
                 type="number"
                 name="quantity"
                 min="1"
                 value={quantidade}
                 onChange={handleQuantidadeChange}
                 required
-                className={classes.input}
               />
             </div>
             <div>
-              <label className={classes.label}>Quilates</label>
-              <input
+              <Label>Quilates</Label>
+              <Input
                 type="number"
                 name="quilates"
                 step="0.001"
                 value={quilates}
                 onChange={handleQuilatesChange}
-                className={classes.input}
                 readOnly
               />
             </div>
+          </GridMain>
+          <GridMain>
             <div>
-              <label className={classes.label}>Comprimento (mm)</label>
-              <input
+              <Label>PTS</Label>
+              <Input type="number" name="pts" step="0.01" value={pts} onChange={handlePtsChange} />
+            </div>
+            <div>
+              <Label>Largura</Label>
+              <Input
+                type="number"
+                name="largura"
+                step="0.1"
+                placeholder="Largura"
+                value={largura}
+                onChange={handleLarguraChange}
+              />
+            </div>           
+            <div>
+              <Label>Comprimento</Label>
+              <Input
                 type="number"
                 name="comprimento"
                 step="0.1"
                 placeholder="Comprimento"
                 value={comprimento}
                 onChange={handleComprimentoChange}
-                className={classes.input}
-              />
-            </div>
-          </div>
-          <div className={classes.gridPTS}>
-            <div>
-              <label className={classes.label}>PTS</label>
-              <input
-                type="number"
-                name="pts"
-                step="0.01"
-                value={pts}
-                onChange={handlePtsChange}
-                className={classes.input}
               />
             </div>
             <div>
-              <label className={classes.label}>Altura (mm)</label>
-              <input
-                type="number"
-                name="altura"
-                step="0.1"
-                value={altura}
-                onChange={handleAlturaChange}
-                className={classes.input}
-              />
+              <Label>Altura </Label>
+              <Input type="number" name="altura" step="0.1" value={altura} onChange={handleAlturaChange} />
             </div>
-          </div>
+          </GridMain>
+          
         </div>
       )}
-    </div>
+    </StoneContainer>
   );
 };
 
-export default Pedra;
+export default React.memo(Pedra);

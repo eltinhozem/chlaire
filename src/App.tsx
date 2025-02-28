@@ -2,11 +2,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
 import JewelryForm from './components/form/Form'
-import Layout from './components/Layout'
-import Info from './components/info'
+import Layout from './components/layout/Layout'
+import Info from './components/info/info'
 import Login from './components/login/login'
 import JewelrySearch from './components/search/Search'
+import { ThemeProvider } from 'styled-components'
+import { darkTheme, lightTheme } from './components/Styles'
 
+// Rota privada: só permite acesso se houver sessão
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -38,46 +41,54 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route index element={<Login />} />
+  const [theme, setTheme] = useState('light')
 
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Layout />
-            </PrivateRoute>
-          }
-        >
+  // Função para alternar entre o tema claro e o dark
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }
+
+  return (
+    <ThemeProvider theme={theme === 'light' ? lightTheme : darkTheme}>
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<Login />} />
           <Route
-            path="/search"
+            path="/"
             element={
               <PrivateRoute>
-                <JewelrySearch />
+                <Layout toggleTheme={toggleTheme} theme={theme} />
               </PrivateRoute>
             }
-          />
-          <Route
-            path="/register"
-            element={
-              <PrivateRoute>
-                <JewelryForm />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/info"
-            element={
-              <PrivateRoute>
-                <Info />
-              </PrivateRoute>
-            }
-          />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          >
+            <Route
+              path="search"
+              element={
+                <PrivateRoute>
+                  <JewelrySearch />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="register"
+              element={
+                <PrivateRoute>
+                  <JewelryForm />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="info"
+              element={
+                <PrivateRoute>
+                  <Info />
+                </PrivateRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 

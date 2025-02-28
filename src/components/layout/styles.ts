@@ -1,6 +1,6 @@
-import { styled } from 'styled-components'
+import styled from 'styled-components'
 
-export const Loginbutton = styled.button`
+export const CadastrosJoia = styled.button`
   /* Define a posição relativa do botão, permitindo que elementos internos (como ::before) sejam posicionados em relação a ele */
   position: relative;
 
@@ -39,7 +39,9 @@ export const Loginbutton = styled.button`
     box-shadow 0.3s ease;
 
   /* Sombra inicial do botão */
-  box-shadow: 0 10px 30px rgba(250, 210, 164, 0.5); // Altere aqui para ajustar a intensidade da sombra
+   box-shadow: 0 10px 30px
+   ${({ theme }) =>
+        theme.submitButtonFocusColor ||'rgba(250, 210, 164, 0.5)'}; // Altere aqui para ajustar a intensidade da sombra
 
   /* Z-index garante que o botão fique acima de outros elementos */
   z-index: 1;
@@ -61,7 +63,9 @@ export const Loginbutton = styled.button`
   /* Efeito ao passar o mouse sobre o botão */
   &:hover {
     transform: scale(1.05); // Aumenta ligeiramente o tamanho do botão
-    box-shadow: 0 15px 40px rgba(250, 210, 164, 0.7); // Intensifica a sombra
+     box-shadow: 0 0 0 1px
+      ${({ theme }) =>
+        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'}; // Intensifica a sombra
   }
 
   /* Movimento do efeito de luz ao passar o mouse */
@@ -72,6 +76,49 @@ export const Loginbutton = styled.button`
   /* Estilo para quando o botão está em foco (ex.: navegando com o teclado) */
   &:focus {
     outline: none; // Remove o contorno padrão do foco
-    box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5); // Adiciona uma borda destacada para acessibilidade
+     box-shadow: 0 0 0 1px
+      ${({ theme }) =>
+        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'}; // Adiciona uma borda destacada para acessibilidade
   }
+`
+// Styled components para o layout
+export const LayoutContainer = styled.div`
+  min-height: 100vh;
+  background-color: ${({ theme }) => theme.background};
+  display: flex;
+  flex-direction: column;
+`
+
+export const Navbar = styled.nav`
+  background-color: ${({ theme }) => theme.headerBackground || '#ffffff'};
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+`
+
+export const Container = styled.div`
+  background: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
+`
+
+export const NavContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0 1rem 1rem; /* padding-left de 1rem */
+
+  @media (min-width: 640px) {
+    padding: 2.25rem 1rem; /* padding-left de 1rem também no desktop */
+  }
+`;
+
+export const Main = styled.main`
+  flex-grow: 1;
+  padding: 1.5rem 0;
+`
+
+export const Footer = styled.footer`
+  background-color: ${({ theme }) => theme.footerBackground || '#ffffff'};
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1rem 0;
+  text-align: center;
+  color: ${({ theme }) => theme.text};
 `

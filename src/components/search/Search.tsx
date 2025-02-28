@@ -3,27 +3,28 @@ import { useNavigate } from 'react-router-dom'
 import { Search as SearchIcon, Filter, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import {
-  searchContainer,
-  searchHeader,
-  searchInputContainer,
-  searchInputWrapper,
-  searchIcon,
-  searchInput,
-  resultsGrid,
-  resultCard,
-  resultImageContainer,
-  resultImage,
-  resultCardContent,
-  resultTitle,
-  resultDescription,
-  filterButton,
-  filterPanel,
-  filterSection,
-  filterLabel,
-  filterSelect,
-  activeFilters,
-  filterTag
+  SearchContainer,
+  SearchHeader,
+  SearchInputContainer,
+  SearchInputWrapper,
+  SearchIconWrapper,
+  SearchInput,
+  ResultsGrid,
+  ResultCard,
+  ResultImageContainer,
+  ResultImage,
+  ResultCardContent,
+  ResultTitle,
+  ResultDescription,
+  FilterButton,
+  FilterPanel,
+  FilterSection,
+  FilterLabel,
+  FilterSelect,
+  ActiveFilters,
+  FilterTag
 } from './styles'
+import { translate } from '../Styles'
 
 interface Jewelry {
   id: string
@@ -160,37 +161,34 @@ export default function JewelrySearch() {
   const activeFilterCount = Object.values(filters).filter(Boolean).length
 
   return (
-    <div className={searchContainer}>
-      <div className={searchHeader}>
-        <div className={searchInputContainer}>
-          <div className={searchInputWrapper}>
-            <SearchIcon className={searchIcon} />
-            <input
+    <SearchContainer>
+      <SearchHeader>
+        <SearchInputContainer>
+          <SearchInputWrapper>
+            <SearchIconWrapper>
+              <SearchIcon />
+            </SearchIconWrapper>
+            <SearchInput
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className={searchInput}
               placeholder="Pesquisar joias..."
             />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={filterButton}
-          >
+          </SearchInputWrapper>
+          <FilterButton onClick={() => setShowFilters(!showFilters)}>
             Filtros
             {activeFilterCount > 0 && <span>{activeFilterCount}</span>}
-          </button>
-        </div>
-      </div>
+          </FilterButton>
+        </SearchInputContainer>
+      </SearchHeader>
 
       {showFilters && (
-        <div className={filterPanel}>
-          <div className={filterSection}>
-            <label className={filterLabel}>Categoria</label>
-            <select
+        <FilterPanel>
+          <FilterSection>
+            <FilterLabel>Categoria</FilterLabel>
+            <FilterSelect
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
-              className={filterSelect}
             >
               <option value="">Todas as categorias</option>
               {getUniqueValues('category').map((category) => (
@@ -198,15 +196,14 @@ export default function JewelrySearch() {
                   {category}
                 </option>
               ))}
-            </select>
-          </div>
+            </FilterSelect>
+          </FilterSection>
 
-          <div className={filterSection}>
-            <label className={filterLabel}>Acabamento</label>
-            <select
+          <FilterSection>
+            <FilterLabel>Acabamento</FilterLabel>
+            <FilterSelect
               value={filters.finish}
               onChange={(e) => handleFilterChange('finish', e.target.value)}
-              className={filterSelect}
             >
               <option value="">Todos os acabamentos</option>
               {getUniqueValues('finish').map((finish) => (
@@ -214,15 +211,14 @@ export default function JewelrySearch() {
                   {finish}
                 </option>
               ))}
-            </select>
-          </div>
+            </FilterSelect>
+          </FilterSection>
 
-          <div className={filterSection}>
-            <label className={filterLabel}>Designer</label>
-            <select
+          <FilterSection>
+            <FilterLabel>Designer</FilterLabel>
+            <FilterSelect
               value={filters.designer}
               onChange={(e) => handleFilterChange('designer', e.target.value)}
-              className={filterSelect}
             >
               <option value="">Todos os designers</option>
               {getUniqueValues('designer').map((designer) => (
@@ -230,17 +226,16 @@ export default function JewelrySearch() {
                   {designer}
                 </option>
               ))}
-            </select>
-          </div>
+            </FilterSelect>
+          </FilterSection>
 
-          <div className={filterSection}>
-            <label className={filterLabel}>Público-Alvo</label>
-            <select
+          <FilterSection>
+            <FilterLabel>Público-Alvo</FilterLabel>
+            <FilterSelect
               value={filters.target_audience}
               onChange={(e) =>
                 handleFilterChange('target_audience', e.target.value)
               }
-              className={filterSelect}
             >
               <option value="">Todos os públicos</option>
               {getUniqueValues('target_audience').map((audience) => (
@@ -248,42 +243,38 @@ export default function JewelrySearch() {
                   {audience}
                 </option>
               ))}
-            </select>
-          </div>
-        </div>
+            </FilterSelect>
+          </FilterSection>
+        </FilterPanel>
       )}
 
       {activeFilterCount > 0 && (
-        <div className={activeFilters}>
+        <ActiveFilters>
           {Object.entries(filters).map(([key, value]) => {
             if (!value) return null
             return (
-              <div key={key} className={filterTag}>
+              <FilterTag key={key}>
                 {value}
                 <X
                   onClick={() => clearFilter(key as keyof Filters)}
                   className="ml-2 cursor-pointer"
                 />
-              </div>
+              </FilterTag>
             )
           })}
           <button onClick={clearAllFilters}>Limpar todos</button>
-        </div>
+        </ActiveFilters>
       )}
 
       {loading ? (
         <div>Carregando...</div>
       ) : (
-        <div className={resultsGrid}>
+        <ResultsGrid>
           {filteredJewelry.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => handleItemClick(item)}
-              className={resultCard}
-            >
-              <div className={resultImageContainer}>
+            <ResultCard key={item.id} onClick={() => handleItemClick(item)}>
+              <ResultImageContainer>
                 {item.image_url ? (
-                  <img
+                  <ResultImage
                     src={item.image_url}
                     alt={item.reference_name}
                     onError={(e) => {
@@ -291,30 +282,29 @@ export default function JewelrySearch() {
                       target.src =
                         'https://via.placeholder.com/300?text=Sem+Imagem'
                     }}
-                    className={resultImage}
                   />
                 ) : (
-                  <img
+                  <ResultImage
                     src="https://via.placeholder.com/300?text=Sem+Imagem"
                     alt="Sem Imagem"
-                    className={resultImage}
                   />
                 )}
-              </div>
-              <div className={resultCardContent}>
-                <div className={resultTitle}>{item.reference_name}</div>
-                <div className={resultDescription}>
-                  {item.category} {item.size ? `- ${item.size}` : ''}
-                </div>
+              </ResultImageContainer>
+              <ResultCardContent>
+                <ResultTitle>{item.reference_name}</ResultTitle>
+                <ResultDescription>
+                  {translate('category', item.category)}{' '}
+                  {item.size ? `- ${item.size}` : ''}
+                </ResultDescription>
                 {item.client_name && <div>Cliente: {item.client_name}</div>}
-              </div>
-            </div>
+              </ResultCardContent>
+            </ResultCard>
           ))}
           {filteredJewelry.length === 0 && !loading && (
             <div>Nenhuma joia encontrada</div>
           )}
-        </div>
+        </ResultsGrid>
       )}
-    </div>
+    </SearchContainer>
   )
 }

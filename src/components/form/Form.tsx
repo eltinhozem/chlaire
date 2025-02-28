@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
-import { PlusCircle, Upload } from 'lucide-react';
-import Pedra from '../pedra/pedra';
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
+import { PlusCircle, Upload } from 'lucide-react'
+import Pedra from '../pedra/pedra'
 import {
   FormContainer,
   FormTitle,
@@ -21,52 +21,56 @@ import {
   ImageUploadContainer,
   ImagePreview,
   ImageUploadButton,
-} from './styles';
+  Container,
+  Campo
+} from './styles'
 
 interface Stone {
-  stone_type: string;
-  cut: string;
-  quantity: number;
-  quilates?: number;
-  pts?: number;
-  largura?: string;
-  altura?: string;
-  comprimento?: string;
+  stone_type: string
+  cut: string
+  quantity: number
+  quilates?: number
+  pts?: number
+  largura?: string
+  altura?: string
+  comprimento?: string
 }
 
 interface JewelryFormData {
-  id?: string;
-  reference_name: string;
-  category: string;
-  target_audience: string;
-  client_name: string;
+  id?: string
+  reference_name: string
+  category: string
+  target_audience: string
+  client_name: string
 
-  size: string;
-  rota: string;
-  stl: string;
-  version: number | null;
+  size: string
+  rota: string
+  stl: string
+  version: number | null
 
-  weight: number | null;
-  designer: string;
-  material: string;
-  finish: string;
+  weight: number | null
+  designer: string
+  material: string
+  finish: string
 
-  date: string;
-  observations: string;
-  descricao: string;
-  stones: Stone[];
-  image_url?: string;
+  date: string
+  observations: string
+  descricao: string
+  stones: Stone[]
+  image_url?: string
 }
 
 export default function JewelryForm() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const product = location.state?.product;
+  const navigate = useNavigate()
+  const location = useLocation()
+  const product = location.state?.product
 
-  const [loading, setLoading] = useState(false);
-  const [stones, setStones] = useState<Stone[]>(product?.stones || []);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(product?.image_url || '');
+  const [loading, setLoading] = useState(false)
+  const [stones, setStones] = useState<Stone[]>(product?.stones || [])
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(
+    product?.image_url || ''
+  )
 
   const [formData, setFormData] = useState<JewelryFormData>({
     id: product?.id,
@@ -89,8 +93,8 @@ export default function JewelryForm() {
     observations: product?.observations || '',
     descricao: product?.descricao || '',
     stones: product?.stones || [],
-    image_url: product?.image_url || '',
-  });
+    image_url: product?.image_url || ''
+  })
 
   useEffect(() => {
     if (product) {
@@ -115,99 +119,101 @@ export default function JewelryForm() {
         observations: product.observations,
         descricao: product.descricao,
         stones: product.stones,
-        image_url: product.image_url,
-      });
-      setStones(product.stones || []);
-      setImagePreviewUrl(product.image_url || '');
+        image_url: product.image_url
+      })
+      setStones(product.stones || [])
+      setImagePreviewUrl(product.image_url || '')
     }
-  }, [product]);
+  }, [product])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      setImagePreviewUrl(URL.createObjectURL(file));
+      const file = e.target.files[0]
+      setImageFile(file)
+      setImagePreviewUrl(URL.createObjectURL(file))
     }
-  };
+  }
 
   const uploadImage = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `${fileName}`;
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random()}.${fileExt}`
+    const filePath = `${fileName}`
 
     const { error: uploadError } = await supabase.storage
       .from('jewelry-images')
-      .upload(filePath, file);
+      .upload(filePath, file)
 
     if (uploadError) {
-      throw uploadError;
+      throw uploadError
     }
 
     const { data } = supabase.storage
       .from('jewelry-images')
-      .getPublicUrl(filePath);
+      .getPublicUrl(filePath)
 
-    return data.publicUrl;
-  };
+    return data.publicUrl
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
 
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { user }
+      } = await supabase.auth.getUser()
 
-      if (!user) throw new Error('Usuário não autenticado');
+      if (!user) throw new Error('Usuário não autenticado')
 
-      let image_url = formData.image_url;
+      let image_url = formData.image_url
       if (imageFile) {
-        image_url = await uploadImage(imageFile);
+        image_url = await uploadImage(imageFile)
       }
 
       const payload: any = {
         ...formData,
         stones,
         image_url,
-        user_id: user.id,
-      };
+        user_id: user.id
+      }
 
       if (!payload.id) {
-        delete payload.id;
+        delete payload.id
       }
 
       const { data, error } = await supabase
         .from('jewelry')
         .upsert([payload])
-        .select();
+        .select()
 
-      if (error) throw error;
+      if (error) throw error
 
       if (data && data[0]) {
-        navigate('/info', { state: { product: data[0] } });
+        navigate('/info', { state: { product: data[0] } })
       }
     } catch (error: any) {
-      alert(error.message);
+      alert(error.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => {
       if (name === 'weight') {
-        return { ...prev, [name]: value ? parseFloat(value) : null };
+        return { ...prev, [name]: value ? parseFloat(value) : null }
       } else if (name === 'version') {
-        return { ...prev, [name]: value ? parseInt(value, 10) : null };
+        return { ...prev, [name]: value ? parseInt(value, 10) : null }
       } else {
-        return { ...prev, [name]: value };
+        return { ...prev, [name]: value }
       }
-    });
-  };
+    })
+  }
 
   const addStone = () => {
     setStones([
@@ -215,20 +221,20 @@ export default function JewelryForm() {
       {
         stone_type: '',
         cut: 'Redonda',
-        quantity: 1,
-      },
-    ]);
-  };
+        quantity: 1
+      }
+    ])
+  }
 
   const removeStone = (index: number) => {
-    setStones(stones.filter((_, i) => i !== index));
-  };
+    setStones(stones.filter((_, i) => i !== index))
+  }
 
   const handleStoneChange = (index: number, updatedStone: Stone) => {
-    const updatedStones = [...stones];
-    updatedStones[index] = updatedStone;
-    setStones(updatedStones);
-  };
+    const updatedStones = [...stones]
+    updatedStones[index] = updatedStone
+    setStones(updatedStones)
+  }
 
   return (
     <FormContainer>
@@ -239,20 +245,30 @@ export default function JewelryForm() {
           <div>
             <InputLabel>Imagem da Joia</InputLabel>
             <ImageUploadContainer>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
+              >
                 {imagePreviewUrl && (
                   <ImagePreview>
                     <img
                       src={imagePreviewUrl}
                       alt="Preview"
-                      style={{ width: '8rem', height: '8rem', objectFit: 'cover' }}
+                      style={{
+                        width: '8rem',
+                        height: '8rem',
+                        objectFit: 'cover'
+                      }}
                     />
                   </ImagePreview>
                 )}
                 <ImageUploadButton>
                   <Upload size={20} style={{ marginRight: '0.5rem' }} />
                   {imagePreviewUrl ? 'Trocar Imagem' : 'Adicionar Imagem'}
-                  <input type="file" accept="image/*" onChange={handleImageChange} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
                 </ImageUploadButton>
               </div>
             </ImageUploadContainer>
@@ -439,9 +455,8 @@ export default function JewelryForm() {
           </div>
         </FormGrid>
 
-        {/* Observações e Descrição (sempre empilhados no mobile) */}
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '2rem' }}>
-          <div style={{ flex: '1 1 100%' }}>
+        <Container>
+          <Campo>
             <InputLabel htmlFor="descricao">Descrição</InputLabel>
             <TextAreaField
               id="descricao"
@@ -449,9 +464,11 @@ export default function JewelryForm() {
               value={formData.descricao || ''}
               onChange={handleChange}
               rows={4}
+              style={{ width: '100%' }}
             />
-          </div>
-          <div style={{ flex: '1 1 100%' }}>
+          </Campo>
+
+          <Campo>
             <InputLabel htmlFor="observations">Observações</InputLabel>
             <TextAreaField
               id="observations"
@@ -459,9 +476,10 @@ export default function JewelryForm() {
               value={formData.observations}
               onChange={handleChange}
               rows={4}
+              style={{ width: '100%' }}
             />
-          </div>
-        </div>
+          </Campo>
+        </Container>
 
         {/* Seção de Pedras */}
         <StoneHeader>
@@ -478,14 +496,24 @@ export default function JewelryForm() {
               index={index}
               stone={stone}
               onRemove={removeStone}
-              onChange={(updatedStone) => handleStoneChange(index, updatedStone)}
+              onChange={(updatedStone) =>
+                handleStoneChange(index, updatedStone)
+              }
               onSave={() => {}}
             />
           ))}
         </StoneSection>
 
         {/* Botões de Ação */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            justifyContent: 'flex-end',
+            gap: '1rem',
+            marginTop: '2rem'
+          }}
+        >
           <ActionButton type="button" onClick={() => navigate('/search')}>
             Cancelar
           </ActionButton>
@@ -495,5 +523,5 @@ export default function JewelryForm() {
         </div>
       </form>
     </FormContainer>
-  );
+  )
 }

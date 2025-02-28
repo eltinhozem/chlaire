@@ -1,31 +1,257 @@
 // styles.ts
-export const searchContainer = 'space-y-4 px-2 sm:px-4 md:px-6'
-export const searchHeader = 'bg-white shadow-sm rounded-lg p-3 sm:p-4 space-y-3'
-export const searchInputContainer = 'flex flex-col sm:flex-row gap-3'
-export const searchInputWrapper = 'flex-1 relative'
-export const searchIcon =
-  'absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'
-export const searchInput =
-  'block w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500'
-export const resultsGrid =
-  'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4'
-export const resultCard =
-  'bg-white border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer flex flex-row sm:flex-col'
-export const resultImageContainer = 'w-24 sm:w-full aspect-square relative'
-export const resultImage = 'absolute inset-0 w-full h-full object-cover'
-export const resultCardContent = 'flex-1 p-2 min-w-0' // Added min-w-0 to prevent text overflow
-export const resultTitle = 'text-sm font-semibold text-gray-900 truncate'
-export const resultDescription = 'text-xs text-gray-500 truncate'
+import styled from 'styled-components'
 
-// Filter styles
-export const filterButton =
-  'w-full sm:w-auto inline-flex justify-center items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-export const filterPanel =
-  'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-3 bg-gray-50 rounded-md'
-export const filterSection = 'space-y-1'
-export const filterLabel = 'block text-sm font-medium text-gray-700'
-export const filterSelect =
-  'mt-1 block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md'
-export const activeFilters = 'flex flex-wrap gap-2 mt-3'
-export const filterTag =
-  'inline-flex items-center px-2 py-1 rounded-full text-xs sm:text-sm bg-indigo-100 text-indigo-700'
+/* Container principal de busca */
+export const SearchContainer = styled.div`
+  background-color: ${({ theme }) => theme.background};
+  color: ${({ theme }) => theme.text};
+  padding: 1rem;
+`
+
+/* Cabeçalho da busca */
+export const SearchHeader = styled.div`
+  background-color: ${({ theme }) => theme.headerBackground || '#ffffff'};
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  @media (min-width: 640px) {
+    padding: 1rem;
+  }
+`
+
+/* Container para o input e botão de filtros */
+export const SearchInputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+  }
+`
+
+/* Wrapper para o input (posicionamento relativo para o ícone) */
+export const SearchInputWrapper = styled.div`
+  flex: 1;
+  position: relative;
+`
+
+/* Ícone de busca posicionado à esquerda */
+export const SearchIconWrapper = styled.div`
+  position: absolute;
+  inset-y: 0;
+  left: 0;
+  padding-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+`
+
+/* Campo de entrada da busca */
+export const SearchInput = styled.input`
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: ${({ theme }) => theme.inputBackground || '#ffffff'};
+  color: ${({ theme }) => theme.inputText || '#000000'};
+
+  &::placeholder {
+    color: #a1a1aa;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #6366f1;
+  }
+`
+
+/* Grid de resultados */
+export const ResultsGrid = styled.div`
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(1, 1fr);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  @media (min-width: 1280px) {
+    grid-template-columns: repeat(6, 1fr);
+  }
+`
+
+/* Cartão de resultado */
+export const ResultCard = styled.div`
+  background-color: ${({ theme }) => theme.cardBackground || '#ffffff'};
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.3s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: row;
+
+  @media (min-width: 640px) {
+    flex-direction: column;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+`
+
+/* Container para a imagem do resultado */
+export const ResultImageContainer = styled.div`
+  width: 6rem;
+  position: relative;
+
+  @media (min-width: 640px) {
+    width: 100%;
+  }
+
+  aspect-ratio: 1;
+`
+
+/* Imagem do resultado */
+export const ResultImage = styled.img`
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`
+
+/* Conteúdo do cartão de resultado */
+export const ResultCardContent = styled.div`
+  flex: 1;
+  padding: 0.5rem;
+  min-width: 0;
+`
+
+/* Título do resultado */
+export const ResultTitle = styled.div`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: ${({ theme }) => theme.titleColor || '#111827'};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+/* Descrição do resultado */
+export const ResultDescription = styled.div`
+  font-size: 0.75rem;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`
+
+/* Botão de filtro */
+export const FilterButton = styled.button`
+  width: 100%;
+
+  @media (min-width: 640px) {
+    width: auto;
+  }
+
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.buttonText || '#374151'};
+  background-color: ${({ theme }) => theme.buttonBackground || '#ffffff'};
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #6366f1;
+  }
+`
+
+/* Painel de filtros */
+export const FilterPanel = styled.div`
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(1, 1fr);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-radius: 0.375rem;
+`
+
+/* Seção de cada filtro */
+export const FilterSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+`
+
+/* Rótulo do filtro */
+export const FilterLabel = styled.label`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+`
+
+/* Select do filtro */
+export const FilterSelect = styled.select`
+  margin-top: 0.25rem;
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #6366f1;
+  }
+`
+
+/* Container para filtros ativos */
+export const ActiveFilters = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+`
+
+/* Etiqueta de filtro ativo */
+export const FilterTag = styled.div`
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  background-color: #e0e7ff;
+  color: #4338ca;
+`
