@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { loginSchema } from '../../lib/validation'
 import Logo from '../Logo'
-
+import { Loginbutton } from  './styles'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -94,13 +94,15 @@ export default function Login() {
             {error && <div className="text-red-600 text-sm">{error}</div>}
 
             <div>
-              <button
-                type="submit"
+              <Loginbutton
+              type="submit"
                 disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
+                >
                 {loading ? 'Entrando...' : 'Entrar'}
-              </button>
+
+              </Loginbutton>
+              
             </div>
           </form>
         </div>

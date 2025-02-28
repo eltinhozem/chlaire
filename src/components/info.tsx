@@ -41,7 +41,7 @@ export default function Info() {
         alert('Joia excluída com sucesso!');
         navigate('/search');
       } catch (error) {
-        alert('Erro ao excluir a joia: ' );
+        alert('Erro ao excluir a joia.');
       }
     } else {
       setErrorMessage('Senha incorreta. Tente novamente.');
@@ -139,6 +139,36 @@ export default function Info() {
                   {product.client_name}
                 </p>
               )}
+              {product.date && (
+                <p>
+                  <span className="font-medium">Data:</span> {product.date}
+                </p>
+              )}
+              {product.rota && (
+                <p>
+                  <span className="font-medium">Rota:</span> {product.rota}
+                </p>
+              )}
+              {product.stl && (
+                <p>
+                  <span className="font-medium">STL:</span> {product.stl}
+                </p>
+              )}
+              {product.version !== null && (
+                <p>
+                  <span className="font-medium">Versão:</span> {product.version}
+                </p>
+              )}
+              {product.material && (
+                <p>
+                  <span className="font-medium">Material:</span> {product.material}
+                </p>
+              )}
+              {product.descricao && (
+                <p>
+                  <span className="font-medium">Descrição:</span> {product.descricao}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -180,10 +210,10 @@ export default function Info() {
                   {(stone.largura || stone.altura || stone.comprimento) && (
                     <p>
                       <span className="font-medium">Dimensões:</span>{' '}
-                      {[
+                      {[ 
                         stone.largura && `L: ${stone.largura}mm`,
                         stone.altura && `A: ${stone.altura}mm`,
-                        stone.comprimento && `C: ${stone.comprimento}mm`,
+                        stone.comprimento && `C: ${stone.comprimento}mm`
                       ]
                         .filter(Boolean)
                         .join(' × ')}
@@ -217,11 +247,13 @@ export default function Info() {
           Voltar
         </button>
         <button
-  onClick={() => navigate('/register', { state: { product, stones: product.stones } })}
-  className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700"
->
-  Alterar
-</button>
+          onClick={() =>
+            navigate('/register', { state: { product, stones: product.stones } })
+          }
+          className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-indigo-700"
+        >
+          Alterar
+        </button>
         <button
           onClick={handleDeleteClick}
           className="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-700"
