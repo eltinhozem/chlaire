@@ -1,5 +1,15 @@
 import styled from 'styled-components';
 
+
+
+
+
+
+export const formatarData = (data: string): string => {
+  if (!data) return ''; // Se a data for nula ou indefinida, retorna uma string vazia
+  const [ano, mes, dia] = data.split('-');
+  return `${dia}-${mes}-${ano}`;
+};
 // Container principal do info
 export const InfoContainer = styled.div`
   max-width: 56rem;

@@ -114,7 +114,7 @@ export const ResultCard = styled.div`
 
 /* Container para a imagem do resultado */
 export const ResultImageContainer = styled.div`
-  width: 6rem;
+  width: 2rem;
   position: relative;
 
   @media (min-width: 640px) {
@@ -131,6 +131,9 @@ export const ResultImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: cover;
+  max-width: 80%; // Reduz o tamanho da imagem para 80% do contêiner
+  max-height: 80%; // Reduz o tamanho da imagem para 80% do contêiner
+  margin: auto; // Centraliza a imagem no contêiner
 `
 
 /* Conteúdo do cartão de resultado */

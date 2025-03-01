@@ -32,6 +32,22 @@ export const FormContainer = styled.div`
 `
 
 /* Título do formulário */
+export const PedraTitle = styled.h2`
+font-size: 1.875rem;  
+  font-weight: bold;
+  
+  color: ${({ theme }) => theme.text || '#333333'};
+    
+  );
+  
+  -webkit-background-clip: text;
+  background-clip: text;
+  
+ 
+  margin-bottom: 2rem;
+  text-align: center;
+`
+
 export const FormTitle = styled.h2`
   font-size: 1.875rem;
   

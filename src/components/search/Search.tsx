@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search as SearchIcon, Filter, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import semImagem from '../logo/semImagem.png'
 import {
   SearchContainer,
   SearchHeader,
@@ -273,23 +274,22 @@ export default function JewelrySearch() {
           {filteredJewelry.map((item) => (
             <ResultCard key={item.id} onClick={() => handleItemClick(item)}>
               <ResultImageContainer>
-                {item.image_url ? (
-                  <ResultImage
-                    src={item.image_url}
-                    alt={item.reference_name}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src =
-                        'https://via.placeholder.com/300?text=Sem+Imagem'
-                    }}
-                  />
-                ) : (
-                  <ResultImage
-                    src="https://via.placeholder.com/300?text=Sem+Imagem"
-                    alt="Sem Imagem"
-                  />
-                )}
-              </ResultImageContainer>
+  {item.image_url ? (
+    <ResultImage
+      src={item.image_url}
+      alt={item.reference_name}
+      onError={(e) => {
+        const target = e.target as HTMLImageElement;
+        target.src = semImagem; // Corrigido: use "=" em vez de "={}"
+      }}
+    />
+  ) : (
+    <ResultImage
+      src={semImagem}
+      alt="Sem Imagem"
+    />
+  )}
+</ResultImageContainer>
               <ResultCardContent>
                 <ResultTitle>{item.reference_name}</ResultTitle>
                 <ResultDescription>

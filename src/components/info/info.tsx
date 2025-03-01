@@ -13,8 +13,9 @@ import {
   ModalInput,
   ModalOverlay,
   RedButton,
+  formatarData
 } from './styles';
-import { FormTitle } from '../form/styles';
+import { FormTitle, PedraTitle } from '../form/styles';
 
 export default function Info() {
   const location = useLocation();
@@ -108,12 +109,13 @@ export default function Info() {
               </InfoText>
               {product.date && (
                 <InfoText>
-                  <InfoLabel>Data:</InfoLabel> {product.date}
+                  <InfoLabel>Data:</InfoLabel> {formatarData(product.date)}
                 </InfoText>
               )}
               {product.target_audience && (
                 <InfoText>
-                  <InfoLabel>Público-Alvo:</InfoLabel> {product.target_audience}
+                  <InfoLabel>Público-Alvo:</InfoLabel>{' '}
+                   {translate('target_audience',product.target_audience)}
                 </InfoText>
               )}
               {product.client_name && (
@@ -175,7 +177,7 @@ export default function Info() {
 
       {product.stones && product.stones.length > 0 && (
   <InfoSection>
-    <h3 className="text-lg font-semibold">Pedras</h3>
+    <PedraTitle >Pedras</PedraTitle>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {product.stones.map((stone: any, index: number) => (
         <div
@@ -183,10 +185,10 @@ export default function Info() {
           className="p-4 rounded-lg"
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
         >
-          <h4 className="font-medium">Pedra {index + 1}</h4>
+          
           <div className="space-y-1 text-sm">
-            <InfoText>
-              <InfoLabel>Tipo:</InfoLabel> {stone.stone_type}
+            <InfoText className="font-medium">
+              <InfoLabel></InfoLabel> {stone.stone_type}
             </InfoText>
             <InfoText>
               <InfoLabel>Lapidação:</InfoLabel> {stone.cut}
@@ -212,7 +214,7 @@ export default function Info() {
                 {[
                   stone.largura && `L: ${stone.largura}`,                  
                   stone.comprimento && `C: ${stone.comprimento}`,
-                  stone.altura && `A: ${stone.altura}     mm`,
+                  stone.altura && `A: ${stone.altura}`,
                 ]
                   .filter(Boolean)
                   .join(' × ')}
