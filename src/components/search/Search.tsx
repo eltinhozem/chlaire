@@ -191,11 +191,13 @@ export default function JewelrySearch() {
               value={filters.category}
               onChange={(e) => handleFilterChange('category', e.target.value)}
             >
-              <option value="">Todas as categorias</option>
-              {getUniqueValues('category').map((category) => (
-                <option key={category} value={String(category)}>
-                  {category}
-                </option>
+              <option value="">
+    {translate('category', 'Todas as categorias')}
+  </option>
+  {getUniqueValues('category').map((category) => (
+    <option key={category} value={String(category)}>
+      {translate('category', category)}
+    </option>
               ))}
             </FilterSelect>
           </FilterSection>
@@ -209,7 +211,7 @@ export default function JewelrySearch() {
               <option value="">Todos os acabamentos</option>
               {getUniqueValues('finish').map((finish) => (
                 <option key={finish} value={String(finish)}>
-                  {finish}
+                 {translate('finish', finish)}
                 </option>
               ))}
             </FilterSelect>
@@ -224,7 +226,7 @@ export default function JewelrySearch() {
               <option value="">Todos os designers</option>
               {getUniqueValues('designer').map((designer) => (
                 <option key={designer} value={String(designer)}>
-                  {designer}
+                 {translate('designer', designer)}
                 </option>
               ))}
             </FilterSelect>
@@ -241,7 +243,7 @@ export default function JewelrySearch() {
               <option value="">Todos os públicos</option>
               {getUniqueValues('target_audience').map((audience) => (
                 <option key={audience} value={String(audience)}>
-                  {audience}
+                  {translate('target_audience', audience)}
                 </option>
               ))}
             </FilterSelect>

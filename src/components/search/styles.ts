@@ -193,6 +193,9 @@ export const FilterButton = styled.button`
 
 /* Painel de filtros */
 export const FilterPanel = styled.div`
+
+  background: ${({ theme }) => theme.formBackground};
+  color: ${({ theme }) => theme.text};  
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(1, 1fr);
@@ -206,12 +209,13 @@ export const FilterPanel = styled.div`
 
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background-color: #f9fafb;
   border-radius: 0.375rem;
+  
 `
 
 /* Seção de cada filtro */
-export const FilterSection = styled.div`
+export const FilterSection = styled.div` 
+
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -219,13 +223,16 @@ export const FilterSection = styled.div`
 
 /* Rótulo do filtro */
 export const FilterLabel = styled.label`
+
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  
 `
 
 /* Select do filtro */
 export const FilterSelect = styled.select`
+ background: ${({ theme }) => theme.formBackground};
+  color: ${({ theme }) => theme.text};
   margin-top: 0.25rem;
   width: 100%;
   padding: 0.5rem;

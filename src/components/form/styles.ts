@@ -342,3 +342,47 @@ export const ImageUploadButton = styled.label`
     display: none;
   }
 `
+// Função para obter o prefixo correto
+export const getCategoryPrefix = (category: string): string => {
+  const map: { [key: string]: string } = {
+    ring: 'AN',
+    wedding_ring: 'AL',
+    meia_alianca: 'MA',
+    pendant: 'PI',
+    earring: 'BR',
+    necklace: 'CO',
+    bracelet: 'PU',
+    brooch: 'BO',
+    rivi: 'RI'
+  }
+  return map[category] || 'XX'
+}
+
+// Função para obter a próxima referência disponível no banco
+export const getNextReference = async (
+  category: string,
+  supabaseClient: any
+): Promise<string> => {
+  const prefix = getCategoryPrefix(category)
+  const { data, error } = await supabaseClient
+    .from('jewelry')
+    .select('reference_name')
+    .ilike('reference_name', `%${prefix}`)
+    .order('reference_name', { ascending: false })
+    .limit(1)
+
+  if (error) {
+    console.error('Erro ao buscar referência:', error)
+    return `001-${prefix}`
+  }
+
+  if (data.length === 0) {
+    return `001-${prefix}`
+  }
+
+  const lastRef = data[0].reference_name
+  const lastNumber = parseInt(lastRef.split('-')[0], 10)
+  const nextNumber = (lastNumber + 1).toString().padStart(3, '0')
+
+  return `${nextNumber}-${prefix}`
+}

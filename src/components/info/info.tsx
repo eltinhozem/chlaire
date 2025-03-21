@@ -212,9 +212,9 @@ export default function Info() {
               <InfoText>
                 <InfoLabel>Dimensões:</InfoLabel>{' '}
                 {[
-                  stone.largura && `L: ${stone.largura}`,                  
-                  stone.comprimento && `C: ${stone.comprimento}`,
-                  stone.altura && `A: ${stone.altura}`,
+                  stone.largura &&     ` ${stone.largura}`,                  
+                  stone.comprimento && ` ${stone.comprimento}`,
+                  stone.altura && ` ${stone.altura}`,
                 ]
                   .filter(Boolean)
                   .join(' × ')}

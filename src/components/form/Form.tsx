@@ -22,7 +22,8 @@ import {
   ImagePreview,
   ImageUploadButton,
   Container,
-  Campo
+  Campo,
+  getNextReference
 } from './styles'
 
 interface Stone {
@@ -198,22 +199,36 @@ export default function JewelryForm() {
     }
   }
 
-  const handleChange = (
+  const handleChange = async (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target
-    setFormData((prev) => {
-      if (name === 'weight') {
-        return { ...prev, [name]: value ? parseFloat(value) : null }
-      } else if (name === 'version') {
-        return { ...prev, [name]: value ? parseInt(value, 10) : null }
-      } else {
-        return { ...prev, [name]: value }
-      }
-    })
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === 'weight'
+          ? value
+            ? parseFloat(value)
+            : null
+          : name === 'version'
+          ? value
+            ? parseInt(value, 10)
+            : null
+          : value
+    }))
+  
+    if (name === 'category' && value) {
+      const newRef = await getNextReference(value, supabase)
+      setFormData((prev) => ({
+        ...prev,
+        reference_name: newRef,
+        category: value
+      }))
+    }
   }
+  
 
   const addStone = () => {
     setStones([
