@@ -96,136 +96,150 @@ export default function Info() {
           )}
         </div>
         {/* Informações Gerais */}
-        <div className="space-y-4">
-          <InfoSection>
-            <h3 className="text-lg font-semibold">Informações</h3>
-            <div className="mt-2 space-y-2">
-              <InfoText>
-                <InfoLabel>Referência:</InfoLabel> {product.reference_name}
-              </InfoText>
-              <InfoText>
-                <InfoLabel>Categoria:</InfoLabel>{' '}
-                {translate('category', product.category)}
-              </InfoText>
-              {product.date && (
-                <InfoText>
-                  <InfoLabel>Data:</InfoLabel> {formatarData(product.date)}
-                </InfoText>
-              )}
-              {product.target_audience && (
-                <InfoText>
-                  <InfoLabel>Público-Alvo:</InfoLabel>{' '}
-                   {translate('target_audience',product.target_audience)}
-                </InfoText>
-              )}
-              {product.client_name && (
-                <InfoText>
-                  <InfoLabel>Nome do Cliente:</InfoLabel> {product.client_name}
-                </InfoText>
-              )}
-              {product.weight && (
-                <InfoText>
-                  <InfoLabel>Peso:</InfoLabel> {product.weight}g
-                </InfoText>
-              )}
-              {product.finish && (
-                <InfoText>
-                  <InfoLabel>Acabamento:</InfoLabel>{' '}
-                  {translate('finish', product.finish)}
-                </InfoText>
-              )}
-              {product.designer && (
-                <InfoText>
-                  <InfoLabel>Designer:</InfoLabel>{' '}
-                  {translate('designer', product.designer)}
-                </InfoText>
-              )}
-              {product.material && (
-                <InfoText>
-                  <InfoLabel>Material:</InfoLabel> {product.material}
-                </InfoText>
-              )}
-              {product.size && (
-                <InfoText>
-                  <InfoLabel>Tamanho:</InfoLabel> {product.size}
-                </InfoText>
-              )}
-              {product.rota && (
-                <InfoText>
-                  <InfoLabel>Rota:</InfoLabel> {product.rota}
-                </InfoText>
-              )}
-              {product.stl && (
-                <InfoText>
-                  <InfoLabel>STL:</InfoLabel> {product.stl}
-                </InfoText>
-              )}
-              {product.version !== null && (
-                <InfoText>
-                  <InfoLabel>Versão:</InfoLabel> {product.version}
-                </InfoText>
-              )}
-              {product.descricao && (
-                <InfoText>
-                  <InfoLabel>Descrição:</InfoLabel> {product.descricao}
-                </InfoText>
-              )}
-            </div>
-          </InfoSection>
-        </div>
+        <table>
+  <tbody>
+    <tr>
+      <td><strong>Referência:</strong></td>
+      <td>{product.reference_name}</td>
+    </tr>
+    <tr>
+      <td><strong>Categoria:</strong></td>
+      <td>{translate('category', product.category)}</td>
+    </tr>
+    {product.date && (
+      <tr>
+        <td><strong>Data:</strong></td>
+        <td>{formatarData(product.date)}</td>
+      </tr>
+    )}
+    {product.target_audience && (
+      <tr>
+        <td><strong>Público-Alvo:</strong></td>
+        <td>{translate('target_audience', product.target_audience)}</td>
+      </tr>
+    )}
+    {product.client_name && (
+      <tr>
+        <td><strong>Nome do Cliente:</strong></td>
+        <td>{product.client_name}</td>
+      </tr>
+    )}
+    {product.weight && (
+      <tr>
+        <td><strong>Peso:</strong></td>
+        <td>{product.weight}g</td>
+      </tr>
+    )}
+    {product.finish && (
+      <tr>
+        <td><strong>Acabamento:</strong></td>
+        <td>{translate('finish', product.finish)}</td>
+      </tr>
+    )}
+    {product.designer && (
+      <tr>
+        <td><strong>Designer:</strong></td>
+        <td>{translate('designer', product.designer)}</td>
+      </tr>
+    )}
+    {product.material && (
+      <tr>
+        <td><strong>Material:</strong></td>
+        <td>{product.material}</td>
+      </tr>
+    )}
+    {product.size && (
+      <tr>
+        <td><strong>Tamanho:</strong></td>
+        <td>{product.size}</td>
+      </tr>
+    )}
+    {product.rota && (
+      <tr>
+        <td><strong>Rota:</strong></td>
+        <td>{product.rota}</td>
+      </tr>
+    )}
+    {product.stl && (
+      <tr>
+        <td><strong>STL:</strong></td>
+        <td>{product.stl}</td>
+      </tr>
+    )}
+    {product.version !== null && (
+      <tr>
+        <td><strong>Versão:</strong></td>
+        <td>{product.version}</td>
+      </tr>
+    )}
+    {product.descricao && (
+      <tr>
+        <td><strong>Descrição:</strong></td>
+        <td>{product.descricao}</td>
+      </tr>
+    )}
+  </tbody>
+</table>
       </div>
 
       {product.stones && product.stones.length > 0 && (
   <InfoSection>
-    <PedraTitle >Pedras</PedraTitle>
+    <PedraTitle>Pedras</PedraTitle>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {product.stones.map((stone: any, index: number) => (
-        <div
+      {product.stones.map((stone: any, index: number) => (
+        <table
           key={index}
-          className="p-4 rounded-lg"
+          className="w-full p-4 rounded-lg"
           style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
         >
-          
-          <div className="space-y-1 text-sm">
-            <InfoText className="font-medium">
-              <InfoLabel></InfoLabel> {stone.stone_type}
-            </InfoText>
-            <InfoText>
-              <InfoLabel>Lapidação:</InfoLabel> {stone.cut}
-            </InfoText>
+          <tbody>
+            <tr>
+              <td className="font-medium"><InfoLabel>Tipo de Pedra:</InfoLabel></td>
+              <td>{stone.stone_type}</td>
+            </tr>
+            <tr>
+              <td><InfoLabel>Lapidação:</InfoLabel></td>
+              <td>{stone.cut}</td>
+            </tr>
             {stone.quantity && (
-              <InfoText>
-                <InfoLabel>Quantidade:</InfoLabel> {stone.quantity}
-              </InfoText>
+              <tr>
+                <td><InfoLabel>Quantidade:</InfoLabel></td>
+                <td>{stone.quantity}</td>
+              </tr>
             )}
             {stone.quilates && (
-              <InfoText>
-                <InfoLabel>Quilates:</InfoLabel> {stone.quilates}
-              </InfoText>
+              <tr>
+                <td><InfoLabel>Quilates:</InfoLabel></td>
+                <td>{stone.quilates}</td>
+              </tr>
             )}
             {stone.pts && (
-              <InfoText>
-                <InfoLabel>PTS:</InfoLabel> {stone.pts}
-              </InfoText>
+              <tr>
+                <td><InfoLabel>PTS:</InfoLabel></td>
+                <td>{stone.pts}</td>
+              </tr>
             )}
-            {(stone.largura || stone.comprimento ||stone.altura ) && (
-              <InfoText>
-                <InfoLabel>Dimensões:</InfoLabel>{' '}
-                {[
-                  stone.largura &&     ` ${stone.largura}`,                  
-                  stone.comprimento && ` ${stone.comprimento}`,
-                  stone.altura && ` ${stone.altura}`,
-                ]
-                  .filter(Boolean)
-                  .join(' × ')}
-              </InfoText>
+            {(stone.largura || stone.comprimento || stone.altura) && (
+              <tr>
+                <td><InfoLabel>Dimensões:</InfoLabel></td>
+                <td>
+                  {[
+                    stone.largura && `${stone.largura}`,
+                    stone.comprimento && `${stone.comprimento}`,
+                    stone.altura && `${stone.altura}`,
+                  ]
+                    .filter(Boolean)
+                    .join(' × ')}
+                </td>
+              </tr>
             )}
-          </div>
-        </div>
+          </tbody>
+        </table>
       ))}
     </div>
   </InfoSection>
 )}
+
       
 
       {product.observations && (
