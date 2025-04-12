@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { translate } from '../Styles'; // Função de tradução
-import { supabase } from '../../lib/supabase'; // Cliente do Supabase
+import { translate } from '../Styles';
+import { supabase } from '../../lib/supabase';
 import {
   ActionButton,
   CustomButton,
@@ -22,11 +22,8 @@ export default function Info() {
   const navigate = useNavigate();
   const product = location.state?.product;
 
-  // Estado para controlar a visibilidade do modal de exclusão
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  // Estado para armazenar a senha digitada pelo usuário
   const [password, setPassword] = useState('');
-  // Estado para exibir mensagens de erro
   const [errorMessage, setErrorMessage] = useState('');
 
   const handleDeleteClick = () => {
@@ -74,7 +71,6 @@ export default function Info() {
     <InfoContainer>
       <FormTitle>Informações da Joia</FormTitle>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Imagem */}
         <div>
           {product.image_url ? (
             <img
@@ -95,152 +91,149 @@ export default function Info() {
             </div>
           )}
         </div>
-        {/* Informações Gerais */}
         <table>
-  <tbody>
-    <tr>
-      <td><strong>Referência:</strong></td>
-      <td>{product.reference_name}</td>
-    </tr>
-    <tr>
-      <td><strong>Categoria:</strong></td>
-      <td>{translate('category', product.category)}</td>
-    </tr>
-    {product.date && (
-      <tr>
-        <td><strong>Data:</strong></td>
-        <td>{formatarData(product.date)}</td>
-      </tr>
-    )}
-    {product.target_audience && (
-      <tr>
-        <td><strong>Público-Alvo:</strong></td>
-        <td>{translate('target_audience', product.target_audience)}</td>
-      </tr>
-    )}
-    {product.client_name && (
-      <tr>
-        <td><strong>Nome do Cliente:</strong></td>
-        <td>{product.client_name}</td>
-      </tr>
-    )}
-    {product.weight && (
-      <tr>
-        <td><strong>Peso:</strong></td>
-        <td>{product.weight}g</td>
-      </tr>
-    )}
-    {product.finish && (
-      <tr>
-        <td><strong>Acabamento:</strong></td>
-        <td>{translate('finish', product.finish)}</td>
-      </tr>
-    )}
-    {product.designer && (
-      <tr>
-        <td><strong>Designer:</strong></td>
-        <td>{translate('designer', product.designer)}</td>
-      </tr>
-    )}
-    {product.material && (
-      <tr>
-        <td><strong>Material:</strong></td>
-        <td>{product.material}</td>
-      </tr>
-    )}
-    {product.size && (
-      <tr>
-        <td><strong>Tamanho:</strong></td>
-        <td>{product.size}</td>
-      </tr>
-    )}
-    {product.rota && (
-      <tr>
-        <td><strong>Rota:</strong></td>
-        <td>{product.rota}</td>
-      </tr>
-    )}
-    {product.stl && (
-      <tr>
-        <td><strong>STL:</strong></td>
-        <td>{product.stl}</td>
-      </tr>
-    )}
-    {product.version !== null && (
-      <tr>
-        <td><strong>Versão:</strong></td>
-        <td>{product.version}</td>
-      </tr>
-    )}
-    {product.descricao && (
-      <tr>
-        <td><strong>Descrição:</strong></td>
-        <td>{product.descricao}</td>
-      </tr>
-    )}
-  </tbody>
-</table>
-      </div>
-
-      {product.stones && product.stones.length > 0 && (
-  <InfoSection>
-    <PedraTitle>Pedras</PedraTitle>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {product.stones.map((stone: any, index: number) => (
-        <table
-          key={index}
-          className="w-full p-4 rounded-lg"
-          style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-        >
           <tbody>
             <tr>
-              <td className="font-medium"><InfoLabel>Tipo de Pedra:</InfoLabel></td>
-              <td>{stone.stone_type}</td>
+              <td><strong>Referência:</strong></td>
+              <td>{product.reference_name}</td>
             </tr>
             <tr>
-              <td><InfoLabel>Lapidação:</InfoLabel></td>
-              <td>{stone.cut}</td>
+              <td><strong>Categoria:</strong></td>
+              <td>{translate('category', product.category)}</td>
             </tr>
-            {stone.quantity && (
+            {product.date && (
               <tr>
-                <td><InfoLabel>Quantidade:</InfoLabel></td>
-                <td>{stone.quantity}</td>
+                <td><strong>Data:</strong></td>
+                <td>{formatarData(product.date)}</td>
               </tr>
             )}
-            {stone.quilates && (
+            {product.target_audience && (
               <tr>
-                <td><InfoLabel>Quilates:</InfoLabel></td>
-                <td>{stone.quilates}</td>
+                <td><strong>Público-Alvo:</strong></td>
+                <td>{translate('target_audience', product.target_audience)}</td>
               </tr>
             )}
-            {stone.pts && (
+            {product.client_name && (
               <tr>
-                <td><InfoLabel>PTS:</InfoLabel></td>
-                <td>{stone.pts}</td>
+                <td><strong>Nome do Cliente:</strong></td>
+                <td>{product.client_name}</td>
               </tr>
             )}
-            {(stone.largura || stone.comprimento || stone.altura) && (
+            {product.weight && (
               <tr>
-                <td><InfoLabel>Dimensões:</InfoLabel></td>
-                <td>
-                  {[
-                    stone.largura && `${stone.largura}`,
-                    stone.comprimento && `${stone.comprimento}`,
-                    stone.altura && `${stone.altura}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' × ')}
-                </td>
+                <td><strong>Peso:</strong></td>
+                <td>{product.weight}g</td>
+              </tr>
+            )}
+            {product.finish && (
+              <tr>
+                <td><strong>Acabamento:</strong></td>
+                <td>{translate('finish', product.finish)}</td>
+              </tr>
+            )}
+            {product.designer && (
+              <tr>
+                <td><strong>Designer:</strong></td>
+                <td>{translate('designer', product.designer)}</td>
+              </tr>
+            )}
+            {product.material && (
+              <tr>
+                <td><strong>Material:</strong></td>
+                <td>{product.material}</td>
+              </tr>
+            )}
+            {product.size && (
+              <tr>
+                <td><strong>Tamanho:</strong></td>
+                <td>{product.size}</td>
+              </tr>
+            )}
+            {product.rota && (
+              <tr>
+                <td><strong>Rota:</strong></td>
+                <td>{product.rota}</td>
+              </tr>
+            )}
+            {product.stl && (
+              <tr>
+                <td><strong>STL:</strong></td>
+                <td>{product.stl}</td>
+              </tr>
+            )}
+            {product.version !== null && (
+              <tr>
+                <td><strong>Versão:</strong></td>
+                <td>{product.version}</td>
+              </tr>
+            )}
+            {product.descricao && (
+              <tr>
+                <td><strong>Descrição:</strong></td>
+                <td>{product.descricao}</td>
               </tr>
             )}
           </tbody>
         </table>
-      ))}
-    </div>
-  </InfoSection>
-)}
+      </div>
 
-      
+      {product.stones && product.stones.length > 0 && (
+        <InfoSection>
+          <PedraTitle>Pedras</PedraTitle>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {product.stones.map((stone: any, index: number) => (
+              <table
+                key={index}
+                className="w-full p-4 rounded-lg"
+                style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+              >
+                <tbody>
+                  <tr>
+                    <td className="font-medium"><InfoLabel>Tipo de Pedra:</InfoLabel></td>
+                    <td>{stone.stone_type}</td>
+                  </tr>
+                  <tr>
+                    <td><InfoLabel>Lapidação:</InfoLabel></td>
+                    <td>{stone.cut}</td>
+                  </tr>
+                  {stone.quantity && (
+                    <tr>
+                      <td><InfoLabel>Quantidade:</InfoLabel></td>
+                      <td>{stone.quantity}</td>
+                    </tr>
+                  )}
+                  {stone.quilates && (
+                    <tr>
+                      <td><InfoLabel>Quilates:</InfoLabel></td>
+                      <td>{stone.quilates}</td>
+                    </tr>
+                  )}
+                  {stone.pts && (
+                    <tr>
+                      <td><InfoLabel>PTS:</InfoLabel></td>
+                      <td>{stone.pts}</td>
+                    </tr>
+                  )}
+                  {(stone.largura || stone.comprimento || stone.altura) && (
+                    <tr>
+                      <td><InfoLabel>Dimensões:</InfoLabel></td>
+                      <td>
+                        {[
+                          stone.largura && `${stone.largura}`,
+                          stone.comprimento && `${stone.comprimento}`,
+                          stone.altura && `${stone.altura}`,
+                        ]
+                          .filter(Boolean)
+                          .join(' × ')}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            ))}
+          </div>
+        </InfoSection>
+      )}
 
       {product.observations && (
         <InfoSection>
