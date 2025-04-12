@@ -24,6 +24,7 @@ export default function Login() {
     setLocked(!loginStatus.allowed)
     
     if (!loginStatus.allowed && loginStatus.lastAttempt) {
+      // Use setLastAttempt to update the state with the last attempt timestamp
       setLastAttempt(new Date(loginStatus.lastAttempt))
       
       // Set up countdown timer for lockout
