@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, isLoginAllowed, trackLoginAttempt } from '../../lib/supabase'
@@ -51,7 +50,6 @@ export default function Login() {
       if (error) throw error
 
       // Reset login attempts on successful login
-      loginAttempts = 0
       navigate('/search')
     } catch (err: any) {
       setError(err.message || 'Login error')

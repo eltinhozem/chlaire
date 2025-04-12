@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, Filter, X } from 'lucide-react'
+import { Search as SearchIcon, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import semImagem from '../logo/semImagem.png'
 import {

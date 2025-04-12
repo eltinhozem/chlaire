@@ -15,7 +15,7 @@ const options = {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'sb-session', // Custom storage key
-    flowType: 'pkce', // More secure authentication flow
+    flowType: 'pkce' as const, // More secure authentication flow with correct type
   },
   global: {
     headers: {
@@ -90,7 +90,7 @@ export const checkSecureConnection = async () => {
   
   try {
     // Test connection with timeout
-    const result = await Promise.race([
+    await Promise.race([
       supabase.auth.getSession(),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Connection timeout')), 10000)
