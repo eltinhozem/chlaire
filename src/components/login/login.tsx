@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, isLoginAllowed, trackLoginAttempt, resetLoginAttempts } from '../../lib/supabase'
@@ -19,15 +18,12 @@ export default function Login() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check if login is allowed
     const loginStatus = isLoginAllowed()
     setLocked(!loginStatus.allowed)
     
     if (!loginStatus.allowed && loginStatus.lastAttempt) {
-      // Update the last attempt timestamp state
       setLastAttempt(new Date(loginStatus.lastAttempt))
       
-      // Set up countdown timer for lockout
       const remainingTime = 15 * 60 - Math.floor((Date.now() - loginStatus.lastAttempt) / 1000)
       if (remainingTime > 0) {
         setLockoutTimer(remainingTime)
@@ -48,7 +44,6 @@ export default function Login() {
       }
     }
 
-    // Check if user is already logged in
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
       if (data.session) navigate('/search')
@@ -74,23 +69,25 @@ export default function Login() {
       setLocked(true)
       setLastAttempt(new Date()) // Use lastAttempt state when setting a new attempt
       setLockoutTimer(15 * 60)
-      setError('Muitas tentativas de login. Sua conta foi bloqueada por 15 minutos.')
+      
+      const formattedLastAttempt = lastAttempt 
+        ? `Última tentativa: ${lastAttempt.toLocaleString()}` 
+        : ''
+      
+      setError(`Muitas tentativas de login. Sua conta foi bloqueada por 15 minutos. ${formattedLastAttempt}`.trim())
       return
     }
 
     setLoading(true)
 
     try {
-      // Validate form data
       const validationResult = loginSchema.safeParse({ email, password })
       
       if (!validationResult.success) {
-        // Format validation errors for display
         const formattedErrors = validationResult.error.errors.map(err => err.message).join(', ')
         throw new Error(formattedErrors)
       }
 
-      // Sanitize input
       const sanitizedEmail = email.trim().toLowerCase()
       
       const { error } = await supabase.auth.signInWithPassword({
@@ -106,7 +103,6 @@ export default function Login() {
         }
       }
 
-      // Reset login attempts on successful login
       resetLoginAttempts()
       navigate('/search')
     } catch (err: any) {
