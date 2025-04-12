@@ -3,9 +3,17 @@ import { z } from 'zod'
 
 export const loginSchema = z.object({
   email: z.string()
-    .email('Invalid email')
-    .min(1, 'Email is required')
-    .max(255, 'Email is too long'),
+    .email('Email inválido')
+    .min(1, 'Email é obrigatório')
+    .max(255, 'Email muito longo'),
+  password: z
+    .string()
+    .min(6, 'A senha deve ter pelo menos 6 caracteres')
+    .max(50, 'A senha não pode exceder 50 caracteres')
+})
+
+// Schema original com validação complexa (mantendo apenas para referência)
+export const complexPasswordSchema = z.object({
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
