@@ -1,35 +1,60 @@
-import { useState } from 'react'
+
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { supabase, isLoginAllowed, trackLoginAttempt } from '../../lib/supabase'
 import { loginSchema } from '../../lib/validation'
 import Logo from '../logo/Logo'
 import { Loginbutton } from './styles'
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [locked, setLocked] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Check if login is allowed
+    setLocked(!isLoginAllowed())
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    
+    if (locked) {
+      setError('Too many login attempts. Please try again later.')
+      return
+    }
+
+    if (!trackLoginAttempt()) {
+      setLocked(true)
+      setError('Too many login attempts. Please try again later.')
+      return
+    }
+
     setLoading(true)
 
     try {
       // Validate form data
       loginSchema.parse({ email, password })
 
+      // Sanitize input
+      const sanitizedEmail = email.trim().toLowerCase()
+      
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password
       })
 
       if (error) throw error
 
+      // Reset login attempts on successful login
+      loginAttempts = 0
       navigate('/search')
     } catch (err: any) {
-      setError(err.message || 'Erro ao fazer login')
+      setError(err.message || 'Login error')
     } finally {
       setLoading(false)
     }

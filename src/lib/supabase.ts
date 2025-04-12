@@ -8,69 +8,67 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
+// Security configuration
 const options = {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    storageKey: 'sb-session', // Custom storage key
+    flowType: 'pkce', // More secure authentication flow
   },
   global: {
     headers: {
       'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'no-referrer-when-downgrade',
-      'X-Frame-Options': 'DENY'
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'X-Frame-Options': 'DENY',
+      'Content-Security-Policy': "default-src 'self'",
+      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains'
     }
   },
+  // Enhanced security for data fetching
   fetch: (url: string, options: RequestInit) => {
-    const MAX_RETRIES = 5; // Increased from 3 to 5
-    const RETRY_DELAY = 1500; // Increased from 1000 to 1500 milliseconds
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000;
     
-    const fetchWithRetry = async (
-      attempt = 0
-    ): Promise<Response> => {
+    const fetchWithRetry = async (attempt = 0): Promise<Response> => {
       try {
-        const timeout = 45000; // Increased from 30000 to 45000 milliseconds
+        const timeout = 30000;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
         
-        console.log(`Fetching Supabase (attempt ${attempt + 1}/${MAX_RETRIES}): ${url}`);
+        console.log(`Secure fetch attempt ${attempt + 1}/${MAX_RETRIES}`);
         
         const fetchResponse = await fetch(url, {
           ...options,
           signal: controller.signal,
           mode: 'cors',
-          credentials: 'include'
+          credentials: 'include',
+          headers: {
+            ...options.headers,
+            'X-Request-Id': crypto.randomUUID(), // Add request tracing
+          }
         });
         
         clearTimeout(timeoutId);
         
         if (fetchResponse.ok) {
-          console.log('Supabase fetch successful');
           return fetchResponse;
         }
         
-        console.error(`Supabase fetch error: ${fetchResponse.status} ${fetchResponse.statusText}`);
-        
         if (attempt < MAX_RETRIES) {
-          const delayTime = RETRY_DELAY * Math.pow(1.5, attempt); // Exponential backoff
-          console.log(`Retrying fetch in ${delayTime/1000} seconds, attempt ${attempt + 1}/${MAX_RETRIES}`);
+          const delayTime = RETRY_DELAY * Math.pow(2, attempt);
           await new Promise(resolve => setTimeout(resolve, delayTime));
           return fetchWithRetry(attempt + 1);
         }
         
-        throw new Error(`Failed after ${MAX_RETRIES} retries: ${fetchResponse.status} ${fetchResponse.statusText}`);
+        throw new Error(`Failed after ${MAX_RETRIES} retries`);
       } catch (error) {
-        if (
-          attempt < MAX_RETRIES && 
-          (error instanceof TypeError || error instanceof DOMException)
-        ) {
-          const delayTime = RETRY_DELAY * Math.pow(1.5, attempt); // Exponential backoff
-          console.log(`Retrying after error: ${error.message}, attempt ${attempt + 1}/${MAX_RETRIES} in ${delayTime/1000} seconds`);
+        if (attempt < MAX_RETRIES) {
+          const delayTime = RETRY_DELAY * Math.pow(2, attempt);
           await new Promise(resolve => setTimeout(resolve, delayTime));
           return fetchWithRetry(attempt + 1);
         }
-        
-        console.error('Supabase fetch error after retries:', error);
         throw error;
       }
     };
@@ -81,27 +79,50 @@ const options = {
 
 export const supabase = createClient(supabaseUrl, supabaseKey, options);
 
+// Enhanced security checks
 export const checkSecureConnection = async () => {
+  // Force HTTPS in production
   if (window.location.protocol !== 'https:' && !window.location.hostname.includes('localhost')) {
-    console.warn('Warning: This connection is not secure. Please use HTTPS for production.');
+    console.error('Insecure connection detected. Redirecting to HTTPS...');
+    window.location.href = window.location.href.replace('http:', 'https:');
     return false;
   }
   
   try {
-    console.log('Testing Supabase connection...');
-    
-    // Add a timeout to the connection test
+    // Test connection with timeout
     const result = await Promise.race([
       supabase.auth.getSession(),
       new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Connection timeout')), 15000)
+        setTimeout(() => reject(new Error('Connection timeout')), 10000)
       )
     ]);
     
-    console.log('Supabase connection established successfully', result);
+    console.log('Secure connection established');
     return true;
   } catch (error) {
-    console.error('Failed to connect to Supabase:', error);
+    console.error('Secure connection failed:', error);
     return false;
   }
 };
+
+// Session management
+let loginAttempts = 0;
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
+let lastLoginAttempt = 0;
+
+export const isLoginAllowed = () => {
+  const now = Date.now();
+  if (now - lastLoginAttempt > LOCKOUT_TIME) {
+    loginAttempts = 0;
+    return true;
+  }
+  return loginAttempts < MAX_LOGIN_ATTEMPTS;
+};
+
+export const trackLoginAttempt = () => {
+  loginAttempts++;
+  lastLoginAttempt = Date.now();
+  return isLoginAllowed();
+};
+
