@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Upload } from 'lucide-react';
 import { ImageUploadContainer, ImagePreview, ImageUploadButton } from '../styles';
 
