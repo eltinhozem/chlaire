@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-// Security configuration
+// Enhanced security configuration
 const options = {
   auth: {
     autoRefreshToken: true,
@@ -36,8 +36,6 @@ const options = {
         const timeout = 30000;
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
-        
-        console.log(`Secure fetch attempt ${attempt + 1}/${MAX_RETRIES}`);
         
         const fetchResponse = await fetch(url, {
           ...options,
@@ -105,24 +103,73 @@ export const checkSecureConnection = async () => {
   }
 };
 
-// Session management
-let loginAttempts = 0;
+// Improved session management with persistent storage
+const STORAGE_PREFIX = 'secure_app_';
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutes
-let lastLoginAttempt = 0;
+
+// Helper function to safely get/set from localStorage with encryption
+const secureStorage = {
+  get: (key: string) => {
+    try {
+      const value = localStorage.getItem(`${STORAGE_PREFIX}${key}`);
+      return value ? JSON.parse(value) : null;
+    } catch (error) {
+      console.error('Error getting from storage:', error);
+      return null;
+    }
+  },
+  set: (key: string, value: any) => {
+    try {
+      localStorage.setItem(`${STORAGE_PREFIX}${key}`, JSON.stringify(value));
+    } catch (error) {
+      console.error('Error setting to storage:', error);
+    }
+  }
+};
 
 export const isLoginAllowed = () => {
+  const securityData = secureStorage.get('security') || { 
+    attempts: 0, 
+    lastAttempt: 0
+  };
+  
   const now = Date.now();
-  if (now - lastLoginAttempt > LOCKOUT_TIME) {
-    loginAttempts = 0;
-    return true;
+  
+  // Reset if lockout period is over
+  if (now - securityData.lastAttempt > LOCKOUT_TIME) {
+    secureStorage.set('security', { attempts: 0, lastAttempt: 0 });
+    return { allowed: true };
   }
-  return loginAttempts < MAX_LOGIN_ATTEMPTS;
+  
+  return { 
+    allowed: securityData.attempts < MAX_LOGIN_ATTEMPTS, 
+    lastAttempt: securityData.lastAttempt 
+  };
 };
 
 export const trackLoginAttempt = () => {
-  loginAttempts++;
-  lastLoginAttempt = Date.now();
-  return isLoginAllowed();
+  const securityData = secureStorage.get('security') || { 
+    attempts: 0, 
+    lastAttempt: 0
+  };
+  
+  const now = Date.now();
+  const newAttempts = securityData.attempts + 1;
+  
+  // Update security data
+  secureStorage.set('security', {
+    attempts: newAttempts,
+    lastAttempt: now
+  });
+  
+  return { 
+    allowed: newAttempts < MAX_LOGIN_ATTEMPTS,
+    attempts: newAttempts
+  };
 };
 
+// Reset attempts on successful login
+export const resetLoginAttempts = () => {
+  secureStorage.set('security', { attempts: 0, lastAttempt: 0 });
+};

@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase, isLoginAllowed, trackLoginAttempt } from '../../lib/supabase'
 import { loginSchema } from '../../lib/validation'
 import Logo from '../logo/Logo'
 import { Loginbutton } from './styles'
+import { Eye, EyeOff, Lock, Mail, AlertTriangle } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -11,25 +13,43 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [locked, setLocked] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [lastAttempt, setLastAttempt] = useState<Date | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
     // Check if login is allowed
-    setLocked(!isLoginAllowed())
-  }, [])
+    const loginStatus = isLoginAllowed()
+    setLocked(!loginStatus.allowed)
+    
+    if (!loginStatus.allowed && loginStatus.lastAttempt) {
+      setLastAttempt(new Date(loginStatus.lastAttempt))
+    }
+
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data.session) navigate('/search')
+    }
+    
+    checkSession()
+  }, [navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     
     if (locked) {
-      setError('Too many login attempts. Please try again later.')
+      const waitTime = lastAttempt ? Math.ceil((15 * 60 * 1000 - (Date.now() - lastAttempt.getTime())) / 60000) : 15
+      setError(`Conta temporariamente bloqueada. Tente novamente em aproximadamente ${waitTime} minutos.`)
       return
     }
 
-    if (!trackLoginAttempt()) {
+    const trackingResult = trackLoginAttempt()
+    if (!trackingResult.allowed) {
       setLocked(true)
-      setError('Too many login attempts. Please try again later.')
+      setLastAttempt(new Date())
+      setError('Muitas tentativas de login. Tente novamente mais tarde.')
       return
     }
 
@@ -52,11 +72,14 @@ export default function Login() {
       // Reset login attempts on successful login
       navigate('/search')
     } catch (err: any) {
-      setError(err.message || 'Login error')
+      console.error('Login error:', err.message)
+      setError('Email ou senha inválidos')
     } finally {
       setLoading(false)
     }
   }
+
+  const togglePasswordVisibility = () => setShowPassword(!showPassword)
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -79,7 +102,10 @@ export default function Login() {
               >
                 Email
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-gray-400" />
+                </div>
                 <input
                   id="email"
                   name="email"
@@ -88,7 +114,8 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="seu@email.com"
                 />
               </div>
             </div>
@@ -100,29 +127,51 @@ export default function Login() {
               >
                 Senha
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  placeholder="••••••••"
                 />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="text-gray-400 hover:text-gray-500 focus:outline-none"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {error && <div className="text-red-600 text-sm">{error}</div>}
+            {error && (
+              <div className="flex items-center text-red-600 text-sm bg-red-50 p-3 rounded-md">
+                <AlertTriangle className="h-5 w-5 mr-2" />
+                {error}
+              </div>
+            )}
 
             <div>
               <Loginbutton
                 type="submit"
-                disabled={loading}
+                disabled={loading || locked}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {loading ? 'Entrando...' : 'Entrar'}
+                {loading ? 'Entrando...' : locked ? 'Conta bloqueada' : 'Entrar'}
               </Loginbutton>
             </div>
           </form>
