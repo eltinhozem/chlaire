@@ -24,7 +24,7 @@ export default function Login() {
     setLocked(!loginStatus.allowed)
     
     if (!loginStatus.allowed && loginStatus.lastAttempt) {
-      // Use setLastAttempt to update the state with the last attempt timestamp
+      // Update the last attempt timestamp state
       setLastAttempt(new Date(loginStatus.lastAttempt))
       
       // Set up countdown timer for lockout
@@ -72,7 +72,7 @@ export default function Login() {
     const trackingResult = trackLoginAttempt()
     if (!trackingResult.allowed) {
       setLocked(true)
-      setLastAttempt(new Date())
+      setLastAttempt(new Date()) // Use lastAttempt state when setting a new attempt
       setLockoutTimer(15 * 60)
       setError('Muitas tentativas de login. Sua conta foi bloqueada por 15 minutos.')
       return
