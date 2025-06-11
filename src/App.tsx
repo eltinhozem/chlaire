@@ -88,6 +88,22 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route
+              path="cadastro-pedidos"
+              element={
+                <PrivateRoute>
+                  <CadastroPedidos />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="lista-pedidos"
+              element={
+                <PrivateRoute>
+                  <ListaPedidos />
+                </PrivateRoute>
+              }
+            />
           </Route>
         </Routes>
       </BrowserRouter>
