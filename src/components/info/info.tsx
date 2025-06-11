@@ -1,22 +1,18 @@
-
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { translate } from '../Styles';
 import { supabase } from '../../lib/supabase';
+import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package } from 'lucide-react';
 import {
   ActionButton,
   CustomButton,
   InfoContainer,
-  InfoLabel,
-  InfoSection,
-  InfoText,
   ModalContent,
   ModalInput,
   ModalOverlay,
   RedButton,
   formatarData
 } from './styles';
-import { FormTitle, PedraTitle } from '../form/styles';
 
 export default function Info() {
   const location = useLocation();
@@ -70,155 +66,204 @@ export default function Info() {
 
   return (
     <InfoContainer>
-      <FormTitle>Informações da Joia</FormTitle>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.reference_name}
-              className="w-full h-auto object-cover rounded-lg shadow-md"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://via.placeholder.com/300?text=Sem+Imagem';
-              }}
-            />
-          ) : (
-            <div
-              className="w-full h-64 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-            >
-              <span className="text-gray-500">Sem imagem</span>
+      {/* Header */}
+      <div className="mb-8">
+        <button 
+          onClick={() => navigate('/search')}
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors mb-4"
+        >
+          <ArrowLeft size={20} />
+          Voltar
+        </button>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">
+          {product.reference_name}
+        </h1>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Image Card */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+            {product.image_url ? (
+              <img
+                src={product.image_url}
+                alt={product.reference_name}
+                className="w-full h-80 object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'https://via.placeholder.com/400x400?text=Sem+Imagem';
+                }}
+              />
+            ) : (
+              <div className="w-full h-80 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                <div className="text-center">
+                  <Package size={48} className="mx-auto text-gray-400 mb-2" />
+                  <span className="text-gray-500">Sem imagem</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Info Cards */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Basic Info Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Gem className="text-amber-600" size={20} />
+              Informações Básicas
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div>
+                  <span className="text-sm font-medium text-gray-500">Categoria</span>
+                  <p className="text-gray-800">{translate('category', product.category)}</p>
+                </div>
+                {product.weight && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Peso</span>
+                    <p className="text-gray-800">{product.weight}g</p>
+                  </div>
+                )}
+                {product.size && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Tamanho</span>
+                    <p className="text-gray-800">{product.size}</p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-3">
+                {product.material && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Material</span>
+                    <p className="text-gray-800">{product.material}</p>
+                  </div>
+                )}
+                {product.finish && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Acabamento</span>
+                    <p className="text-gray-800">{translate('finish', product.finish)}</p>
+                  </div>
+                )}
+                {product.target_audience && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Público-Alvo</span>
+                    <p className="text-gray-800">{translate('target_audience', product.target_audience)}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Design Info Card */}
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <Palette className="text-amber-600" size={20} />
+              Design & Produção
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                {product.designer && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Designer</span>
+                    <p className="text-gray-800">{translate('designer', product.designer)}</p>
+                  </div>
+                )}
+                {product.rota && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Rota</span>
+                    <p className="text-gray-800">{product.rota}</p>
+                  </div>
+                )}
+              </div>
+              <div className="space-y-3">
+                {product.stl && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">STL</span>
+                    <p className="text-gray-800">{product.stl}</p>
+                  </div>
+                )}
+                {product.version !== null && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Versão</span>
+                    <p className="text-gray-800">{product.version}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Client & Date Info Card */}
+          {(product.client_name || product.date) && (
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <User className="text-amber-600" size={20} />
+                Cliente & Data
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {product.client_name && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Nome do Cliente</span>
+                    <p className="text-gray-800">{product.client_name}</p>
+                  </div>
+                )}
+                {product.date && (
+                  <div>
+                    <span className="text-sm font-medium text-gray-500 flex items-center gap-1">
+                      <Calendar size={16} />
+                      Data
+                    </span>
+                    <p className="text-gray-800">{formatarData(product.date)}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
-        <table>
-          <tbody>
-            <tr>
-              <td><strong>Referência:</strong></td>
-              <td>{product.reference_name}</td>
-            </tr>
-            <tr>
-              <td><strong>Categoria:</strong></td>
-              <td>{translate('category', product.category)}</td>
-            </tr>
-            {product.date && (
-              <tr>
-                <td><strong>Data:</strong></td>
-                <td>{formatarData(product.date)}</td>
-              </tr>
-            )}
-            {product.target_audience && (
-              <tr>
-                <td><strong>Público-Alvo:</strong></td>
-                <td>{translate('target_audience', product.target_audience)}</td>
-              </tr>
-            )}
-            {product.client_name && (
-              <tr>
-                <td><strong>Nome do Cliente:</strong></td>
-                <td>{product.client_name}</td>
-              </tr>
-            )}
-            {product.weight && (
-              <tr>
-                <td><strong>Peso:</strong></td>
-                <td>{product.weight}g</td>
-              </tr>
-            )}
-            {product.finish && (
-              <tr>
-                <td><strong>Acabamento:</strong></td>
-                <td>{translate('finish', product.finish)}</td>
-              </tr>
-            )}
-            {product.designer && (
-              <tr>
-                <td><strong>Designer:</strong></td>
-                <td>{translate('designer', product.designer)}</td>
-              </tr>
-            )}
-            {product.material && (
-              <tr>
-                <td><strong>Material:</strong></td>
-                <td>{product.material}</td>
-              </tr>
-            )}
-            {product.size && (
-              <tr>
-                <td><strong>Tamanho:</strong></td>
-                <td>{product.size}</td>
-              </tr>
-            )}
-            {product.rota && (
-              <tr>
-                <td><strong>Rota:</strong></td>
-                <td>{product.rota}</td>
-              </tr>
-            )}
-            {product.stl && (
-              <tr>
-                <td><strong>STL:</strong></td>
-                <td>{product.stl}</td>
-              </tr>
-            )}
-            {product.version !== null && (
-              <tr>
-                <td><strong>Versão:</strong></td>
-                <td>{product.version}</td>
-              </tr>
-            )}
-            {product.descricao && (
-              <tr>
-                <td><strong>Descrição:</strong></td>
-                <td>{product.descricao}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
       </div>
 
+      {/* Stones Section */}
       {product.stones && product.stones.length > 0 && (
-        <InfoSection>
-          <PedraTitle>Pedras</PedraTitle>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
+            <Ruler className="text-amber-600" size={24} />
+            Pedras
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {product.stones.map((stone: any, index: number) => (
-              <table
+              <div
                 key={index}
-                className="w-full p-4 rounded-lg"
-                style={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-amber-500"
               >
-                <tbody>
-                  <tr>
-                    <td className="font-medium"><InfoLabel>Tipo de Pedra:</InfoLabel></td>
-                    <td>{stone.stone_type}</td>
-                  </tr>
-                  <tr>
-                    <td><InfoLabel>Lapidação:</InfoLabel></td>
-                    <td>{stone.cut}</td>
-                  </tr>
+                <h3 className="font-semibold text-gray-800 mb-4">{stone.stone_type}</h3>
+                <div className="space-y-2">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Lapidação</span>
+                    <p className="text-gray-800">{stone.cut}</p>
+                  </div>
                   {stone.quantity && (
-                    <tr>
-                      <td><InfoLabel>Quantidade:</InfoLabel></td>
-                      <td>{stone.quantity}</td>
-                    </tr>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Quantidade</span>
+                      <p className="text-gray-800">{stone.quantity}</p>
+                    </div>
                   )}
                   {stone.quilates && (
-                    <tr>
-                      <td><InfoLabel>Quilates:</InfoLabel></td>
-                      <td>{stone.quilates}</td>
-                    </tr>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Quilates</span>
+                      <p className="text-gray-800">{stone.quilates}</p>
+                    </div>
                   )}
                   {stone.pts && (
-                    <tr>
-                      <td><InfoLabel>PTS:</InfoLabel></td>
-                      <td>{stone.pts}</td>
-                    </tr>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">PTS</span>
+                      <p className="text-gray-800">{stone.pts}</p>
+                    </div>
                   )}
                   {(stone.largura || stone.comprimento || stone.altura) && (
-                    <tr>
-                      <td><InfoLabel>Dimensões:</InfoLabel></td>
-                      <td>
+                    <div>
+                      <span className="text-sm font-medium text-gray-500">Dimensões</span>
+                      <p className="text-gray-800">
                         {[
                           stone.largura && `${stone.largura}`,
                           stone.comprimento && `${stone.comprimento}`,
@@ -226,42 +271,54 @@ export default function Info() {
                         ]
                           .filter(Boolean)
                           .join(' × ')}
-                      </td>
-                    </tr>
+                      </p>
+                    </div>
                   )}
-                </tbody>
-              </table>
+                </div>
+              </div>
             ))}
           </div>
-        </InfoSection>
+        </div>
       )}
 
+      {/* Observations Section */}
       {product.observations && (
-        <InfoSection>
-          <h3 className="text-lg font-semibold">Observações</h3>
-          <InfoText>{product.observations}</InfoText>
-        </InfoSection>
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Observações</h3>
+            <p className="text-gray-700 leading-relaxed">{product.observations}</p>
+          </div>
+        </div>
       )}
 
-      <div className="mt-8 flex justify-end space-x-4">
-        <ActionButton onClick={() => navigate('/search')}>Voltar</ActionButton>
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-4 justify-end">
         <CustomButton
           onClick={() =>
             navigate('/register', {
               state: { product, stones: product.stones }
             })
           }
+          className="inline-flex items-center gap-2"
         >
+          <Edit size={16} />
           Alterar
         </CustomButton>
-        <RedButton onClick={handleDeleteClick}>Excluir</RedButton>
+        <RedButton 
+          onClick={handleDeleteClick}
+          className="inline-flex items-center gap-2"
+        >
+          <Trash2 size={16} />
+          Excluir
+        </RedButton>
       </div>
 
+      {/* Delete Modal */}
       {showDeleteModal && (
         <ModalOverlay>
           <ModalContent>
-            <h3 className="text-lg font-semibold">Confirmar Exclusão</h3>
-            <p className="mb-4">Digite a senha para confirmar a exclusão:</p>
+            <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
+            <p className="mb-4 text-gray-600">Digite a senha para confirmar a exclusão:</p>
             <ModalInput
               type="password"
               value={password}
@@ -271,7 +328,7 @@ export default function Info() {
             {errorMessage && (
               <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
             )}
-            <div className="mt-4 flex justify-end space-x-4">
+            <div className="mt-6 flex justify-end space-x-4">
               <ActionButton onClick={handleCloseModal}>Cancelar</ActionButton>
               <RedButton onClick={handleConfirmDelete}>Confirmar</RedButton>
             </div>
