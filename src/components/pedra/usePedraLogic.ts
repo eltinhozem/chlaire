@@ -52,7 +52,20 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
 
   // Função para calcular quilates baseado nas dimensões
   const calcularQuilates = (comp: string, larg: string, alt: string, tipoPedra: string, tipoLapidacao: string) => {
-    if (!comp || !larg || !alt || !tipoPedra || !tipoLapidacao) return '';
+    if (!comp || !larg || !tipoPedra || !tipoLapidacao) return '';
+    
+    // Para lapidação redonda, a altura é opcional - se não informada, usa uma estimativa padrão
+    if (tipoLapidacao === 'Redonda' && !alt) {
+      // Para diamantes redondos, a altura é tipicamente 60% do diâmetro
+      const diametro = parseFloat(larg);
+      if (!isNaN(diametro)) {
+        alt = (diametro * 0.6).toString();
+      } else {
+        return '';
+      }
+    } else if (tipoLapidacao !== 'Redonda' && !alt) {
+      return '';
+    }
     
     const comprimentoNum = parseFloat(comp);
     const larguraNum = parseFloat(larg);
@@ -74,7 +87,7 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
     setTipo(novoTipo);
     
     // Recalcular quilates se houver dimensões
-    if (largura && altura && comprimento) {
+    if (largura && comprimento && (altura || lapidacao === 'Redonda')) {
       const novosQuilates = calcularQuilates(comprimento, largura, altura, novoTipo, lapidacao);
       setQuilates(novosQuilates);
       if (novosQuilates) {
@@ -93,7 +106,7 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
     }
     
     // Recalcular quilates se houver dimensões
-    if (largura && altura && comprimento) {
+    if (largura && comprimento && (altura || novaLapidacao === 'Redonda')) {
       const novosQuilates = calcularQuilates(comprimento, largura, altura, tipo, novaLapidacao);
       setQuilates(novosQuilates);
       if (novosQuilates) {
@@ -138,8 +151,8 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
       setComprimento(novaLargura);
     }
     
-    // Recalcular quilates se houver todas as dimensões
-    if (novaLargura && altura && (comprimento || lapidacao === 'Redonda' || lapidacao === 'Quadrada')) {
+    // Recalcular quilates se houver todas as dimensões necessárias
+    if (novaLargura && (comprimento || lapidacao === 'Redonda' || lapidacao === 'Quadrada') && (altura || lapidacao === 'Redonda')) {
       const compFinal = (lapidacao === 'Redonda' || lapidacao === 'Quadrada') ? novaLargura : comprimento;
       const novosQuilates = calcularQuilates(compFinal, novaLargura, altura, tipo, lapidacao);
       setQuilates(novosQuilates);
@@ -158,8 +171,8 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
       setLargura(novoComprimento);
     }
     
-    // Recalcular quilates se houver todas as dimensões
-    if (novoComprimento && altura && (largura || lapidacao === 'Redonda' || lapidacao === 'Quadrada')) {
+    // Recalcular quilates se houver todas as dimensões necessárias
+    if (novoComprimento && (largura || lapidacao === 'Redonda' || lapidacao === 'Quadrada') && (altura || lapidacao === 'Redonda')) {
       const largFinal = (lapidacao === 'Redonda' || lapidacao === 'Quadrada') ? novoComprimento : largura;
       const novosQuilates = calcularQuilates(novoComprimento, largFinal, altura, tipo, lapidacao);
       setQuilates(novosQuilates);
@@ -173,8 +186,8 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
     const novaAltura = e.target.value;
     setAltura(novaAltura);
     
-    // Recalcular quilates se houver todas as dimensões
-    if (largura && novaAltura && comprimento) {
+    // Recalcular quilates se houver todas as dimensões necessárias
+    if (largura && comprimento && (novaAltura || lapidacao === 'Redonda')) {
       const novosQuilates = calcularQuilates(comprimento, largura, novaAltura, tipo, lapidacao);
       setQuilates(novosQuilates);
       if (novosQuilates) {

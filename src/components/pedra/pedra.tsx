@@ -72,6 +72,9 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
     handleEdit();
   };
 
+  // Determina se o campo altura é obrigatório
+  const isAlturaRequired = lapidacao !== 'Redonda';
+
   return (
     <StoneContainer>
       <StoneHeader>
@@ -113,13 +116,15 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               <Label>PTS:</Label> {pts || 'N/A'}
             </ViewText>
             <ViewText>
-              <Label>Largura:</Label> {largura ? `${largura} mm` : 'N/A'}
+              <Label>{lapidacao === 'Redonda' ? 'Diâmetro' : 'Largura'}:</Label> {largura ? `${largura} mm` : 'N/A'}
             </ViewText>            
+            {lapidacao !== 'Redonda' && (
+              <ViewText>
+                <Label>Comprimento:</Label> {comprimento ? `${comprimento} mm` : 'N/A'}
+              </ViewText>
+            )}
             <ViewText>
-              <Label>Comprimento:</Label> {comprimento ? `${comprimento} mm` : 'N/A'}
-            </ViewText>
-            <ViewText>
-              <Label>Altura:</Label> {altura ? `${altura} mm` : 'N/A'}
+              <Label>Altura:</Label> {altura ? `${altura} mm` : (lapidacao === 'Redonda' ? 'Auto-calculada' : 'N/A')}
             </ViewText>
           </GridMain>          
         </ViewMode>
@@ -162,32 +167,44 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               />
             </div>
             <div>
-              <Label>Largura (mm)</Label>
+              <Label>{lapidacao === 'Redonda' ? 'Diâmetro (mm) *' : 'Largura (mm) *'}</Label>
               <Input
                 type="number"
                 name="largura"
                 step="0.1"
-                placeholder="Largura"
+                placeholder={lapidacao === 'Redonda' ? 'Diâmetro' : 'Largura'}
                 value={largura}
                 onChange={handleLarguraChange}
+                required
               />
             </div>
           </GridMain>
           <GridMain>
+            {lapidacao !== 'Redonda' && (
+              <div>
+                <Label>Comprimento (mm) *</Label>
+                <Input
+                  type="number"
+                  name="comprimento"
+                  step="0.1"
+                  placeholder="Comprimento"
+                  value={comprimento}
+                  onChange={handleComprimentoChange}
+                  required
+                />
+              </div>
+            )}
             <div>
-              <Label>Comprimento (mm)</Label>
-              <Input
-                type="number"
-                name="comprimento"
-                step="0.1"
-                placeholder="Comprimento"
-                value={comprimento}
-                onChange={handleComprimentoChange}
+              <Label>Altura (mm){isAlturaRequired ? ' *' : ' (opcional)'}</Label>
+              <Input 
+                type="number" 
+                name="altura" 
+                step="0.1" 
+                value={altura} 
+                onChange={handleAlturaChange}
+                placeholder={lapidacao === 'Redonda' ? 'Opcional - auto-estimada se vazia' : 'Altura'}
+                required={isAlturaRequired}
               />
-            </div>
-            <div>
-              <Label>Altura (mm)</Label>
-              <Input type="number" name="altura" step="0.1" value={altura} onChange={handleAlturaChange} />
             </div>
             <div>
               <Label>Quilates (calculado)</Label>
