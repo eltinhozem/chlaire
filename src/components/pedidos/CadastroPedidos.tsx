@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Upload } from 'lucide-react';
 import { Pedido, PedidoStone, ReferenciaModelo } from './types';
 import PedidoStoneComponent from './components/PedidoStone';
+import { categoryOptions } from '../form/formOptions';
 
 const CadastroPedidos: React.FC = () => {
   const navigate = useNavigate();
@@ -134,13 +135,18 @@ const CadastroPedidos: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Categoria *
               </label>
-              <input
-                type="text"
+              <select
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md"
                 required
-              />
+              >
+                {categoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
             
             <div>
