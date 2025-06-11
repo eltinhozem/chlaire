@@ -1,6 +1,7 @@
+
 import  { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { PlusCircle, Sun, Moon } from 'lucide-react'
+import { PlusCircle, Sun, Moon, List } from 'lucide-react'
 import Logo3 from '../logo/logo3.svg'
 import {
   LayoutContainer,
@@ -51,6 +52,22 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
                   <CadastrosJoia type="button" className="text-sm">
                     <PlusCircle className="h-4 w-4 mr-2" />
                     Cadastrar Nova Joia
+                  </CadastrosJoia>
+                </Link>
+              )}
+              {location.pathname !== '/cadastro-pedidos' && (
+                <Link to="/cadastro-pedidos">
+                  <CadastrosJoia type="button" className="text-sm">
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Novo Pedido
+                  </CadastrosJoia>
+                </Link>
+              )}
+              {location.pathname !== '/lista-pedidos' && (
+                <Link to="/lista-pedidos">
+                  <CadastrosJoia type="button" className="text-sm">
+                    <List className="h-4 w-4 mr-2" />
+                    Lista Pedidos
                   </CadastrosJoia>
                 </Link>
               )}

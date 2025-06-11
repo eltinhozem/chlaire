@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from './lib/supabase'
@@ -6,6 +7,8 @@ import Layout from './components/layout/Layout'
 import Info from './components/info/info'
 import Login from './components/login/login'
 import JewelrySearch from './components/search/Search'
+import CadastroPedidos from './components/pedidos/CadastroPedidos'
+import ListaPedidos from './components/pedidos/ListaPedidos'
 import { ThemeProvider } from 'styled-components'
 import { darkTheme, lightTheme } from './components/Styles'
 
