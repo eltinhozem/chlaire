@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MinusCircle } from 'lucide-react';
 import { Stone, PedraProps } from './types';
@@ -27,7 +28,6 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
     altura,
     comprimento,
     pts,
-  //  tipo_cravacao,
     isViewMode,
     handleTipoChange,
     handleLapidacaoChange,
@@ -37,7 +37,6 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
     handleLarguraChange,
     handleComprimentoChange,
     handleAlturaChange,
-   // handleTipoCravacaoChange,
     handleSave,
     handleEdit,
   } = usePedraLogic(stone);
@@ -47,8 +46,6 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
     'Água-marinha', 'Citrino', 'Alexandrita', 'Tanzanita', 'Lápis-lazúli', 'Quartzo Rosa', 'Pedra da Lua', 'Malaquita',
     'Ônix', 'Coral', 'Zircônia', 'Zircão',
   ];
-
-  //const tiposDeCravacao = ['Garavé', 'Micro-Pavê', 'Pavê', 'Grife', 'Engaste', 'Cana', 'Outro'];
 
   const updateStone = () => {
     const updatedStone: Stone = {
@@ -60,7 +57,6 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
       largura: largura || undefined,
       altura: altura || undefined,
       comprimento: comprimento || undefined,
-     // tipo_cravacao: tipo_cravacao || undefined,
     };
     onChange(updatedStone);
     return updatedStone;
@@ -109,21 +105,21 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               <Label>Quantidade:</Label> {quantidade}
             </ViewText>
             <ViewText>
-              <Label>Quilates:</Label> {quilates}
+              <Label>Quilates:</Label> {quilates || 'N/A'}
             </ViewText>
           </GridMain>
           <GridMain>
             <ViewText>
-              <Label>PTS:</Label> {pts}
+              <Label>PTS:</Label> {pts || 'N/A'}
             </ViewText>
             <ViewText>
-              <Label>Largura:</Label> {largura} mm
+              <Label>Largura:</Label> {largura ? `${largura} mm` : 'N/A'}
             </ViewText>            
             <ViewText>
-              <Label>Comprimento:</Label> {comprimento} mm
+              <Label>Comprimento:</Label> {comprimento ? `${comprimento} mm` : 'N/A'}
             </ViewText>
             <ViewText>
-              <Label>Altura:</Label> {altura} mm
+              <Label>Altura:</Label> {altura ? `${altura} mm` : 'N/A'}
             </ViewText>
           </GridMain>          
         </ViewMode>
@@ -166,24 +162,7 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               />
             </div>
             <div>
-              <Label>Quilates</Label>
-              <Input
-                type="number"
-                name="quilates"
-                step="0.001"
-                value={quilates}
-                onChange={handleQuilatesChange}
-                readOnly
-              />
-            </div>
-          </GridMain>
-          <GridMain>
-            <div>
-              <Label>PTS</Label>
-              <Input type="number" name="pts" step="0.01" value={pts} onChange={handlePtsChange} />
-            </div>
-            <div>
-              <Label>Largura</Label>
+              <Label>Largura (mm)</Label>
               <Input
                 type="number"
                 name="largura"
@@ -192,9 +171,11 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
                 value={largura}
                 onChange={handleLarguraChange}
               />
-            </div>           
+            </div>
+          </GridMain>
+          <GridMain>
             <div>
-              <Label>Comprimento</Label>
+              <Label>Comprimento (mm)</Label>
               <Input
                 type="number"
                 name="comprimento"
@@ -205,11 +186,32 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               />
             </div>
             <div>
-              <Label>Altura </Label>
+              <Label>Altura (mm)</Label>
               <Input type="number" name="altura" step="0.1" value={altura} onChange={handleAlturaChange} />
             </div>
+            <div>
+              <Label>Quilates (calculado)</Label>
+              <Input
+                type="number"
+                name="quilates"
+                step="0.001"
+                value={quilates}
+                onChange={handleQuilatesChange}
+                placeholder="Auto-calculado"
+              />
+            </div>
+            <div>
+              <Label>PTS (calculado)</Label>
+              <Input 
+                type="number" 
+                name="pts" 
+                step="0.01" 
+                value={pts} 
+                onChange={handlePtsChange}
+                placeholder="Auto-calculado"
+              />
+            </div>
           </GridMain>
-          
         </div>
       )}
     </StoneContainer>

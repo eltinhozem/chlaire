@@ -1,5 +1,43 @@
+
 import { useState, ChangeEvent, useEffect } from 'react';
 import { Stone, PedraLogic } from './types';
+
+// Constantes para cálculo de peso
+const LAPIDACAO_CONSTANTS = {
+  'Redonda': 0.0061,
+  'Quadrada': 0.0080,
+  'Oval': 0.0061,
+  'Gota': 0.0059,
+  'Navete': 0.0057,
+  'Esmeralda': 0.0075,
+  'Princesa': 0.0080,
+  'Almofada': 0.0080, // Esmeralda quadrada
+};
+
+const GRAVIDADE_ESPECIFICA = {
+  'Diamante': 3.52,
+  'Safira': 4.00,
+  'Rubi': 4.00,
+  'Esmeralda': 2.72,
+  'Topázio': 3.53,
+  'Ametista': 2.65,
+  'Turmalina': 3.10,
+  'Opala': 2.10,
+  'Pérola': 2.70,
+  'Granada': 3.95,
+  'Água-marinha': 2.72,
+  'Citrino': 2.65,
+  'Alexandrita': 3.73,
+  'Tanzanita': 3.35,
+  'Lápis-lazúli': 2.80,
+  'Quartzo Rosa': 2.65,
+  'Pedra da Lua': 2.58,
+  'Malaquita': 3.80,
+  'Ônix': 2.65,
+  'Coral': 2.60,
+  'Zircônia': 5.65,
+  'Zircão': 4.65,
+};
 
 export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
   const [tipo, setTipo] = useState(initialStone?.stone_type || 'Diamante');
@@ -10,9 +48,40 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
   const [altura, setAltura] = useState(initialStone?.altura || '');
   const [comprimento, setComprimento] = useState(initialStone?.comprimento || '');
   const [pts, setPts] = useState(initialStone?.pts?.toString() || '');
-  const [isViewMode, setIsViewMode] = useState(!!initialStone);
+  const [isViewMode, setIsViewMode] = useState(false); // Sempre começa em modo de edição
 
-  const handleTipoChange = (e: ChangeEvent<HTMLSelectElement>) => setTipo(e.target.value);
+  // Função para calcular quilates baseado nas dimensões
+  const calcularQuilates = (comp: string, larg: string, alt: string, tipoPedra: string, tipoLapidacao: string) => {
+    if (!comp || !larg || !alt || !tipoPedra || !tipoLapidacao) return '';
+    
+    const comprimentoNum = parseFloat(comp);
+    const larguraNum = parseFloat(larg);
+    const alturaNum = parseFloat(alt);
+    
+    if (isNaN(comprimentoNum) || isNaN(larguraNum) || isNaN(alturaNum)) return '';
+    
+    const constante = LAPIDACAO_CONSTANTS[tipoLapidacao as keyof typeof LAPIDACAO_CONSTANTS];
+    const gravidadeEspecifica = GRAVIDADE_ESPECIFICA[tipoPedra as keyof typeof GRAVIDADE_ESPECIFICA];
+    
+    if (!constante || !gravidadeEspecifica) return '';
+    
+    const peso = comprimentoNum * larguraNum * alturaNum * constante * gravidadeEspecifica;
+    return peso.toFixed(3);
+  };
+
+  const handleTipoChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const novoTipo = e.target.value;
+    setTipo(novoTipo);
+    
+    // Recalcular quilates se houver dimensões
+    if (largura && altura && comprimento) {
+      const novosQuilates = calcularQuilates(comprimento, largura, altura, novoTipo, lapidacao);
+      setQuilates(novosQuilates);
+      if (novosQuilates) {
+        setPts((parseFloat(novosQuilates) * 100).toFixed(2));
+      }
+    }
+  };
 
   const handleLapidacaoChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const novaLapidacao = e.target.value;
@@ -22,11 +91,30 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
       // Se já houver uma largura definida, sincronize o comprimento imediatamente
       if (largura) setComprimento(largura);
     }
+    
+    // Recalcular quilates se houver dimensões
+    if (largura && altura && comprimento) {
+      const novosQuilates = calcularQuilates(comprimento, largura, altura, tipo, novaLapidacao);
+      setQuilates(novosQuilates);
+      if (novosQuilates) {
+        setPts((parseFloat(novosQuilates) * 100).toFixed(2));
+      }
+    }
   };
 
   const handleQuantidadeChange = (e: ChangeEvent<HTMLInputElement>) => setQuantidade(Number(e.target.value));
 
-  const handleQuilatesChange = (e: ChangeEvent<HTMLInputElement>) => setQuilates(e.target.value);
+  const handleQuilatesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const novosQuilates = e.target.value;
+    setQuilates(novosQuilates);
+    
+    // Calcular PTS automaticamente (quilates × 100)
+    if (novosQuilates) {
+      setPts((parseFloat(novosQuilates) * 100).toFixed(2));
+    } else {
+      setPts('');
+    }
+  };
 
   const handlePtsChange = (e: ChangeEvent<HTMLInputElement>) => {
     const novoPts = e.target.value;
@@ -49,6 +137,16 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
     if (lapidacao === 'Redonda' || lapidacao === 'Quadrada') {
       setComprimento(novaLargura);
     }
+    
+    // Recalcular quilates se houver todas as dimensões
+    if (novaLargura && altura && (comprimento || lapidacao === 'Redonda' || lapidacao === 'Quadrada')) {
+      const compFinal = (lapidacao === 'Redonda' || lapidacao === 'Quadrada') ? novaLargura : comprimento;
+      const novosQuilates = calcularQuilates(compFinal, novaLargura, altura, tipo, lapidacao);
+      setQuilates(novosQuilates);
+      if (novosQuilates) {
+        setPts((parseFloat(novosQuilates) * 100).toFixed(2));
+      }
+    }
   };
 
   const handleComprimentoChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -59,9 +157,31 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
     if (lapidacao === 'Redonda' || lapidacao === 'Quadrada') {
       setLargura(novoComprimento);
     }
+    
+    // Recalcular quilates se houver todas as dimensões
+    if (novoComprimento && altura && (largura || lapidacao === 'Redonda' || lapidacao === 'Quadrada')) {
+      const largFinal = (lapidacao === 'Redonda' || lapidacao === 'Quadrada') ? novoComprimento : largura;
+      const novosQuilates = calcularQuilates(novoComprimento, largFinal, altura, tipo, lapidacao);
+      setQuilates(novosQuilates);
+      if (novosQuilates) {
+        setPts((parseFloat(novosQuilates) * 100).toFixed(2));
+      }
+    }
   };
 
-  const handleAlturaChange = (e: ChangeEvent<HTMLInputElement>) => setAltura(e.target.value);
+  const handleAlturaChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const novaAltura = e.target.value;
+    setAltura(novaAltura);
+    
+    // Recalcular quilates se houver todas as dimensões
+    if (largura && novaAltura && comprimento) {
+      const novosQuilates = calcularQuilates(comprimento, largura, novaAltura, tipo, lapidacao);
+      setQuilates(novosQuilates);
+      if (novosQuilates) {
+        setPts((parseFloat(novosQuilates) * 100).toFixed(2));
+      }
+    }
+  };
 
   const handleSave = () => setIsViewMode(true);
   const handleEdit = () => setIsViewMode(false);
