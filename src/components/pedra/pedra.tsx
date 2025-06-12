@@ -152,6 +152,7 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
                 <option value="Esmeralda">Esmeralda</option>
                 <option value="Princesa">Princesa</option>
                 <option value="Almofada">Esmeralda quadrada</option>
+                <option value="Coração">Coração</option>
                 <option value="Outra">Outra</option>
               </Select>
             </div>

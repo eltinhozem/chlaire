@@ -92,6 +92,7 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
             <option value="Esmeralda">Esmeralda</option>
             <option value="Princesa">Princesa</option>
             <option value="Almofada">Esmeralda quadrada</option>
+            <option value="Coração">Coração</option>
             <option value="Outra">Outra</option>
           </select>
         </div>

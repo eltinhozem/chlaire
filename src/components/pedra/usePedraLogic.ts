@@ -12,6 +12,7 @@ const LAPIDACAO_CONSTANTS = {
   'Esmeralda': 0.0075,
   'Princesa': 0.0080,
   'Almofada': 0.0080, // Esmeralda quadrada
+  'Coração': 0.0059,
 };
 
 const GRAVIDADE_ESPECIFICA = {
