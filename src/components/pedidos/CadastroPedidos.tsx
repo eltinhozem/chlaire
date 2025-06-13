@@ -59,6 +59,10 @@ const CadastroPedidos: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Obter pedidos existentes para calcular a próxima prioridade
+    const pedidosExistentes = JSON.parse(localStorage.getItem('pedidos') || '[]');
+    const proximaPrioridade = pedidosExistentes.length + 1;
+    
     const novoPedido: Pedido = {
       id: Date.now().toString(),
       imagem: imagePreview,
@@ -71,11 +75,11 @@ const CadastroPedidos: React.FC = () => {
       dataCreated: new Date(),
       stones,
       referenciaModelo,
-      riscado: false
+      riscado: false,
+      prioridade: proximaPrioridade
     };
 
     // Salvar no localStorage por enquanto
-    const pedidosExistentes = JSON.parse(localStorage.getItem('pedidos') || '[]');
     pedidosExistentes.push(novoPedido);
     localStorage.setItem('pedidos', JSON.stringify(pedidosExistentes));
 
