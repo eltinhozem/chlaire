@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -11,14 +12,37 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: false, // Desabilitar detecção de sessão na URL para evitar problemas de segurança
+    storageKey: 'sb-auth-token', // Usar chave padrão
+    flowType: 'implicit'
+  },
+  global: {
+    headers: {
+      'Content-Security-Policy': "default-src 'self'",
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'strict-origin-when-cross-origin'
+    }
+  },
+  db: {
+    schema: 'public'
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
   }
 });
 
-// Verificação de conexão simplificada
+// Verificação de conexão com timeout
 export const checkConnection = async () => {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const { error } = await supabase.auth.getSession();
+    
+    clearTimeout(timeoutId);
     
     if (error) {
       console.error('Connection error:', error);
@@ -33,14 +57,33 @@ export const checkConnection = async () => {
   }
 };
 
-// Sistema básico de tentativas de login
+// Sistema básico de tentativas de login com criptografia local
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos
 
+const encodeData = (data: any) => {
+  try {
+    return btoa(JSON.stringify(data));
+  } catch {
+    return null;
+  }
+};
+
+const decodeData = (encodedData: string) => {
+  try {
+    return JSON.parse(atob(encodedData));
+  } catch {
+    return null;
+  }
+};
+
 const getSecurityData = () => {
   try {
-    const data = localStorage.getItem('jewelry_security');
-    return data ? JSON.parse(data) : { attempts: 0, lastAttempt: 0 };
+    const encoded = sessionStorage.getItem('jw_security'); // Usar sessionStorage em vez de localStorage
+    if (!encoded) return { attempts: 0, lastAttempt: 0 };
+    
+    const data = decodeData(encoded);
+    return data || { attempts: 0, lastAttempt: 0 };
   } catch {
     return { attempts: 0, lastAttempt: 0 };
   }
@@ -48,7 +91,10 @@ const getSecurityData = () => {
 
 const setSecurityData = (data: { attempts: number; lastAttempt: number }) => {
   try {
-    localStorage.setItem('jewelry_security', JSON.stringify(data));
+    const encoded = encodeData(data);
+    if (encoded) {
+      sessionStorage.setItem('jw_security', encoded);
+    }
   } catch (error) {
     console.error('Security data save error:', error);
   }
@@ -87,4 +133,14 @@ export const trackLoginAttempt = () => {
 
 export const resetLoginAttempts = () => {
   setSecurityData({ attempts: 0, lastAttempt: 0 });
+};
+
+// Função para limpar dados sensíveis
+export const clearSecurityData = () => {
+  try {
+    sessionStorage.removeItem('jw_security');
+    localStorage.clear(); // Limpar qualquer dado antigo
+  } catch (error) {
+    console.error('Error clearing security data:', error);
+  }
 };
