@@ -12,8 +12,8 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    storageKey: 'sb-auth-token',
-    flowType: 'pkce' // Usar PKCE flow que é mais seguro
+    storageKey: 'chlaire-auth-token',
+    flowType: 'pkce'
   },
   db: {
     schema: 'public'
@@ -22,6 +22,11 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     params: {
       eventsPerSecond: 10
     }
+  },
+  global: {
+    headers: {
+      'Cache-Control': 'no-cache'
+    }
   }
 });
 
@@ -29,7 +34,7 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
 export const checkConnection = async () => {
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     
     const { error } = await supabase.auth.getSession();
     
@@ -70,7 +75,7 @@ const decodeData = (encodedData: string) => {
 
 const getSecurityData = () => {
   try {
-    const encoded = sessionStorage.getItem('jw_security');
+    const encoded = sessionStorage.getItem('chlaire_security');
     if (!encoded) return { attempts: 0, lastAttempt: 0 };
     
     const data = decodeData(encoded);
@@ -84,7 +89,7 @@ const setSecurityData = (data: { attempts: number; lastAttempt: number }) => {
   try {
     const encoded = encodeData(data);
     if (encoded) {
-      sessionStorage.setItem('jw_security', encoded);
+      sessionStorage.setItem('chlaire_security', encoded);
     }
   } catch (error) {
     console.error('Security data save error:', error);
@@ -129,8 +134,7 @@ export const resetLoginAttempts = () => {
 // Função para limpar dados sensíveis
 export const clearSecurityData = () => {
   try {
-    sessionStorage.removeItem('jw_security');
-    localStorage.clear();
+    sessionStorage.removeItem('chlaire_security');
   } catch (error) {
     console.error('Error clearing security data:', error);
   }
