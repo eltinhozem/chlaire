@@ -18,20 +18,65 @@ export const InfoContainer = styled.div`
   box-shadow: ${({ theme }) => theme.cardShadow};
 `;
 
-// Estilo para os botões de ação (Cancelar)
-export const ActionButton = styled.button`
+// Estilo padrão para botões com efeito de brilho
+const BaseButton = styled.button`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.5rem 1rem;
-  border: 1px solid ${({ theme }) => theme.actionButtonBorder};
-  border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: ${({ theme }) => theme.actionButtonText};
-  background-color: ${({ theme }) => theme.actionButtonBackground};
+  border: none;
+  border-radius: 0.375rem;
   cursor: pointer;
-  transition: background-color 0.2s;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: skewX(-45deg);
+    transition: left 0.5s ease;
+    z-index: -1;
+  }
 
   &:hover {
-    background-color: ${({ theme }) => theme.actionButtonHoverBackground};
+    transform: scale(1.05);
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  &:focus {
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+// Botão de ação (Cancelar)
+export const ActionButton = styled(BaseButton)`
+  color: ${({ theme }) => theme.actionButtonText};
+  background: ${({ theme }) => theme.actionButtonBackground};
+
+  &:hover:not(:disabled) {
+    background: ${({ theme }) => theme.actionButtonHoverBackground};
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
   }
 `;
 
@@ -88,51 +133,29 @@ export const ModalInput = styled.input`
 `;
 
 /* Botão padrão (azul) - para "Alterar" */
-export const CustomButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+export const CustomButton = styled(BaseButton)`
   color: ${({ theme }) => theme.buttonText};
   background: ${({ theme }) => theme.buttonBackground};
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.buttonHoverBackground};
   }
 
   &:focus {
-    outline: none;
     box-shadow: ${({ theme }) => theme.buttonFocusShadow};
   }
 `;
 
 /* Botão vermelho - para "Excluir" */
-export const RedButton = styled.button`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+export const RedButton = styled(BaseButton)`
   color: ${({ theme }) => theme.buttonTextRed};
   background: ${({ theme }) => theme.buttonBackgroundRed};
-  border: none;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.buttonHoverBackgroundRed};
   }
 
   &:focus {
-    outline: none;
     box-shadow: ${({ theme }) => theme.buttonFocusShadowRed};
   }
 `;
