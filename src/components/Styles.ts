@@ -1,3 +1,4 @@
+
 // translations.ts
 // CustomButton.ts
 // theme.ts
@@ -5,10 +6,10 @@
 // ./components/Styles.ts
 // ./components/Styles.ts
 export const lightTheme = {
-  /* Fundo geral da página (levemente cinza) */
+  /* Fundo geral da página */
   background: '#f9fafb',
 
-  /* Fundo do formulário/card (branco) */
+  /* Fundo do formulário/card */
   formBackground: '#ffffff',
 
   /* Texto geral */
@@ -22,38 +23,37 @@ export const lightTheme = {
   labelColor: '#374151',
 
   /* Inputs */
-  inputBackground: 'rgba(255, 255, 255, 0.5)',
+  inputBackground: '#ffffff',
   inputText: '#333333',
   inputBorderColor: '#d1d5db',
-  inputFocusBorderColor: '#ca9674',
-  inputFocusShadow: '0 0 0 2px rgba(202, 150, 116, 0.5)',
+  inputFocusBorderColor: '#3b82f6',
+  inputFocusShadow: '0 0 0 2px rgba(59, 130, 246, 0.2)',
   inputFocusBackground: '#ffffff',
   placeholderColor: '#9ca3af',
 
-  /* Botões */
-  buttonBackground: 'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)',
-  buttonBackgroundRed: 'linear-gradient(to right,rgb(250, 164, 164),rgb(246, 160, 160),rgb(202, 116, 116))',
-  buttonText: '#8b4513',
-  buttonHoverBackground: 'linear-gradient(to right, #f6cda0, #ca9674, #aa6e55)',
-  buttonFocusShadow: '0 0 0 3px rgba(202, 150, 116, 0.5)',
+  /* Botões padrão (azul) */
+  buttonBackground: '#3b82f6',
+  buttonText: '#ffffff',
+  buttonHoverBackground: '#2563eb',
+  buttonFocusShadow: '0 0 0 3px rgba(59, 130, 246, 0.3)',
 
-  /* Botão de adicionar pedra */
-  addStoneButtonText: '#8b4513',
-  addStoneButtonBackground:
-    'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)',
-  addStoneButtonFocusColor: 'rgba(202, 150, 116, 0.5)',
+  /* Botões de excluir (vermelho) */
+  buttonBackgroundRed: '#ef4444',
+  buttonTextRed: '#ffffff',
+  buttonHoverBackgroundRed: '#dc2626',
+  buttonFocusShadowRed: '0 0 0 3px rgba(239, 68, 68, 0.3)',
 
-  /* Botões de ação (Cancelar e Salvar) */
+  /* Botão de adicionar pedra (verde) */
+  addStoneButtonText: '#ffffff',
+  addStoneButtonBackground: '#10b981',
+  addStoneButtonHoverBackground: '#059669',
+  addStoneButtonFocusShadow: '0 0 0 3px rgba(16, 185, 129, 0.3)',
+
+  /* Botões de ação (Cancelar) */
   actionButtonBorder: '#d1d5db',
   actionButtonText: '#374151',
-  actionButtonBackground: 'white',
+  actionButtonBackground: '#ffffff',
   actionButtonHoverBackground: '#f3f4f6',
-
-  /* Botão de submit */
-  submitButtonText: '#8b4513',
-  submitButtonBackground:
-    'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)',
-  submitButtonFocusColor: 'rgba(202, 150, 116, 0.5)',
 
   /* Card e outros containers */
   cardBackground: '#ffffff',
@@ -62,76 +62,77 @@ export const lightTheme = {
   /* Upload de imagem */
   uploadButtonBorder: '#d1d5db',
   uploadButtonText: '#374151',
-  uploadButtonBackground: 'white',
+  uploadButtonBackground: '#ffffff',
   uploadButtonHoverBackground: '#f3f4f6',
   imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
 
-  /* Cor do título (marrom, semelhante ao print) */
-  titleColor:
-    'linear-gradient(to right, #fad2a4 0%, #f6cda0 3%, #ca9674 35%, #aa6e55 63%, #965641 85%, #8f4d3a 98%)'
+  /* Cor do título */
+  titleColor: '#1f2937'
 }
 
- export const darkTheme = {
-  /* Fundo geral da página (escuro) */
-  background: '#1f2937',
+export const darkTheme = {
+  /* Fundo geral da página */
+  background: '#111827',
 
-  /* Fundo do formulário/card (escuro) */
-  formBackground: '#2d3748',
+  /* Fundo do formulário/card */
+  formBackground: '#1f2937',
 
-  /* Texto geral (claro para contraste) */
-  text: '#f3f4f6',
+  /* Texto geral */
+  text: '#f9fafb',
 
-  /* Cabeçalho e rodapé (escuro) */
-  headerBackground: '#374151',
-  footerBackground: '#1f2937',
+  /* Cabeçalho e rodapé */
+  headerBackground: '#1f2937',
+  footerBackground: '#111827',
 
-  /* Labels (claro para contraste) */
-  labelColor: '#f3f4f6',
+  /* Labels */
+  labelColor: '#f9fafb',
 
   /* Inputs */
-  inputBackground: '#374151', // Fundo escuro
-  inputText: '#f3f4f6', // Texto claro
-  inputBorderColor: '#4b5563', // Borda escura
-  inputFocusBorderColor: '#60a5fa', // Borda de foco (azul claro)
-  inputFocusShadow: '0 0 0 2px rgba(96, 165, 250, 0.5)', // Sombra de foco
-  inputFocusBackground: '#374151', // Fundo escuro ao focar
-  placeholderColor: '#9ca3af', // Placeholder cinza
+  inputBackground: '#374151',
+  inputText: '#f9fafb',
+  inputBorderColor: '#4b5563',
+  inputFocusBorderColor: '#60a5fa',
+  inputFocusShadow: '0 0 0 2px rgba(96, 165, 250, 0.2)',
+  inputFocusBackground: '#374151',
+  placeholderColor: '#9ca3af',
 
-  /* Botões */
-  buttonBackground: '#374151', // Fundo escuro
-  buttonText: '#f3f4f6', // Texto claro
-  buttonHoverBackground: '#4b5563', // Fundo escuro ao passar o mouse
-  buttonFocusShadow: '0 0 0 3px rgba(96, 165, 250, 0.5)', // Sombra de foco
+  /* Botões padrão (azul) */
+  buttonBackground: '#3b82f6',
+  buttonText: '#ffffff',
+  buttonHoverBackground: '#2563eb',
+  buttonFocusShadow: '0 0 0 3px rgba(59, 130, 246, 0.3)',
 
-  /* Botão de adicionar pedra */
-  addStoneButtonText: '#f3f4f6', // Texto claro
-  addStoneButtonBackground: '#374151', // Fundo escuro
-  addStoneButtonFocusColor: 'rgba(96, 165, 250, 0.5)', // Sombra de foco
+  /* Botões de excluir (vermelho) */
+  buttonBackgroundRed: '#ef4444',
+  buttonTextRed: '#ffffff',
+  buttonHoverBackgroundRed: '#dc2626',
+  buttonFocusShadowRed: '0 0 0 3px rgba(239, 68, 68, 0.3)',
 
-  /* Botões de ação (Cancelar e Salvar) */
-  actionButtonBorder: '#4b5563', // Borda escura
-  actionButtonText: '#f3f4f6', // Texto claro
-  actionButtonBackground: '#374151', // Fundo escuro
-  actionButtonHoverBackground: '#4b5563', // Fundo escuro ao passar o mouse
+  /* Botão de adicionar pedra (verde) */
+  addStoneButtonText: '#ffffff',
+  addStoneButtonBackground: '#10b981',
+  addStoneButtonHoverBackground: '#059669',
+  addStoneButtonFocusShadow: '0 0 0 3px rgba(16, 185, 129, 0.3)',
 
-  /* Botão de submit */
-  submitButtonText: '#f3f4f6', // Texto claro
-  submitButtonBackground: '#374151', // Fundo escuro
-  submitButtonFocusColor: 'rgba(96, 165, 250, 0.5)', // Sombra de foco
+  /* Botões de ação (Cancelar) */
+  actionButtonBorder: '#4b5563',
+  actionButtonText: '#f9fafb',
+  actionButtonBackground: '#374151',
+  actionButtonHoverBackground: '#4b5563',
 
   /* Card e outros containers */
-  cardBackground: '#374151', // Fundo escuro
-  cardShadow: '0 4px 6px rgba(0, 0, 0, 0.5)', // Sombra mais escura
+  cardBackground: '#1f2937',
+  cardShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
 
   /* Upload de imagem */
-  uploadButtonBorder: '#4b5563', // Borda escura
-  uploadButtonText: '#f3f4f6', // Texto claro
-  uploadButtonBackground: '#374151', // Fundo escuro
-  uploadButtonHoverBackground: '#4b5563', // Fundo escuro ao passar o mouse
-  imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.5)', // Sombra mais escura
+  uploadButtonBorder: '#4b5563',
+  uploadButtonText: '#f9fafb',
+  uploadButtonBackground: '#374151',
+  uploadButtonHoverBackground: '#4b5563',
+  imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
 
-  /* Cor do título (claro para contraste) */
-  titleColor: '#f3f4f6', // Texto claro (sem gradiente no darkTheme)
+  /* Cor do título */
+  titleColor: '#f9fafb'
 };
 
 // Defina a interface para o objeto de tradução

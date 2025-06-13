@@ -1,15 +1,12 @@
+
 import styled from 'styled-components';
 
-
-
-
-
-
 export const formatarData = (data: string): string => {
-  if (!data) return ''; // Se a data for nula ou indefinida, retorna uma string vazia
+  if (!data) return '';
   const [ano, mes, dia] = data.split('-');
   return `${dia}-${mes}-${ano}`;
 };
+
 // Container principal do info
 export const InfoContainer = styled.div`
   max-width: 56rem;
@@ -21,7 +18,7 @@ export const InfoContainer = styled.div`
   box-shadow: ${({ theme }) => theme.cardShadow};
 `;
 
-// Estilo para os botões de ação
+// Estilo para os botões de ação (Cancelar)
 export const ActionButton = styled.button`
   padding: 0.5rem 1rem;
   border: 1px solid ${({ theme }) => theme.actionButtonBorder};
@@ -90,108 +87,52 @@ export const ModalInput = styled.input`
   }
 `;
 
-/* Botão para "Alterar" com o estilo original (gradiente dourado) */
+/* Botão padrão (azul) - para "Alterar" */
 export const CustomButton = styled.button`
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 15px;
-  font-size: 14px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: ${({ theme }) => theme.buttonText};
-  background: ${({ theme }) =>
-    theme.buttonBackground || 'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)'};
+  background: ${({ theme }) => theme.buttonBackground};
   border: none;
-  border-radius: 7px;
+  border-radius: 0.375rem;
   cursor: pointer;
-  overflow: hidden;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
- box-shadow: 0 10px 30px
-   ${({ theme }) =>
-        theme.submitButtonFocusColor ||'rgba(250, 210, 164, 0.5)'};
-  z-index: 1;
+  transition: all 0.2s ease;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: skewX(-45deg);
-    transition: left 0.5s ease;
-    z-index: -1;
+  &:hover {
+    background: ${({ theme }) => theme.buttonHoverBackground};
   }
 
-   &:hover {
-    transform: scale(1.05);
-     box-shadow: 0 0 0 1px
-      ${({ theme }) =>
-        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'};
-  }
-  &:hover::before {
-    left: 100%;
-  }
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px
-      ${({ theme }) =>
-        theme.addStoneButtonFocusColor || 'rgba(202, 150, 116, 0.5)'};
+    box-shadow: ${({ theme }) => theme.buttonFocusShadow};
   }
 `;
 
-/* Botão para "Excluir" com estilo semelhante, mas com gradiente avermelhado */
+/* Botão vermelho - para "Excluir" */
 export const RedButton = styled.button`
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 7px 15px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.buttonText};
-  background: ${({ theme }) =>
-    theme.buttonBackgroundRed || 'linear-gradient(to right, #f87171, #ef4444, #dc2626)'};
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.buttonTextRed};
+  background: ${({ theme }) => theme.buttonBackgroundRed};
   border: none;
-  border-radius: 7px;
+  border-radius: 0.375rem;
   cursor: pointer;
-  overflow: hidden;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
- box-shadow: 0 10px 30px
-   ${({ theme }) =>
-        theme.submitButtonFocusColor ||'rgba(212, 43, 13, 0.5)'};
-  z-index: 1;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: skewX(-45deg);
-    transition: left 0.5s ease;
-    z-index: -1;
-  }
+  transition: all 0.2s ease;
 
   &:hover {
-    transform: scale(1.05);
-    box-shadow: ${({ theme }) =>
-      theme.buttonFocusShadow || '0 15px 40px rgba(220, 38, 38, 0.7)'};
-  }
-
-  &:hover::before {
-    left: 100%;
+    background: ${({ theme }) => theme.buttonHoverBackgroundRed};
   }
 
   &:focus {
     outline: none;
-    box-shadow: ${({ theme }) =>
-      theme.buttonFocusShadow || '0 0 0 3px rgba(239, 68, 68, 0.5)'};
+    box-shadow: ${({ theme }) => theme.buttonFocusShadowRed};
   }
 `;
