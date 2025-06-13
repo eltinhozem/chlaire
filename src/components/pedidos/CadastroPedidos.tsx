@@ -5,6 +5,7 @@ import { PlusCircle, Upload } from 'lucide-react';
 import { Pedido, PedidoStone, ReferenciaModelo } from './types';
 import PedidoStoneComponent from './components/PedidoStone';
 import { categoryOptions } from '../form/formOptions';
+import { SecondaryButton, PrimaryButton, SuccessButton } from '../buttons';
 
 const CadastroPedidos: React.FC = () => {
   const navigate = useNavigate();
@@ -105,9 +106,11 @@ const CadastroPedidos: React.FC = () => {
                 />
               </div>
             )}
-            <label className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md cursor-pointer hover:bg-blue-600">
-              <Upload size={20} />
-              {imagePreview ? 'Trocar Imagem' : 'Adicionar Imagem'}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <SecondaryButton as="div" className="flex items-center gap-2">
+                <Upload size={20} />
+                {imagePreview ? 'Trocar Imagem' : 'Adicionar Imagem'}
+              </SecondaryButton>
               <input
                 type="file"
                 accept="image/*"
@@ -208,14 +211,10 @@ const CadastroPedidos: React.FC = () => {
         <div className="bg-white p-6 rounded-lg shadow">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Pedras</h2>
-            <button
-              type="button"
-              onClick={addStone}
-              className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-            >
+            <SuccessButton type="button" onClick={addStone} className="flex items-center gap-2">
               <PlusCircle size={16} />
               Adicionar Pedra
-            </button>
+            </SuccessButton>
           </div>
           
           {stones.map((stone, index) => (
@@ -267,19 +266,15 @@ const CadastroPedidos: React.FC = () => {
 
         {/* Botões */}
         <div className="flex justify-end gap-4">
-          <button
+          <SecondaryButton
             type="button"
             onClick={() => navigate('/lista-pedidos')}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
           >
             Cancelar
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-          >
+          </SecondaryButton>
+          <PrimaryButton type="submit">
             Salvar Pedido
-          </button>
+          </PrimaryButton>
         </div>
       </form>
     </div>
