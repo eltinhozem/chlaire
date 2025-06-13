@@ -28,4 +28,5 @@ export interface Pedido {
   stones: PedidoStone[];
   referenciaModelo: ReferenciaModelo;
   riscado: boolean;
+  prioridade: number;
 }
