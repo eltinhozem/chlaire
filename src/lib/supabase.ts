@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -12,17 +11,9 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false, // Desabilitar detecção de sessão na URL para evitar problemas de segurança
-    storageKey: 'sb-auth-token', // Usar chave padrão
-    flowType: 'implicit'
-  },
-  global: {
-    headers: {
-      'Content-Security-Policy': "default-src 'self'",
-      'X-Content-Type-Options': 'nosniff',
-      'X-Frame-Options': 'DENY',
-      'Referrer-Policy': 'strict-origin-when-cross-origin'
-    }
+    detectSessionInUrl: true,
+    storageKey: 'sb-auth-token',
+    flowType: 'pkce' // Usar PKCE flow que é mais seguro
   },
   db: {
     schema: 'public'
@@ -79,7 +70,7 @@ const decodeData = (encodedData: string) => {
 
 const getSecurityData = () => {
   try {
-    const encoded = sessionStorage.getItem('jw_security'); // Usar sessionStorage em vez de localStorage
+    const encoded = sessionStorage.getItem('jw_security');
     if (!encoded) return { attempts: 0, lastAttempt: 0 };
     
     const data = decodeData(encoded);
@@ -139,7 +130,7 @@ export const resetLoginAttempts = () => {
 export const clearSecurityData = () => {
   try {
     sessionStorage.removeItem('jw_security');
-    localStorage.clear(); // Limpar qualquer dado antigo
+    localStorage.clear();
   } catch (error) {
     console.error('Error clearing security data:', error);
   }
