@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Upload } from 'lucide-react';
-import { Pedido, PedidoStone, ReferenciaModelo } from './types';
+import { PedidoStone, ReferenciaModelo } from './types';
 import PedidoStoneComponent from './components/PedidoStone';
 import { categoryOptions } from '../form/formOptions';
 import { SecondaryButton, PrimaryButton, SuccessButton } from '../buttons';
+import { usePedidos } from './hooks/usePedidos';
 
 const CadastroPedidos: React.FC = () => {
   const navigate = useNavigate();
+  const { savePedido, loading } = usePedidos();
+  
   const [imagePreview, setImagePreview] = useState<string>('');
   const [nomeCliente, setNomeCliente] = useState('');
   const [categoria, setCategoria] = useState('');
@@ -62,37 +65,33 @@ const CadastroPedidos: React.FC = () => {
     setStones(newStones);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Obter pedidos existentes para calcular a próxima prioridade
-    const pedidosExistentes = JSON.parse(localStorage.getItem('pedidos') || '[]');
-    const proximaPrioridade = pedidosExistentes.length + 1;
-    
-    const novoPedido: Pedido = {
-      id: Date.now().toString(),
-      imagem: imagePreview,
-      nomeCliente,
-      categoria,
-      tamanho,
-      descricao,
-      aramado,
-      galeria,
-      paraRender,
-      dataCreated: new Date(),
-      dataPrevistaEntrega: semDataEntrega ? undefined : (dataPrevistaEntrega ? new Date(dataPrevistaEntrega) : undefined),
-      stones,
-      referenciaModelo,
-      riscado: false,
-      prioridade: proximaPrioridade
-    };
+    try {
+      const novoPedido = {
+        imagem: imagePreview,
+        nomeCliente,
+        categoria,
+        tamanho,
+        descricao,
+        aramado,
+        galeria,
+        paraRender,
+        dataCreated: new Date(),
+        dataPrevistaEntrega: semDataEntrega ? undefined : (dataPrevistaEntrega ? new Date(dataPrevistaEntrega) : undefined),
+        stones,
+        referenciaModelo,
+        riscado: false,
+        prioridade: 1
+      };
 
-    // Salvar no localStorage por enquanto
-    pedidosExistentes.push(novoPedido);
-    localStorage.setItem('pedidos', JSON.stringify(pedidosExistentes));
-
-    alert('Pedido cadastrado com sucesso!');
-    navigate('/lista-pedidos');
+      await savePedido(novoPedido);
+      alert('Pedido cadastrado com sucesso!');
+      navigate('/lista-pedidos');
+    } catch (error) {
+      alert('Erro ao cadastrar pedido. Tente novamente.');
+    }
   };
 
   return (
@@ -172,7 +171,7 @@ const CadastroPedidos: React.FC = () => {
                 value={tamanho}
                 onChange={(e) => setTamanho(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md"
-                
+               
               />
             </div>
 
@@ -313,11 +312,12 @@ const CadastroPedidos: React.FC = () => {
           <SecondaryButton
             type="button"
             onClick={() => navigate('/lista-pedidos')}
+            disabled={loading}
           >
             Cancelar
           </SecondaryButton>
-          <PrimaryButton type="submit">
-            Salvar Pedido
+          <PrimaryButton type="submit" disabled={loading}>
+            {loading ? 'Salvando...' : 'Salvar Pedido'}
           </PrimaryButton>
         </div>
       </form>

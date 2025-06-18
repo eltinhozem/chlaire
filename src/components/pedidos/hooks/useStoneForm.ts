@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { PedidoStone } from '../types';
 import { convertPtsToSize } from '../utils/ptsToSize';
@@ -55,26 +56,10 @@ export const useStoneForm = (
   };
 
   const handleSaveStone = () => {
+    // Salvar a pedra atual
     setSavedStone({ ...stone });
     setIsEditing(false);
-    
-    // Limpar campos e definir valores padrão
-    const clearedStone: PedidoStone = {
-      onde: '',
-      tipo: 'Diamante',
-      lapidacao: 'Redonda',
-      quantidade: 0,
-      largura: '',
-      altura: '',
-      comprimento: '',
-      pts: '',
-      quantidadeMaxima: undefined,
-      quantidadeMinima: undefined,
-      tipoQuantidade: 'exata'
-    };
-    
-    onChange(index, clearedStone);
-    alert('Pedra salva com sucesso!');
+   
   };
 
   const handleEditStone = () => {

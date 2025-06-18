@@ -1,93 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Trash2, GripVertical, Calendar } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Pedido } from './types';
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
+import { usePedidos } from './hooks/usePedidos';
 
 const ListaPedidos: React.FC = () => {
   const navigate = useNavigate();
-  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const { pedidos, loading, updatePedido, deletePedido, updatePrioridades } = usePedidos();
 
-  useEffect(() => {
-    const pedidosStorage = JSON.parse(localStorage.getItem('pedidos') || '[]');
-    
-    // Adicionar prioridade e novos campos aos pedidos existentes
-    const pedidosComPrioridade = pedidosStorage.map((pedido: Pedido, index: number) => ({
-      ...pedido,
-      prioridade: pedido.prioridade ?? index + 1,
-      paraRender: pedido.paraRender ?? false,
-      dataPrevistaEntrega: pedido.dataPrevistaEntrega ? new Date(pedido.dataPrevistaEntrega) : undefined,
-      stones: pedido.stones?.map(stone => ({
-        ...stone,
-      tipoQuantidade: stone.tipoQuantidade ?? 'exata'
-      })) || []
-    }));
-
-    // Ordenar por prioridade primeiro, depois por data para pedidos sem prioridade
-    const pedidosOrdenados = pedidosComPrioridade.sort((a: Pedido, b: Pedido) => {
-      // Pedidos não riscados primeiro
-      if (a.riscado !== b.riscado) {
-        return a.riscado ? 1 : -1;
-      }
-      
-      // Depois por prioridade
-      return a.prioridade - b.prioridade;
-    });
-    
-    setPedidos(pedidosOrdenados);
-  }, []);
-
-  const onDragEnd = (result: DropResult) => {
+  const onDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
 
     const items = Array.from(pedidos);
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
 
-    // Atualizar prioridades baseado na nova ordem
-    const pedidosAtualizados = items.map((pedido, index) => ({
-      ...pedido,
-      prioridade: index + 1
-    }));
-
-    setPedidos(pedidosAtualizados);
-    localStorage.setItem('pedidos', JSON.stringify(pedidosAtualizados));
+    try {
+      await updatePrioridades(items);
+    } catch (error) {
+      console.error('Erro ao reordenar pedidos:', error);
+    }
   };
 
-  const riscarPedido = (id: string) => {
-    const pedidosAtualizados = pedidos.map(pedido => {
-      if (pedido.id === id) {
-        return { ...pedido, riscado: !pedido.riscado };
-      }
-      return pedido;
-    });
+  const riscarPedido = async (id: string) => {
+    const pedido = pedidos.find(p => p.id === id);
+    if (!pedido) return;
 
-    // Separar pedidos riscados e não riscados
-    const naoRiscados = pedidosAtualizados.filter(p => !p.riscado);
-    const riscados = pedidosAtualizados.filter(p => p.riscado);
-    
-    // Reordenar: não riscados primeiro (mantendo prioridade), depois riscados
-    const naoRiscadosOrdenados = naoRiscados.sort((a, b) => a.prioridade - b.prioridade);
-    const riscadosOrdenados = riscados.sort((a, b) => a.prioridade - b.prioridade);
-    const pedidosReordenados = [...naoRiscadosOrdenados, ...riscadosOrdenados];
-    
-    setPedidos(pedidosReordenados);
-    localStorage.setItem('pedidos', JSON.stringify(pedidosReordenados));
+    try {
+      await updatePedido(id, { riscado: !pedido.riscado });
+    } catch (error) {
+      console.error('Erro ao riscar pedido:', error);
+    }
   };
 
-  const excluirPedido = (id: string) => {
+  const excluirPedido = async (id: string) => {
     if (window.confirm('Tem certeza que deseja excluir este pedido?')) {
-      const pedidosAtualizados = pedidos.filter(pedido => pedido.id !== id);
-      
-      // Reajustar prioridades após exclusão
-      const pedidosReajustados = pedidosAtualizados.map((pedido, index) => ({
-        ...pedido,
-        prioridade: index + 1
-      }));
-      
-      setPedidos(pedidosReajustados);
-      localStorage.setItem('pedidos', JSON.stringify(pedidosReajustados));
+      try {
+        await deletePedido(id);
+      } catch (error) {
+        console.error('Erro ao excluir pedido:', error);
+      }
     }
   };
 
@@ -110,7 +63,7 @@ const ListaPedidos: React.FC = () => {
       "rivi": "Rivieira"
     };
     return categoryMap[value] || value;
-    };
+  };
 
   const getQuantidadeDisplay = (stone: any) => {
     if (stone.tipoQuantidade === 'maximo') {
@@ -121,6 +74,16 @@ const ListaPedidos: React.FC = () => {
       return stone.quantidade === 0 ? 'Livre' : stone.quantidade;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">Carregando pedidos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-6">
