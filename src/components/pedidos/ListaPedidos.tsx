@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon } from 'lucide-react';
-import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
@@ -57,20 +56,6 @@ const ListaPedidos: React.FC = () => {
       await updatePrioridades(reorderedPedidos);
     } catch (error) {
       console.error('Erro ao alterar posição:', error);
-    }
-  };
-
-  const onDragEnd = async (result: DropResult) => {
-    if (!result.destination) return;
-
-    const items = Array.from(pedidos);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    try {
-      await updatePrioridades(items);
-    } catch (error) {
-      console.error('Erro ao reordenar pedidos:', error);
     }
   };
 
@@ -131,18 +116,6 @@ const ListaPedidos: React.FC = () => {
     const comprimento = stone.comprimento || '0';
     const altura = stone.altura || '0';
     return `${largura} x ${comprimento} x ${altura}`;
-  };
-
-  const handlePriorityEdit = (pedidoId: string, currentPriority: number) => {
-    
-  };
-
-  const handlePrioritySave = async (pedidoId: string) => {
-    
-  };
-
-  const handlePriorityCancel = () => {
-    
   };
 
   const handlePositionClick = (pedidoId: string, currentPosition: number, pedidoName: string) => {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MinusCircle, Save, Edit } from 'lucide-react';
 import { PedidoStone } from '../types';
@@ -5,6 +6,14 @@ import { useStoneForm } from '../hooks/useStoneForm';
 import { isStoneFormValid } from '../utils/stoneValidation';
 import StonePreview from './StonePreview';
 import StoneFormFields from './StoneFormFields';
+import { lightTheme } from '../../Styles';
+import {
+  StoneContainer,
+  StoneHeader,
+  StoneTitle,
+  StoneActions,
+  StoneActionButton
+} from '../styles/StoneStyles';
 
 interface PedidoStoneProps {
   index: number;
@@ -19,6 +28,8 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
   onRemove,
   onChange,
 }) => {
+  const currentTheme = lightTheme; // This could be dynamic based on your theme context
+
   const {
     savedStone,
     isEditing,
@@ -28,40 +39,43 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
   } = useStoneForm(stone, onChange, index);
 
   return (
-    <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
-      <div className="flex justify-between items-center mb-4">
-        <h4 className="text-lg font-medium">Pedra {index + 1}</h4>
-        <div className="flex gap-2">
+    <StoneContainer theme={currentTheme}>
+      <StoneHeader>
+        <StoneTitle theme={currentTheme}>Pedra {index + 1}</StoneTitle>
+        <StoneActions>
           {!isEditing && (
-            <button
+            <StoneActionButton
+              theme={currentTheme}
+              variant="edit"
               type="button"
               onClick={handleEditStone}
-              className="text-blue-500 hover:text-blue-700 flex items-center gap-1"
             >
               <Edit size={16} />
               Editar
-            </button>
+            </StoneActionButton>
           )}
           {isEditing && (
-            <button
+            <StoneActionButton
+              theme={currentTheme}
+              variant="save"
               type="button"
               onClick={handleSaveStone}
               disabled={!isStoneFormValid(stone)}
-              className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-1"
             >
               <Save size={16} />
               Salvar Pedra
-            </button>
+            </StoneActionButton>
           )}
-          <button
+          <StoneActionButton
+            theme={currentTheme}
+            variant="remove"
             type="button"
             onClick={() => onRemove(index)}
-            className="text-red-500 hover:text-red-700"
           >
             <MinusCircle size={20} />
-          </button>
-        </div>
-      </div>
+          </StoneActionButton>
+        </StoneActions>
+      </StoneHeader>
 
       {/* Preview da pedra salva */}
       {!isEditing && savedStone && (
@@ -72,7 +86,7 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
       {isEditing && (
         <StoneFormFields stone={stone} index={index} onChange={handleChange} />
       )}
-    </div>
+    </StoneContainer>
   );
 };
 

@@ -6,6 +6,28 @@ import PedidoStoneComponent from './components/PedidoStone';
 import { categoryOptions } from '../form/formOptions';
 import { SecondaryButton, PrimaryButton, SuccessButton } from '../buttons';
 import { usePedidos } from './hooks/usePedidos';
+import { lightTheme, darkTheme } from '../Styles';
+import {
+  PageContainer,
+  PageTitle,
+  FormContainer,
+  CardContainer,
+  SectionTitle,
+  GridContainer,
+  FieldContainer,
+  Label,
+  Input,
+  Select,
+  Textarea,
+  CheckboxContainer,
+  CheckboxLabel,
+  CheckboxInput,
+  ButtonContainer,
+  ImagePreviewContainer,
+  ImagePreview,
+  ImagePreviewImg,
+  FullWidthContainer
+} from './styles/PedidoStyles';
 
 const CadastroPedidos: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +72,8 @@ const CadastroPedidos: React.FC = () => {
       pts: '',
       quantidadeMaxima: undefined,
       quantidadeMinima: undefined,
-      tipoQuantidade: 'exata'
+      tipoQuantidade: 'exata',
+      tipoCravacao: ''
     };
     setStones([...stones, newStone]);
   };
@@ -94,25 +117,27 @@ const CadastroPedidos: React.FC = () => {
     }
   };
 
+  // Determine current theme (you might want to get this from a context or prop)
+  const currentTheme = lightTheme; // This could be dynamic based on your theme context
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Cadastro de Pedidos</h1>
+    <PageContainer theme={currentTheme}>
+      <PageTitle theme={currentTheme}>Cadastro de Pedidos</PageTitle>
       
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <FormContainer theme={currentTheme} onSubmit={handleSubmit}>
         {/* Upload de Imagem */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Imagem do Pedido</h2>
-          <div className="flex items-center gap-4">
+        <CardContainer theme={currentTheme}>
+          <SectionTitle theme={currentTheme}>Imagem do Pedido</SectionTitle>
+          <ImagePreviewContainer>
             {imagePreview && (
-              <div className="w-32 h-32 border-2 border-gray-300 rounded-lg overflow-hidden">
-                <img
+              <ImagePreview theme={currentTheme}>
+                <ImagePreviewImg
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-full object-cover"
                 />
-              </div>
+              </ImagePreview>
             )}
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label style={{ cursor: 'pointer' }}>
               <SecondaryButton as="div" className="flex items-center gap-2">
                 <Upload size={20} />
                 {imagePreview ? 'Trocar Imagem' : 'Adicionar Imagem'}
@@ -121,37 +146,37 @@ const CadastroPedidos: React.FC = () => {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="hidden"
+                style={{ display: 'none' }}
               />
             </label>
-          </div>
-        </div>
+          </ImagePreviewContainer>
+        </CardContainer>
 
         {/* Informações Básicas */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Informações do Pedido</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+        <CardContainer theme={currentTheme}>
+          <SectionTitle theme={currentTheme}>Informações do Pedido</SectionTitle>
+          <GridContainer>
+            <FieldContainer>
+              <Label theme={currentTheme}>
                 Nome Cliente *
-              </label>
-              <input
+              </Label>
+              <Input
+                theme={currentTheme}
                 type="text"
                 value={nomeCliente}
                 onChange={(e) => setNomeCliente(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md"
                 required
               />
-            </div>
+            </FieldContainer>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <FieldContainer>
+              <Label theme={currentTheme}>
                 Categoria *
-              </label>
-              <select
+              </Label>
+              <Select
+                theme={currentTheme}
                 value={categoria}
                 onChange={(e) => setCategoria(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md"
                 required
               >
                 {categoryOptions.map((option) => (
@@ -159,35 +184,34 @@ const CadastroPedidos: React.FC = () => {
                     {option.label}
                   </option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </FieldContainer>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <FieldContainer>
+              <Label theme={currentTheme}>
                 Tamanho 
-              </label>
-              <input
+              </Label>
+              <Input
+                theme={currentTheme}
                 type="text"
                 value={tamanho}
                 onChange={(e) => setTamanho(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md"
-               
               />
-            </div>
+            </FieldContainer>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <FieldContainer>
+              <Label theme={currentTheme}>
                 Data Prevista de Entrega
-              </label>
-              <input
+              </Label>
+              <Input
+                theme={currentTheme}
                 type="date"
                 value={dataPrevistaEntrega}
                 onChange={(e) => setDataPrevistaEntrega(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-md"
                 disabled={semDataEntrega}
               />
-              <label className="flex items-center gap-2 mt-2">
-                <input
+              <CheckboxLabel theme={currentTheme} style={{ marginTop: '0.5rem' }}>
+                <CheckboxInput
                   type="checkbox"
                   checked={semDataEntrega}
                   onChange={(e) => {
@@ -196,64 +220,62 @@ const CadastroPedidos: React.FC = () => {
                       setDataPrevistaEntrega('');
                     }
                   }}
-                  className="w-4 h-4"
                 />
-                <span className="text-sm text-gray-600">Sem data de entrega definida</span>
-              </label>
-            </div>
+                <span>Sem data de entrega definida</span>
+              </CheckboxLabel>
+            </FieldContainer>
             
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Descrição *
-              </label>
-              <textarea
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                rows={3}
-                className="w-full p-3 border border-gray-300 rounded-md"
-                required
-              />
-            </div>
-          </div>
+            <FullWidthContainer>
+              <FieldContainer>
+                <Label theme={currentTheme}>
+                  Descrição *
+                </Label>
+                <Textarea
+                  theme={currentTheme}
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  rows={3}
+                  required
+                />
+              </FieldContainer>
+            </FullWidthContainer>
+          </GridContainer>
           
           {/* Checkboxes */}
-          <div className="mt-4 flex gap-6">
-            <label className="flex items-center gap-2">
-              <input
+          <CheckboxContainer>
+            <CheckboxLabel theme={currentTheme}>
+              <CheckboxInput
                 type="checkbox"
                 checked={aramado}
                 onChange={(e) => setAramado(e.target.checked)}
-                className="w-4 h-4"
               />
-              <span className="text-sm font-medium text-gray-700">Aramado</span>
-            </label>
+              <span>Aramado</span>
+            </CheckboxLabel>
             
-            <label className="flex items-center gap-2">
-              <input
+            <CheckboxLabel theme={currentTheme}>
+              <CheckboxInput
                 type="checkbox"
                 checked={galeria}
                 onChange={(e) => setGaleria(e.target.checked)}
-                className="w-4 h-4"
               />
-              <span className="text-sm font-medium text-gray-700">Galeria</span>
-            </label>
+              <span>Galeria</span>
+            </CheckboxLabel>
 
-            <label className="flex items-center gap-2">
-              <input
+            <CheckboxLabel theme={currentTheme}>
+              <CheckboxInput
                 type="checkbox"
                 checked={paraRender}
                 onChange={(e) => setParaRender(e.target.checked)}
-                className="w-4 h-4"
               />
-              <span className="text-sm font-medium text-gray-700">Para Render</span>
-            </label>
-          </div>
-        </div>
+              <span>Para Render</span>
+            </CheckboxLabel>
+          </CheckboxContainer>
+        </CardContainer>
 
         {/* Pedras */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Pedras</h2>
+        <CardContainer theme={currentTheme}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <SectionTitle theme={currentTheme}>Pedras</SectionTitle>
             <SuccessButton type="button" onClick={addStone} className="flex items-center gap-2">
               <PlusCircle size={16} />
               Adicionar Pedra
@@ -269,46 +291,46 @@ const CadastroPedidos: React.FC = () => {
               onChange={updateStone}
             />
           ))}
-        </div>
+        </CardContainer>
 
         {/* Referência do Modelo */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Referência do Modelo</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+        <CardContainer theme={currentTheme}>
+          <SectionTitle theme={currentTheme}>Referência do Modelo</SectionTitle>
+          <GridContainer>
+            <FieldContainer>
+              <Label theme={currentTheme}>
                 Rota
-              </label>
-              <input
+              </Label>
+              <Input
+                theme={currentTheme}
                 type="text"
                 value={referenciaModelo.rota}
                 onChange={(e) => setReferenciaModelo({
                   ...referenciaModelo,
                   rota: e.target.value
                 })}
-                className="w-full p-3 border border-gray-300 rounded-md"
               />
-            </div>
+            </FieldContainer>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <FieldContainer>
+              <Label theme={currentTheme}>
                 Cliente
-              </label>
-              <input
+              </Label>
+              <Input
+                theme={currentTheme}
                 type="text"
                 value={referenciaModelo.cliente}
                 onChange={(e) => setReferenciaModelo({
                   ...referenciaModelo,
                   cliente: e.target.value
                 })}
-                className="w-full p-3 border border-gray-300 rounded-md"
               />
-            </div>
-          </div>
-        </div>
+            </FieldContainer>
+          </GridContainer>
+        </CardContainer>
 
         {/* Botões */}
-        <div className="flex justify-end gap-4">
+        <ButtonContainer>
           <SecondaryButton
             type="button"
             onClick={() => navigate('/lista-pedidos')}
@@ -319,9 +341,9 @@ const CadastroPedidos: React.FC = () => {
           <PrimaryButton type="submit" disabled={loading}>
             {loading ? 'Salvando...' : 'Salvar Pedido'}
           </PrimaryButton>
-        </div>
-      </form>
-    </div>
+        </ButtonContainer>
+      </FormContainer>
+    </PageContainer>
   );
 };
 

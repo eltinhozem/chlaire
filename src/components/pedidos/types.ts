@@ -10,6 +10,7 @@ export interface PedidoStone {
   quantidadeMaxima?: number;
   quantidadeMinima?: number;
   tipoQuantidade: 'exata' | 'maximo' | 'minimo' | 'livre';
+  tipoCravacao?: string;
 }
 
 export interface ReferenciaModelo {
