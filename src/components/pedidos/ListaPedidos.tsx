@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Trash2, GripVertical } from 'lucide-react';
+import { PlusCircle, Trash2, GripVertical, Calendar } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
 import { Pedido } from './types';
+import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 
 const ListaPedidos: React.FC = () => {
   const navigate = useNavigate();
@@ -11,10 +12,17 @@ const ListaPedidos: React.FC = () => {
   useEffect(() => {
     const pedidosStorage = JSON.parse(localStorage.getItem('pedidos') || '[]');
     
-    // Adicionar prioridade aos pedidos que não têm
+    // Adicionar prioridade e novos campos aos pedidos existentes
     const pedidosComPrioridade = pedidosStorage.map((pedido: Pedido, index: number) => ({
       ...pedido,
-      prioridade: pedido.prioridade ?? index + 1
+      prioridade: pedido.prioridade ?? index + 1,
+      paraRender: pedido.paraRender ?? false,
+      dataPrevistaEntrega: pedido.dataPrevistaEntrega ? new Date(pedido.dataPrevistaEntrega) : undefined,
+      stones: pedido.stones?.map(stone => ({
+        ...stone,
+        noMaximo: stone.noMaximo ?? false,
+        quantidadeMaxima: stone.quantidadeMaxima ?? undefined
+      })) || []
     }));
 
     // Ordenar por prioridade primeiro, depois por data para pedidos sem prioridade
@@ -151,7 +159,7 @@ const ListaPedidos: React.FC = () => {
                         className={`bg-white rounded-lg shadow border-l-4 ${
                           pedido.riscado 
                             ? 'border-l-red-500 opacity-60' 
-                            : 'border-l-green-500'
+                            : getDeliveryStatusColor(pedido.dataPrevistaEntrega)
                         } p-6 ${
                           snapshot.isDragging ? 'shadow-lg scale-105' : ''
                         } transition-all duration-200`}
@@ -197,6 +205,24 @@ const ListaPedidos: React.FC = () => {
                                   <p className="text-sm text-gray-500">
                                     {formatDate(pedido.dataCreated)}
                                   </p>
+                                  {/* Data prevista de entrega */}
+                                  {pedido.dataPrevistaEntrega && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <Calendar size={14} className="text-gray-400" />
+                                      <span className="text-xs text-gray-600">
+                                        Entrega: {formatDate(pedido.dataPrevistaEntrega)}
+                                      </span>
+                                      <span className={`text-xs px-2 py-1 rounded ${
+                                        pedido.riscado ? 'bg-gray-100 text-gray-500' : 
+                                        getDeliveryStatusText(pedido.dataPrevistaEntrega).includes('Vencido') ? 'bg-red-100 text-red-700' :
+                                        getDeliveryStatusText(pedido.dataPrevistaEntrega).includes('hoje') || 
+                                        getDeliveryStatusText(pedido.dataPrevistaEntrega).includes('amanhã') ? 'bg-red-100 text-red-700' :
+                                        'bg-blue-100 text-blue-700'
+                                      }`}>
+                                        {getDeliveryStatusText(pedido.dataPrevistaEntrega)}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               
@@ -243,7 +269,7 @@ const ListaPedidos: React.FC = () => {
                                           <div><strong>Onde:</strong> {stone.onde || 'N/A'}</div>
                                           <div><strong>Tipo:</strong> {stone.tipo || 'N/A'}</div>
                                           <div><strong>Lapidação:</strong> {stone.lapidacao || 'N/A'}</div>
-                                          <div><strong>Qtd:</strong> {stone.quantidade}</div>
+                                          <div><strong>Qtd:</strong> {stone.quantidade === 0 ? 'Livre' : stone.quantidade}{stone.noMaximo && stone.quantidadeMaxima ? ` (máx: ${stone.quantidadeMaxima})` : ''}</div>
                                           <div><strong>Largura:</strong> {stone.largura || 'N/A'}</div>
                                           <div><strong>Altura:</strong> {stone.altura || 'N/A'}</div>
                                           <div><strong>Comprimento:</strong> {stone.comprimento || 'N/A'}</div>
@@ -272,6 +298,15 @@ const ListaPedidos: React.FC = () => {
                                       : 'bg-green-100 text-green-800'
                                   }`}>
                                     Galeria
+                                  </span>
+                                )}
+                                {pedido.paraRender && (
+                                  <span className={`text-xs px-2 py-1 rounded ${
+                                    pedido.riscado 
+                                      ? 'bg-gray-100 text-gray-500' 
+                                      : 'bg-purple-100 text-purple-800'
+                                  }`}>
+                                    Para Render
                                   </span>
                                 )}
                               </div>

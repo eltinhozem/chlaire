@@ -1,4 +1,3 @@
-
 export interface PedidoStone {
   onde: string;
   tipo: string;
@@ -8,6 +7,8 @@ export interface PedidoStone {
   altura: string;
   comprimento: string;
   pts: string;
+  quantidadeMaxima?: number;
+  noMaximo: boolean;
 }
 
 export interface ReferenciaModelo {
@@ -24,7 +25,9 @@ export interface Pedido {
   descricao: string;
   aramado: boolean;
   galeria: boolean;
+  paraRender: boolean;
   dataCreated: Date;
+  dataPrevistaEntrega?: Date;
   stones: PedidoStone[];
   referenciaModelo: ReferenciaModelo;
   riscado: boolean;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Upload } from 'lucide-react';
@@ -16,6 +15,8 @@ const CadastroPedidos: React.FC = () => {
   const [descricao, setDescricao] = useState('');
   const [aramado, setAramado] = useState(false);
   const [galeria, setGaleria] = useState(false);
+  const [paraRender, setParaRender] = useState(false);
+  const [dataPrevistaEntrega, setDataPrevistaEntrega] = useState('');
   const [stones, setStones] = useState<PedidoStone[]>([]);
   const [referenciaModelo, setReferenciaModelo] = useState<ReferenciaModelo>({
     rota: '',
@@ -38,11 +39,13 @@ const CadastroPedidos: React.FC = () => {
       onde: '',
       tipo: '',
       lapidacao: '',
-      quantidade: 1,
+      quantidade: 0,
       largura: '',
       altura: '',
       comprimento: '',
-      pts: ''
+      pts: '',
+      quantidadeMaxima: undefined,
+      noMaximo: false
     };
     setStones([...stones, newStone]);
   };
@@ -73,7 +76,9 @@ const CadastroPedidos: React.FC = () => {
       descricao,
       aramado,
       galeria,
+      paraRender,
       dataCreated: new Date(),
+      dataPrevistaEntrega: dataPrevistaEntrega ? new Date(dataPrevistaEntrega) : undefined,
       stones,
       referenciaModelo,
       riscado: false,
@@ -168,6 +173,18 @@ const CadastroPedidos: React.FC = () => {
                 required
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Data Prevista de Entrega
+              </label>
+              <input
+                type="date"
+                value={dataPrevistaEntrega}
+                onChange={(e) => setDataPrevistaEntrega(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md"
+              />
+            </div>
             
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -203,6 +220,16 @@ const CadastroPedidos: React.FC = () => {
                 className="w-4 h-4"
               />
               <span className="text-sm font-medium text-gray-700">Galeria</span>
+            </label>
+
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={paraRender}
+                onChange={(e) => setParaRender(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-sm font-medium text-gray-700">Para Render</span>
             </label>
           </div>
         </div>
