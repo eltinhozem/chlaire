@@ -165,14 +165,14 @@ const CadastroPedidos: React.FC = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tamanho *
+                Tamanho 
               </label>
               <input
                 type="text"
                 value={tamanho}
                 onChange={(e) => setTamanho(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md"
-                required
+                
               />
             </div>
 
