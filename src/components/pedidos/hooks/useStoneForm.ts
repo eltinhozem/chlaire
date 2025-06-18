@@ -13,6 +13,11 @@ export const useStoneForm = (
   const handleChange = (field: keyof PedidoStone, value: string | number | boolean) => {
     const updatedStone = { ...stone, [field]: value };
 
+    // Se mudou para tipo 'livre', zerar a quantidade
+    if (field === 'tipoQuantidade' && value === 'livre') {
+      updatedStone.quantidade = 0;
+    }
+
     // Se o campo alterado foi PTS e a lapidação é redonda, calcular largura e comprimento automaticamente
     if (field === 'pts' && updatedStone.lapidacao === 'Redonda' && value) {
       const ptsValue = parseFloat(value.toString());
@@ -64,7 +69,8 @@ export const useStoneForm = (
       comprimento: '',
       pts: '',
       quantidadeMaxima: undefined,
-      noMaximo: false
+      quantidadeMinima: undefined,
+      tipoQuantidade: 'exata'
     };
     
     onChange(index, clearedStone);

@@ -17,6 +17,7 @@ const CadastroPedidos: React.FC = () => {
   const [galeria, setGaleria] = useState(false);
   const [paraRender, setParaRender] = useState(false);
   const [dataPrevistaEntrega, setDataPrevistaEntrega] = useState('');
+  const [semDataEntrega, setSemDataEntrega] = useState(false);
   const [stones, setStones] = useState<PedidoStone[]>([]);
   const [referenciaModelo, setReferenciaModelo] = useState<ReferenciaModelo>({
     rota: '',
@@ -45,7 +46,8 @@ const CadastroPedidos: React.FC = () => {
       comprimento: '',
       pts: '',
       quantidadeMaxima: undefined,
-      noMaximo: false
+      quantidadeMinima: undefined,
+      tipoQuantidade: 'exata'
     };
     setStones([...stones, newStone]);
   };
@@ -78,7 +80,7 @@ const CadastroPedidos: React.FC = () => {
       galeria,
       paraRender,
       dataCreated: new Date(),
-      dataPrevistaEntrega: dataPrevistaEntrega ? new Date(dataPrevistaEntrega) : undefined,
+      dataPrevistaEntrega: semDataEntrega ? undefined : (dataPrevistaEntrega ? new Date(dataPrevistaEntrega) : undefined),
       stones,
       referenciaModelo,
       riscado: false,
@@ -183,7 +185,22 @@ const CadastroPedidos: React.FC = () => {
                 value={dataPrevistaEntrega}
                 onChange={(e) => setDataPrevistaEntrega(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md"
+                disabled={semDataEntrega}
               />
+              <label className="flex items-center gap-2 mt-2">
+                <input
+                  type="checkbox"
+                  checked={semDataEntrega}
+                  onChange={(e) => {
+                    setSemDataEntrega(e.target.checked);
+                    if (e.target.checked) {
+                      setDataPrevistaEntrega('');
+                    }
+                  }}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm text-gray-600">Sem data de entrega definida</span>
+              </label>
             </div>
             
             <div className="md:col-span-2">

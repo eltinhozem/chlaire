@@ -20,8 +20,7 @@ const ListaPedidos: React.FC = () => {
       dataPrevistaEntrega: pedido.dataPrevistaEntrega ? new Date(pedido.dataPrevistaEntrega) : undefined,
       stones: pedido.stones?.map(stone => ({
         ...stone,
-        noMaximo: stone.noMaximo ?? false,
-        quantidadeMaxima: stone.quantidadeMaxima ?? undefined
+      tipoQuantidade: stone.tipoQuantidade ?? 'exata'
       })) || []
     }));
 
@@ -111,6 +110,16 @@ const ListaPedidos: React.FC = () => {
       "rivi": "Rivieira"
     };
     return categoryMap[value] || value;
+    };
+
+  const getQuantidadeDisplay = (stone: any) => {
+    if (stone.tipoQuantidade === 'maximo') {
+      return `No máximo ${stone.quantidade}`;
+    } else if (stone.tipoQuantidade === 'minimo') {
+      return `No mínimo ${stone.quantidade}`;
+    } else {
+      return stone.quantidade === 0 ? 'Livre' : stone.quantidade;
+    }
   };
 
   return (
@@ -269,7 +278,7 @@ const ListaPedidos: React.FC = () => {
                                           <div><strong>Onde:</strong> {stone.onde || 'N/A'}</div>
                                           <div><strong>Tipo:</strong> {stone.tipo || 'N/A'}</div>
                                           <div><strong>Lapidação:</strong> {stone.lapidacao || 'N/A'}</div>
-                                          <div><strong>Qtd:</strong> {stone.quantidade === 0 ? 'Livre' : stone.quantidade}{stone.noMaximo && stone.quantidadeMaxima ? ` (máx: ${stone.quantidadeMaxima})` : ''}</div>
+                                           <div><strong>Qtd:</strong> {getQuantidadeDisplay(stone)}</div>
                                           <div><strong>Largura:</strong> {stone.largura || 'N/A'}</div>
                                           <div><strong>Altura:</strong> {stone.altura || 'N/A'}</div>
                                           <div><strong>Comprimento:</strong> {stone.comprimento || 'N/A'}</div>

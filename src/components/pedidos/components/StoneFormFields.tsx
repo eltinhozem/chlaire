@@ -72,48 +72,78 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
       </div>
       
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <input
-            type="checkbox"
-            id={`noMaximo-${index}`}
-            checked={stone.noMaximo || false}
-            onChange={(e) => onChange('noMaximo', e.target.checked)}
-            className="w-4 h-4"
-          />
-          <label htmlFor={`noMaximo-${index}`} className="text-sm font-medium text-gray-700">
-            No máximo
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Tipo de Quantidade
+        </label>
+        <div className="flex flex-col gap-2 mb-2">
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={`tipoQuantidade-${index}`}
+              checked={stone.tipoQuantidade === 'exata'}
+              onChange={() => onChange('tipoQuantidade', 'exata')}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">Quantidade exata</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={`tipoQuantidade-${index}`}
+              checked={stone.tipoQuantidade === 'maximo'}
+              onChange={() => onChange('tipoQuantidade', 'maximo')}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">No máximo</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={`tipoQuantidade-${index}`}
+              checked={stone.tipoQuantidade === 'minimo'}
+              onChange={() => onChange('tipoQuantidade', 'minimo')}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">No mínimo</span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="radio"
+              name={`tipoQuantidade-${index}`}
+              checked={stone.tipoQuantidade === 'livre'}
+              onChange={() => onChange('tipoQuantidade', 'livre')}
+              className="w-4 h-4"
+            />
+            <span className="text-sm">Livre</span>
           </label>
         </div>
-        {stone.noMaximo && (
-          <input
-            type="number"
-            min="1"
-            value={stone.quantidadeMaxima || ''}
-            onChange={(e) => onChange('quantidadeMaxima', Number(e.target.value))}
-            className="w-full p-2 border border-gray-300 rounded-md mb-2"
-            placeholder="Quantidade máxima"
-          />
+        
+        {stone.tipoQuantidade !== 'livre' && (
+          <>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Quantidade *
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={stone.quantidade === 0 ? '' : stone.quantidade}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '') {
+                  onChange('quantidade', 0);
+                } else {
+                  const numValue = Number(value);
+                  if (!isNaN(numValue)) {
+                    onChange('quantidade', numValue);
+                  }
+                }
+              }}
+              className="w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Digite a quantidade"
+              required
+            />
+          </>
         )}
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Quantidade
-        </label>
-        <input
-          type="text"
-          value={stone.quantidade === 0 ? 'Livre' : stone.quantidade}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === 'Livre' || value === '') {
-              onChange('quantidade', 0);
-            } else {
-              const numValue = Number(value);
-              if (!isNaN(numValue)) {
-                onChange('quantidade', numValue);
-              }
-            }
-          }}
-          className="w-full p-2 border border-gray-300 rounded-md"
-          placeholder="Livre"
-        />
       </div>
       
       <div>

@@ -8,7 +8,8 @@ export interface PedidoStone {
   comprimento: string;
   pts: string;
   quantidadeMaxima?: number;
-  noMaximo: boolean;
+  quantidadeMinima?: number;
+  tipoQuantidade: 'exata' | 'maximo' | 'minimo' | 'livre';
 }
 
 export interface ReferenciaModelo {

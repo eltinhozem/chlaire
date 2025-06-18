@@ -15,6 +15,26 @@ export const isStoneFormValid = (stone: PedidoStone): boolean => {
     return false;
   }
   
+  // Se o tipo de quantidade for 'livre', quantidade não é obrigatória
+  if (stone.tipoQuantidade === 'livre') {
+    // Para lapidação redonda, aceitar se PTS está preenchido OU se largura/comprimento estão preenchidos
+    if (stone.lapidacao === 'Redonda') {
+      const hasPts = stone.pts && stone.pts.toString().trim() !== '';
+      const hasDimensions = stone.largura && stone.largura.toString().trim() !== '' && 
+                           stone.comprimento && stone.comprimento.toString().trim() !== '';
+      return !!(hasPts || hasDimensions);
+    }
+    
+    // Para outras lapidações, largura e comprimento são obrigatórios
+    return !!(stone.largura && stone.largura.toString().trim() !== '' && 
+             stone.comprimento && stone.comprimento.toString().trim() !== '');
+  }
+  
+  // Para outros tipos de quantidade, quantidade é obrigatória
+  if (!stone.quantidade || stone.quantidade <= 0) {
+    return false;
+  }
+  
   // Para lapidação redonda, aceitar se PTS está preenchido OU se largura/comprimento estão preenchidos
   if (stone.lapidacao === 'Redonda') {
     const hasPts = stone.pts && stone.pts.toString().trim() !== '';
