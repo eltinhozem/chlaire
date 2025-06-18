@@ -242,9 +242,9 @@ const ListaPedidos: React.FC = () => {
                                           <div><strong>Tipo:</strong> {stone.tipo || 'N/A'}</div>
                                           <div><strong>Lapidação:</strong> {stone.lapidacao || 'N/A'}</div>
                                            <div><strong>Qtd:</strong> {getQuantidadeDisplay(stone)}</div>
-                                          <div><strong>Largura:</strong> {stone.largura || 'N/A'}</div>
-                                          <div><strong>Altura:</strong> {stone.altura || 'N/A'}</div>
+                                          <div><strong>Largura:</strong> {stone.largura || 'N/A'}</div>                                          
                                           <div><strong>Comprimento:</strong> {stone.comprimento || 'N/A'}</div>
+                                          <div><strong>Altura:</strong> {stone.altura || 'N/A'}</div>
                                           <div><strong>PTS:</strong> {stone.pts || 'N/A'}</div>
                                         </div>
                                       </div>

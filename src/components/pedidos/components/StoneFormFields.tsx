@@ -174,20 +174,8 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
           placeholder={stone.lapidacao === 'Redonda' ? '' : 'Largura'}
           readOnly={stone.lapidacao === 'Redonda' && !!stone.pts}
         />
-      </div>
+      </div>   
       
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Altura (mm)
-        </label>
-        <input
-          type="number"
-          step="0.1"
-          value={stone.altura}
-          onChange={(e) => onChange('altura', e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded-md"
-        />
-      </div>
       
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -202,6 +190,18 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
           required
           readOnly={stone.lapidacao === 'Redonda'}
           placeholder={stone.lapidacao === 'Redonda' ? '' : 'Comprimento'}
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Altura (mm)
+        </label>
+        <input
+          type="number"
+          step="0.1"
+          value={stone.altura}
+          onChange={(e) => onChange('altura', e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded-md"
         />
       </div>
     </div>
