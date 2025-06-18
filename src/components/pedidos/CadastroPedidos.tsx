@@ -37,8 +37,8 @@ const CadastroPedidos: React.FC = () => {
   const addStone = () => {
     const newStone: PedidoStone = {
       onde: '',
-      tipo: '',
-      lapidacao: '',
+      tipo: 'Diamante',
+      lapidacao: 'Redonda',
       quantidade: 0,
       largura: '',
       altura: '',
