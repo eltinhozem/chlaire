@@ -137,6 +137,19 @@ export const useFormLogic = () => {
 
       if (!user) throw new Error('Usuário não autenticado');
 
+      // Verificar se já existe uma peça com a mesma rota (apenas para novos registros)
+      if (!formData.id && formData.rota) {
+        const { data: existingJewelry } = await supabase
+          .from('jewelry')
+          .select('id')
+          .eq('rota', formData.rota)
+          .limit(1);
+
+        if (existingJewelry && existingJewelry.length > 0) {
+          throw new Error('Já existe uma peça cadastrada com esta rota');
+        }
+      }
+
       let image_url = formData.image_url;
       if (imageFile) {
         image_url = await uploadImage(imageFile);
