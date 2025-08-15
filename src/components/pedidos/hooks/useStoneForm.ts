@@ -1,7 +1,6 @@
-
 import { useState } from 'react';
 import { PedidoStone } from '../types';
-import { convertPtsToSize } from '../utils/ptsToSize';
+
 
 export const useStoneForm = (
   stone: PedidoStone,
@@ -19,29 +18,6 @@ export const useStoneForm = (
       updatedStone.quantidade = 0;
     }
 
-    // Se o campo alterado foi PTS e a lapidação é redonda, calcular largura e comprimento automaticamente
-    if (field === 'pts' && updatedStone.lapidacao === 'Redonda' && value) {
-      const ptsValue = parseFloat(value.toString());
-      if (!isNaN(ptsValue) && ptsValue > 0) {
-        const calculatedSize = convertPtsToSize(ptsValue);
-        if (calculatedSize !== null) {
-          updatedStone.largura = calculatedSize.toString();
-          updatedStone.comprimento = calculatedSize.toString();
-        }
-      }
-    }
-
-    // Se a lapidação mudou para redonda e já tem PTS, recalcular largura e comprimento
-    if (field === 'lapidacao' && value === 'Redonda' && updatedStone.pts) {
-      const ptsValue = parseFloat(updatedStone.pts.toString());
-      if (!isNaN(ptsValue) && ptsValue > 0) {
-        const calculatedSize = convertPtsToSize(ptsValue);
-        if (calculatedSize !== null) {
-          updatedStone.largura = calculatedSize.toString();
-          updatedStone.comprimento = calculatedSize.toString();
-        }
-      }
-    }
 
     // Se a lapidação é redonda, sincronizar largura e comprimento
     if (updatedStone.lapidacao === 'Redonda') {

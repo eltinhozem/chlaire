@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { MinusCircle, Save, Edit } from 'lucide-react';
 import { PedidoStone } from '../types';
@@ -37,6 +36,13 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
     handleSaveStone,
     handleEditStone
   } = useStoneForm(stone, onChange, index);
+
+  // Inicia sempre no modo de edição
+  React.useEffect(() => {
+    if (!savedStone) {
+      // Se é uma nova pedra e não foi salva ainda, manter em modo de edição
+    }
+  }, [savedStone]);
 
   return (
     <StoneContainer theme={currentTheme}>

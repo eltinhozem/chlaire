@@ -6,7 +6,7 @@ import PedidoStoneComponent from './components/PedidoStone';
 import { categoryOptions } from '../form/formOptions';
 import { SecondaryButton, PrimaryButton, SuccessButton } from '../buttons';
 import { usePedidos } from './hooks/usePedidos';
-import { lightTheme, darkTheme } from '../Styles';
+import { lightTheme } from '../Styles';
 import {
   PageContainer,
   PageTitle,

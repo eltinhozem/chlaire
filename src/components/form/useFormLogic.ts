@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getNextReference } from './styles';
 import { Stone } from '../pedra/types';
+import { compressImage } from '../../lib/imageUtils';
 
 interface JewelryFormData {
   id?: string;
@@ -86,9 +86,24 @@ export const useFormLogic = () => {
     }
   }, [product]);
 
-  const handleImageChange = (file: File) => {
-    setImageFile(file);
-    setImagePreviewUrl(URL.createObjectURL(file));
+  const handleImageChange = async (file: File) => {
+    try {
+      // Comprimir imagem antes de salvar
+      const compressedFile = await compressImage(file, {
+        maxWidth: 800,
+        maxHeight: 600,
+        quality: 0.8,
+        format: 'jpeg'
+      });
+      
+      setImageFile(compressedFile);
+      setImagePreviewUrl(URL.createObjectURL(compressedFile));
+    } catch (error) {
+      console.error('Erro ao comprimir imagem:', error);
+      // Fallback para arquivo original se compressão falhar
+      setImageFile(file);
+      setImagePreviewUrl(URL.createObjectURL(file));
+    }
   };
 
   const uploadImage = async (file: File): Promise<string> => {

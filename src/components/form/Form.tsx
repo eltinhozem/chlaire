@@ -9,7 +9,6 @@ import FormActions from './components/FormActions';
 import { 
   categoryOptions, 
   targetAudienceOptions, 
-  designerOptions, 
   materialOptions, 
   finishOptions 
 } from './formOptions';
@@ -73,12 +72,11 @@ export default function JewelryForm() {
             required
           />
           <FormField
-            label="Público-Alvo"
-            id="target_audience"
-            name="target_audience"
-            value={formData.target_audience}
+            label="Designer"
+            id="designer"
+            name="designer"
+            value={formData.designer}
             onChange={handleChange}
-            options={targetAudienceOptions}
           />
           <FormField
             label="Nome do Cliente"
@@ -134,12 +132,12 @@ export default function JewelryForm() {
             step="0.01"
           />
           <FormField
-            label="Designer"
-            id="designer"
-            name="designer"
-            value={formData.designer}
+            label="Público-Alvo"
+            id="target_audience"
+            name="target_audience"
+            value={formData.target_audience}
             onChange={handleChange}
-            options={designerOptions}
+            options={targetAudienceOptions}
           />
           <FormField
             label="Material"
