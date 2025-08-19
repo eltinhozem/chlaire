@@ -30,6 +30,7 @@ import { translate } from '../Styles'
 interface Jewelry {
   id: string
   reference_name: string
+  rota: string | null
   category: string
   weight: number | null
   finish: string | null
@@ -103,6 +104,7 @@ export default function JewelrySearch() {
   const filteredJewelry = jewelry.filter((item) => {
     const searchLower = searchTerm.toLowerCase()
     const matchesSearch =
+      (item.rota?.toLowerCase() || '').includes(searchLower) ||
       (item.reference_name?.toLowerCase() || '').includes(searchLower) ||
       (item.category?.toLowerCase() || '').includes(searchLower) ||
       (item.client_name?.toLowerCase() || '').includes(searchLower) ||
@@ -293,7 +295,7 @@ export default function JewelrySearch() {
   )}
 </ResultImageContainer>
               <ResultCardContent>
-                <ResultTitle>{item.reference_name}</ResultTitle>
+                <ResultTitle>{item.rota || item.reference_name}</ResultTitle>
                 <ResultDescription>
                   {translate('category', item.category)}{' '}
                   {item.size ? `- ${item.size}` : ''}
