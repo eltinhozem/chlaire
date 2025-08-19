@@ -49,6 +49,7 @@ interface Filters {
   finish: string
   designer: string
   target_audience: string
+  stone_size: string
 }
 
 export default function JewelrySearch() {
@@ -60,7 +61,8 @@ export default function JewelrySearch() {
     category: '',
     finish: '',
     designer: '',
-    target_audience: ''
+    target_audience: '',
+    stone_size: ''
   })
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null)
   const navigate = useNavigate()
@@ -117,7 +119,9 @@ export default function JewelrySearch() {
         item.stones?.some(
           (stone) =>
             (stone.stone_type?.toLowerCase() || '').includes(searchLower) ||
-            (stone.cut?.toLowerCase() || '').includes(searchLower)
+            (stone.cut?.toLowerCase() || '').includes(searchLower) ||
+            (stone.pts?.toString() || '').includes(searchLower) ||
+            (stone.quilates?.toString() || '').includes(searchLower)
         )
 
       const matchesFilters =
@@ -125,7 +129,12 @@ export default function JewelrySearch() {
         (!filters.finish || item.finish === filters.finish) &&
         (!filters.designer || item.designer === filters.designer) &&
         (!filters.target_audience ||
-          item.target_audience === filters.target_audience)
+          item.target_audience === filters.target_audience) &&
+        (!filters.stone_size || 
+          item.stones?.some((stone) => 
+            (stone.pts?.toString() || '').includes(filters.stone_size) ||
+            (stone.quilates?.toString() || '').includes(filters.stone_size)
+          ))
 
       return matchesSearch && matchesFilters
     })
@@ -165,11 +174,12 @@ export default function JewelrySearch() {
       category: '',
       finish: '',
       designer: '',
-      target_audience: ''
+      target_audience: '',
+      stone_size: ''
     })
   }
 
-  const getUniqueValues = (field: keyof Filters) => {
+  const getUniqueValues = (field: keyof Omit<Filters, 'stone_size'>) => {
     return Array.from(
       new Set(jewelry.map((item) => item[field]).filter(Boolean))
     )
@@ -277,6 +287,23 @@ export default function JewelrySearch() {
                 </option>
               ))}
             </FilterSelect>
+          </FilterSection>
+
+          <FilterSection>
+            <FilterLabel>Tamanho da Pedra</FilterLabel>
+            <SearchInput
+              type="text"
+              value={filters.stone_size}
+              onChange={(e) => handleFilterChange('stone_size', e.target.value)}
+              placeholder="Digite PTS ou quilates..."
+              style={{ 
+                width: '100%',
+                fontSize: '14px',
+                padding: '8px 12px',
+                border: '1px solid #e2e8f0',
+                borderRadius: '6px'
+              }}
+            />
           </FilterSection>
         </FilterPanel>
       )}

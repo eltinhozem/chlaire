@@ -192,6 +192,12 @@ export default function Info() {
                 )}
               </div>
             </div>
+            {product.observations && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <span className="text-sm font-medium text-gray-500">Descrição</span>
+                <p className="text-gray-800 mt-1">{product.observations}</p>
+              </div>
+            )}
           </div>
 
           {/* Client & Date Info Card */}
@@ -281,15 +287,6 @@ export default function Info() {
         </div>
       )}
 
-      {/* Observations Section */}
-      {product.observations && (
-        <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Observações</h3>
-            <p className="text-gray-700 leading-relaxed">{product.observations}</p>
-          </div>
-        </div>
-      )}
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 justify-end">
