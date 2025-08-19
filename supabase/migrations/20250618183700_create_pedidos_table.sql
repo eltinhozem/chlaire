@@ -7,7 +7,7 @@
       - `imagem` (text, optional)
       - `nome_cliente` (text, required)
       - `categoria` (text, required)
-      - `tamanho` (text, required)
+      - `tamanho` (text)
       - `descricao` (text, required)
       - `aramado` (boolean, default false)
       - `galeria` (boolean, default false)

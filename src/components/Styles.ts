@@ -168,9 +168,9 @@ export const translations: Translations = {
     classic: 'Clássico',
     modern: 'Moderno',
     vintage: 'Vintage',
-    contemporary: 'Contemporâneo',
+    contemporary: 'Reta',
     personalizado: 'Personalizado',
-    minimalist: 'Minimalista'
+    minimalist: 'Bojuda'
   },
   target_audience: {
     female: 'Feminino',
