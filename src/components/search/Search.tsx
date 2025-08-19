@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search as SearchIcon, X } from 'lucide-react'
+import { Search as SearchIcon, X, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import semImagem from '../logo/semImagem.png'
 import {
@@ -62,6 +62,7 @@ export default function JewelrySearch() {
     designer: '',
     target_audience: ''
   })
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -101,32 +102,45 @@ export default function JewelrySearch() {
     }
   }
 
-  const filteredJewelry = jewelry.filter((item) => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch =
-      (item.rota?.toLowerCase() || '').includes(searchLower) ||
-      (item.reference_name?.toLowerCase() || '').includes(searchLower) ||
-      (item.category?.toLowerCase() || '').includes(searchLower) ||
-      (item.client_name?.toLowerCase() || '').includes(searchLower) ||
-      (item.observations?.toLowerCase() || '').includes(searchLower) ||
-      (item.designer?.toLowerCase() || '').includes(searchLower) ||
-      (item.finish?.toLowerCase() || '').includes(searchLower) ||
-      (item.target_audience?.toLowerCase() || '').includes(searchLower) ||
-      item.stones?.some(
-        (stone) =>
-          (stone.stone_type?.toLowerCase() || '').includes(searchLower) ||
-          (stone.cut?.toLowerCase() || '').includes(searchLower)
-      )
+  const filteredAndSortedJewelry = jewelry
+    .filter((item) => {
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch =
+        (item.rota?.toLowerCase() || '').includes(searchLower) ||
+        (item.reference_name?.toLowerCase() || '').includes(searchLower) ||
+        (item.category?.toLowerCase() || '').includes(searchLower) ||
+        (item.client_name?.toLowerCase() || '').includes(searchLower) ||
+        (item.observations?.toLowerCase() || '').includes(searchLower) ||
+        (item.designer?.toLowerCase() || '').includes(searchLower) ||
+        (item.finish?.toLowerCase() || '').includes(searchLower) ||
+        (item.target_audience?.toLowerCase() || '').includes(searchLower) ||
+        item.stones?.some(
+          (stone) =>
+            (stone.stone_type?.toLowerCase() || '').includes(searchLower) ||
+            (stone.cut?.toLowerCase() || '').includes(searchLower)
+        )
 
-    const matchesFilters =
-      (!filters.category || item.category === filters.category) &&
-      (!filters.finish || item.finish === filters.finish) &&
-      (!filters.designer || item.designer === filters.designer) &&
-      (!filters.target_audience ||
-        item.target_audience === filters.target_audience)
+      const matchesFilters =
+        (!filters.category || item.category === filters.category) &&
+        (!filters.finish || item.finish === filters.finish) &&
+        (!filters.designer || item.designer === filters.designer) &&
+        (!filters.target_audience ||
+          item.target_audience === filters.target_audience)
 
-    return matchesSearch && matchesFilters
-  })
+      return matchesSearch && matchesFilters
+    })
+    .sort((a, b) => {
+      if (!sortOrder) return 0
+      
+      const rotaA = a.rota || a.reference_name || ''
+      const rotaB = b.rota || b.reference_name || ''
+      
+      if (sortOrder === 'asc') {
+        return rotaA.localeCompare(rotaB)
+      } else {
+        return rotaB.localeCompare(rotaA)
+      }
+    })
 
   const handleItemClick = (item: Jewelry) => {
     navigate('/info', { state: { product: item } })
@@ -181,6 +195,20 @@ export default function JewelrySearch() {
           <FilterButton onClick={() => setShowFilters(!showFilters)}>
             Filtros
             {activeFilterCount > 0 && <span>{activeFilterCount}</span>}
+          </FilterButton>
+          <FilterButton onClick={() => {
+            if (sortOrder === 'asc') {
+              setSortOrder('desc')
+            } else if (sortOrder === 'desc') {
+              setSortOrder(null)
+            } else {
+              setSortOrder('asc')
+            }
+          }}>
+            {sortOrder === 'asc' && <ArrowUp size={16} />}
+            {sortOrder === 'desc' && <ArrowDown size={16} />}
+            {!sortOrder && 'Rota'}
+            {sortOrder && ' Rota'}
           </FilterButton>
         </SearchInputContainer>
       </SearchHeader>
@@ -275,7 +303,7 @@ export default function JewelrySearch() {
         <div>Carregando...</div>
       ) : (
         <ResultsGrid>
-          {filteredJewelry.map((item) => (
+          {filteredAndSortedJewelry.map((item) => (
             <ResultCard key={item.id} onClick={() => handleItemClick(item)}>
               <ResultImageContainer>
   {item.image_url ? (
@@ -304,7 +332,7 @@ export default function JewelrySearch() {
               </ResultCardContent>
             </ResultCard>
           ))}
-          {filteredJewelry.length === 0 && !loading && (
+          {filteredAndSortedJewelry.length === 0 && !loading && (
             <div>Nenhuma joia encontrada</div>
           )}
         </ResultsGrid>
