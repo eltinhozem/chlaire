@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PedidoStone } from '../types';
 import { lightTheme } from '../../Styles';
@@ -98,7 +97,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
           <Select
             theme={currentTheme}
             value={stone.tipoCravacao || ''}
-            onChange={(e) => onChange('tipoCravacao', e.target.value)}
+            onChange={(e) => onChange('tipoCravacao' as keyof PedidoStone, e.target.value)}
           >
             <option value="">Selecione</option>
             <option value="Guarras 2">Guarras 2</option>
@@ -119,7 +118,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
                 type="radio"
                 name={`tipoQuantidade-${index}`}
                 checked={stone.tipoQuantidade === 'exata'}
-                onChange={() => onChange('tipoQuantidade', 'exata')}
+                onChange={() => onChange('tipoQuantidade' as keyof PedidoStone, 'exata')}
               />
               <span>Quantidade exata</span>
             </RadioLabel>
@@ -128,7 +127,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
                 type="radio"
                 name={`tipoQuantidade-${index}`}
                 checked={stone.tipoQuantidade === 'maximo'}
-                onChange={() => onChange('tipoQuantidade', 'maximo')}
+                onChange={() => onChange('tipoQuantidade' as keyof PedidoStone, 'maximo')}
               />
               <span>No máximo</span>
             </RadioLabel>
@@ -137,7 +136,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
                 type="radio"
                 name={`tipoQuantidade-${index}`}
                 checked={stone.tipoQuantidade === 'minimo'}
-                onChange={() => onChange('tipoQuantidade', 'minimo')}
+                onChange={() => onChange('tipoQuantidade' as keyof PedidoStone, 'minimo')}
               />
               <span>No mínimo</span>
             </RadioLabel>
@@ -146,7 +145,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
                 type="radio"
                 name={`tipoQuantidade-${index}`}
                 checked={stone.tipoQuantidade === 'livre'}
-                onChange={() => onChange('tipoQuantidade', 'livre')}
+                onChange={() => onChange('tipoQuantidade' as keyof PedidoStone, 'livre')}
               />
               <span>Livre</span>
             </RadioLabel>

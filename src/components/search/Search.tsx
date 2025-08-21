@@ -50,6 +50,7 @@ interface Filters {
   designer: string
   target_audience: string
   stone_size: string
+  stone_unit: 'pts' | 'mm' | ''
 }
 
 export default function JewelrySearch() {
@@ -62,7 +63,8 @@ export default function JewelrySearch() {
     finish: '',
     designer: '',
     target_audience: '',
-    stone_size: ''
+    stone_size: '',
+    stone_unit: ''
   })
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>(null)
   const navigate = useNavigate()
@@ -130,11 +132,18 @@ export default function JewelrySearch() {
         (!filters.designer || item.designer === filters.designer) &&
         (!filters.target_audience ||
           item.target_audience === filters.target_audience) &&
-        (!filters.stone_size || 
-          item.stones?.some((stone) => 
-            (stone.pts?.toString() || '').includes(filters.stone_size) ||
-            (stone.quilates?.toString() || '').includes(filters.stone_size)
-          ))
+        (!filters.stone_size || !filters.stone_unit ||
+          item.stones?.some((stone) => {
+            if (filters.stone_unit === 'pts') {
+              return (stone.pts?.toString() || '') === filters.stone_size ||
+                     (stone.quilates?.toString() || '') === filters.stone_size
+            } else if (filters.stone_unit === 'mm') {
+              return (stone.largura?.toString() || '') === filters.stone_size ||
+                     (stone.altura?.toString() || '') === filters.stone_size ||
+                     (stone.comprimento?.toString() || '') === filters.stone_size
+            }
+            return false
+          }))
 
       return matchesSearch && matchesFilters
     })
@@ -175,11 +184,12 @@ export default function JewelrySearch() {
       finish: '',
       designer: '',
       target_audience: '',
-      stone_size: ''
+      stone_size: '',
+      stone_unit: ''
     })
   }
 
-  const getUniqueValues = (field: keyof Omit<Filters, 'stone_size'>) => {
+  const getUniqueValues = (field: keyof Omit<Filters, 'stone_size' | 'stone_unit'>) => {
     return Array.from(
       new Set(jewelry.map((item) => item[field]).filter(Boolean))
     )
@@ -291,19 +301,55 @@ export default function JewelrySearch() {
 
           <FilterSection>
             <FilterLabel>Tamanho da Pedra</FilterLabel>
-            <SearchInput
-              type="text"
-              value={filters.stone_size}
-              onChange={(e) => handleFilterChange('stone_size', e.target.value)}
-              placeholder="Digite PTS ou quilates..."
-              style={{ 
-                width: '100%',
-                fontSize: '14px',
-                padding: '8px 12px',
-                border: '1px solid #e2e8f0',
-                borderRadius: '6px'
-              }}
-            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                <SearchInput
+                  type="text"
+                  value={filters.stone_size}
+                  onChange={(e) => handleFilterChange('stone_size', e.target.value)}
+                  placeholder={filters.stone_unit ? `Digite ${filters.stone_unit}...` : "Digite o tamanho..."}
+                  style={{ 
+                    flex: 1,
+                    fontSize: '14px',
+                    padding: '8px 12px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px'
+                  }}
+                />
+                <button
+                  style={{
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.25rem',
+                    background: filters.stone_unit === 'pts' ? '#3b82f6' : '#ffffff',
+                    color: filters.stone_unit === 'pts' ? '#ffffff' : '#374151',
+                    cursor: 'pointer',
+                    minWidth: '40px'
+                  }}
+                  onClick={() => handleFilterChange('stone_unit', filters.stone_unit === 'pts' ? '' : 'pts')}
+                  type="button"
+                >
+                  PTS
+                </button>
+                <button
+                  style={{
+                    padding: '0.25rem 0.5rem',
+                    fontSize: '0.75rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '0.25rem',
+                    background: filters.stone_unit === 'mm' ? '#3b82f6' : '#ffffff',
+                    color: filters.stone_unit === 'mm' ? '#ffffff' : '#374151',
+                    cursor: 'pointer',
+                    minWidth: '40px'
+                  }}
+                  onClick={() => handleFilterChange('stone_unit', filters.stone_unit === 'mm' ? '' : 'mm')}
+                  type="button"
+                >
+                  MM
+                </button>
+              </div>
+            </div>
           </FilterSection>
         </FilterPanel>
       )}

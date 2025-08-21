@@ -70,7 +70,7 @@ export const usePedidos = () => {
           aramado: pedido.aramado,
           galeria: pedido.galeria,
           para_render: pedido.paraRender,
-          data_prevista_entrega: pedido.dataPrevistaEntrega,
+          data_prevista_entrega: pedido.dataPrevistaEntrega?.toISOString() || null,
           stones: pedido.stones,
           referencia_modelo: pedido.referenciaModelo,
           prioridade: proximaPrioridade,

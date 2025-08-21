@@ -1,4 +1,3 @@
-// styles.ts
 import styled from 'styled-components'
 
 /* Container principal de busca */
@@ -193,24 +192,48 @@ export const FilterButton = styled.button`
 
 /* Painel de filtros */
 export const FilterPanel = styled.div`
-
   background: ${({ theme }) => theme.formBackground};
   color: ${({ theme }) => theme.text};  
   display: grid;
   gap: 0.75rem;
   grid-template-columns: repeat(1, 1fr);
 
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(5, 1fr);
   }
 
   margin-top: 0.75rem;
   padding: 0.75rem;
   border-radius: 0.375rem;
-  
+`
+
+/* Container para filtro de tamanho da pedra com toggle */
+export const StoneFilterContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`
+
+/* Container para input e toggle */
+export const StoneInputContainer = styled.div`
+  display: flex;
+  gap: 0.25rem;
+`
+
+/* Botão de toggle para mm/pts */
+export const ToggleButton = styled.button<{ active: boolean }>`
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  background: ${({ active }) => active ? '#3b82f6' : '#ffffff'};
+  color: ${({ active }) => active ? '#ffffff' : '#374151'};
+  cursor: pointer;
+  min-width: 40px;
+
+  &:hover {
+    background: ${({ active }) => active ? '#2563eb' : '#f3f4f6'};
+  }
 `
 
 /* Seção de cada filtro */
