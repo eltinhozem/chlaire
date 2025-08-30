@@ -54,8 +54,9 @@ export const checkConnection = async () => {
 };
 
 // Sistema básico de tentativas de login com criptografia local
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_TIME = 15 * 60 * 1000; // 15 minutos
+// Desativado: aumentamos o limite e zeramos o tempo de bloqueio
+const MAX_LOGIN_ATTEMPTS = Number.MAX_SAFE_INTEGER;
+const LOCKOUT_TIME = 0; // sem bloqueio
 
 const encodeData = (data: any) => {
   try {
