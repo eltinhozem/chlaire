@@ -5,6 +5,7 @@ import { getNextReference } from './styles';
 import { Stone } from '../pedra/types';
 import { compressImage } from '../../lib/imageUtils';
 
+
 interface JewelryFormData {
   id?: string;
   reference_name: string;
@@ -98,12 +99,48 @@ export const useFormLogic = () => {
       
       setImageFile(compressedFile);
       setImagePreviewUrl(URL.createObjectURL(compressedFile));
+      // Preencher rota, cliente e data a partir do arquivo (se possível)
+      const { rota, client_name } = parseRotaAndClient(file.name);
+      const fileDate = new Date(file.lastModified || Date.now());
+      const dateFromImage = fileDate.toISOString().split('T')[0];
+      setFormData((prev) => ({
+        ...prev,
+        ...(rota ? { rota } : {}),
+        ...(client_name ? { client_name } : {}),
+        ...(!product ? { date: dateFromImage } : {})
+      }));
     } catch (error) {
       console.error('Erro ao comprimir imagem:', error);
       // Fallback para arquivo original se compressão falhar
       setImageFile(file);
       setImagePreviewUrl(URL.createObjectURL(file));
+      // Mesmo em fallback, tentar preencher rota/cliente/data a partir do arquivo
+      const { rota, client_name } = parseRotaAndClient(file.name);
+      const fileDate = new Date(file.lastModified || Date.now());
+      const dateFromImage = fileDate.toISOString().split('T')[0];
+      setFormData((prev) => ({
+        ...prev,
+        ...(rota ? { rota } : {}),
+        ...(client_name ? { client_name } : {}),
+        ...(!product ? { date: dateFromImage } : {})
+      }));
     }
+  };
+
+  // Utilitário: extrai rota (primeiro-numero-segundo-numero) e nome do cliente (texto após parênteses)
+  const parseRotaAndClient = (filename: string): { rota: string | null; client_name: string | null } => {
+    // remover extensão
+    const base = filename.replace(/\.[^.]+$/, '');
+    // capturar todos os blocos de dígitos
+    const numbers = base.match(/\d+/g) || [];
+    const rota = numbers.length >= 2 ? `${numbers[0]}-${numbers[1]}` : null;
+
+    // cliente = tudo após o último parêntese ")"
+    const idx = base.lastIndexOf(')');
+    const afterParen = idx >= 0 ? base.slice(idx + 1).trim() : '';
+    const client_name = afterParen || null;
+
+    return { rota, client_name };
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -125,6 +162,8 @@ export const useFormLogic = () => {
 
     return data.publicUrl;
   };
+
+  // (Sem upload por pasta) — simplificado conforme solicitado
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

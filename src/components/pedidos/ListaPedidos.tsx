@@ -60,13 +60,19 @@ const ListaPedidos: React.FC = () => {
   };
 
   const riscarPedido = async (id: string) => {
-    const pedido = pedidos.find(p => p.id === id);
-    if (!pedido) return;
+    const index = pedidos.findIndex(p => p.id === id);
+    if (index === -1) return;
+    const pedido = pedidos[index];
 
     try {
-      await updatePedido(id, { riscado: !pedido.riscado });
+      if (!pedido.riscado) {
+        const maxPrioridade = pedidos.reduce((max, p) => Math.max(max, p.prioridade), 0);
+        await updatePedido(id, { riscado: true, prioridade: maxPrioridade + 1 });
+      } else {
+        await updatePedido(id, { riscado: false });
+      }
     } catch (error) {
-      console.error('Erro ao riscar pedido:', error);
+      console.error('Erro ao atualizar status do pedido:', error);
     }
   };
 
