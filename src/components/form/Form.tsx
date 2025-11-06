@@ -1,4 +1,3 @@
-
 import { FormContainer, FormTitle, InputLabel, Container, Campo } from './styles';
 import { useFormLogic } from './useFormLogic';
 import ImageUpload from './components/ImageUpload';
@@ -111,12 +110,13 @@ export default function JewelryForm() {
             onChange={handleChange}
           />
           <FormField
-            label="Versão"
-            id="version"
-            name="version"
-            value={formData.version}
+            label="Volume"
+            id="volume"
+            name="volume"
+            value={formData.volume}
             onChange={handleChange}
             type="number"
+            step="0.0001"
           />
         </FormSection>
 
@@ -130,6 +130,7 @@ export default function JewelryForm() {
             onChange={handleChange}
             type="number"
             step="0.01"
+            readOnly
           />
           <FormField
             label="Público-Alvo"

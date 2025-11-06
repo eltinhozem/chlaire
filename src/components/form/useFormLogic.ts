@@ -15,7 +15,7 @@ interface JewelryFormData {
   size: string;
   rota: string;
   stl: string;
-  version: number | null;
+  volume: number | null;
   weight: number | null;
   designer: string;
   material: string;
@@ -48,7 +48,7 @@ export const useFormLogic = () => {
     size: product?.size || '',
     rota: product?.rota || '',
     stl: product?.stl || '',
-    version: product?.version || null,
+    volume: product?.volume || null,
     weight: product?.weight || null,
     designer: product?.designer || '',
     material: product?.material || '',
@@ -71,7 +71,7 @@ export const useFormLogic = () => {
         size: product.size,
         rota: product.rota,
         stl: product.stl,
-        version: product.version,
+        volume: product.volume,
         weight: product.weight,
         designer: product.designer,
         material: product.material,
@@ -228,16 +228,26 @@ export const useFormLogic = () => {
     >
   ) => {
     const { name, value } = e.target;
+    
+    // Calcular peso automaticamente quando volume mudar
+    if (name === 'volume') {
+      const volumeValue = value ? parseFloat(value) : null;
+      const calculatedWeight = volumeValue ? Math.round(volumeValue * 0.0155 * 100) / 100 : null;
+      
+      setFormData((prev) => ({
+        ...prev,
+        volume: volumeValue,
+        weight: calculatedWeight
+      }));
+      return;
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]:
         name === 'weight'
           ? value
             ? parseFloat(value)
-            : null
-          : name === 'version'
-          ? value
-            ? parseInt(value, 10)
             : null
           : value
     }));

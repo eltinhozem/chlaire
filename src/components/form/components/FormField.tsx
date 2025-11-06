@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { InputLabel, InputField, SelectField, TextAreaField } from '../styles';
 
@@ -15,6 +14,7 @@ interface FormFieldProps {
   step?: string;
   rows?: number;
   isTextArea?: boolean;
+  readOnly?: boolean;
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -29,7 +29,8 @@ const FormField: React.FC<FormFieldProps> = ({
   placeholder,
   step,
   rows = 4,
-  isTextArea = false
+  isTextArea = false,
+  readOnly = false
 }) => {
   return (
     <div>
@@ -69,6 +70,7 @@ const FormField: React.FC<FormFieldProps> = ({
           required={required}
           placeholder={placeholder}
           step={step}
+          readOnly={readOnly}
         />
       )}
     </div>
