@@ -7,6 +7,7 @@ export interface PedidoStone {
   altura: string;
   comprimento: string;
   pts: string;
+  quilates?: string;
   quantidadeMaxima?: number;
   quantidadeMinima?: number;
   tipoQuantidade: 'exata' | 'maximo' | 'minimo' | 'livre';

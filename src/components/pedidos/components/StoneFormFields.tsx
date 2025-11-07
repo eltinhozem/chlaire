@@ -184,7 +184,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
       <FormRowLarge>
         <FieldContainer>
           <Label theme={currentTheme}>
-            PTS {stone.lapidacao === 'Redonda' && ''}
+            PTS {stone.lapidacao === 'Redonda' && '(auto)'}
           </Label>
           <Input
             theme={currentTheme}
@@ -192,7 +192,23 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
             step="0.01"
             value={stone.pts}
             onChange={(e) => onChange('pts', e.target.value)}
-            placeholder={stone.lapidacao === 'Redonda' ? 'Digite PTS' : 'PTS'}
+            placeholder={stone.lapidacao === 'Redonda' ? 'Autocompletado' : 'PTS'}
+            readOnly={stone.lapidacao === 'Redonda'}
+          />
+        </FieldContainer>
+
+        <FieldContainer>
+          <Label theme={currentTheme}>
+            Quilates {stone.lapidacao === 'Redonda' && '(auto)'}
+          </Label>
+          <Input
+            theme={currentTheme}
+            type="number"
+            step="0.001"
+            value={stone.quilates || ''}
+            onChange={(e) => onChange('quilates' as keyof PedidoStone, e.target.value)}
+            placeholder={stone.lapidacao === 'Redonda' ? 'Autocompletado' : 'Quilates'}
+            readOnly={stone.lapidacao === 'Redonda'}
           />
         </FieldContainer>
         
@@ -207,8 +223,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
             value={stone.largura}
             onChange={(e) => onChange('largura', e.target.value)}
             required
-            placeholder={stone.lapidacao === 'Redonda' ? '' : 'Largura'}
-            readOnly={stone.lapidacao === 'Redonda' && !!stone.pts}
+            placeholder={stone.lapidacao === 'Redonda' ? 'Digite o diâmetro' : 'Largura'}
           />
         </FieldContainer>   
         
@@ -224,7 +239,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
             onChange={(e) => onChange('comprimento', e.target.value)}
             required
             readOnly={stone.lapidacao === 'Redonda'}
-            placeholder={stone.lapidacao === 'Redonda' ? '' : 'Comprimento'}
+            placeholder={stone.lapidacao === 'Redonda' ? 'Sincronizado' : 'Comprimento'}
           />
         </FieldContainer>
 

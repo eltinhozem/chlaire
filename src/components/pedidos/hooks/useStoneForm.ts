@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PedidoStone } from '../types';
+import { findDiamondDataBySize } from '../utils/diamondConversionTable';
 
 
 export const useStoneForm = (
@@ -18,13 +19,24 @@ export const useStoneForm = (
       updatedStone.quantidade = 0;
     }
 
-
     // Se a lapidação é redonda, sincronizar largura e comprimento
     if (updatedStone.lapidacao === 'Redonda') {
       if (field === 'largura') {
         updatedStone.comprimento = value.toString();
       } else if (field === 'comprimento') {
         updatedStone.largura = value.toString();
+      }
+
+      // Autocompletar PTS e quilates para pedras redondas baseado no tamanho
+      if ((field === 'largura' || field === 'comprimento') && value) {
+        const size = parseFloat(value.toString());
+        if (!isNaN(size) && size > 0) {
+          const diamondData = findDiamondDataBySize(size);
+          if (diamondData) {
+            updatedStone.pts = diamondData.pts.toString();
+            updatedStone.quilates = diamondData.carats.toString();
+          }
+        }
       }
     }
 
