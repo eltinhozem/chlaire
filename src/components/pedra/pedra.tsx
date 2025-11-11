@@ -183,7 +183,7 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
           <GridMain>
             {lapidacao !== 'Redonda' && (
               <div>
-                <Label>Comprimento (mm) *</Label>
+                <Label>Comprimento *</Label>
                 <Input
                   type="number"
                   name="comprimento"
@@ -196,19 +196,19 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               </div>
             )}
             <div>
-              <Label>Altura (mm){isAlturaRequired ? ' *' : ' (opcional)'}</Label>
+              <Label>Altura {isAlturaRequired ? ' *' : ''}</Label>
               <Input 
                 type="number" 
                 name="altura" 
                 step="0.1" 
                 value={altura} 
                 onChange={handleAlturaChange}
-                placeholder={lapidacao === 'Redonda' ? 'Opcional - auto-estimada se vazia' : 'Altura'}
+                placeholder={lapidacao === 'Redonda' ? 'Opcional ' : 'Altura'}
                 required={isAlturaRequired}
               />
             </div>
             <div>
-              <Label>Quilates (calculado)</Label>
+              <Label>Quilates </Label>
               <Input
                 type="number"
                 name="quilates"
@@ -219,7 +219,7 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
               />
             </div>
             <div>
-              <Label>PTS (calculado)</Label>
+              <Label>PTS</Label>
               <Input 
                 type="number" 
                 name="pts" 

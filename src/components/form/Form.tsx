@@ -59,7 +59,10 @@ export default function JewelryForm() {
             name="reference_name"
             value={formData.reference_name}
             onChange={handleChange}
+            placeholder="Automatico"
             required
+            readOnly
+            title="Gerado automaticamente ao selecionar a categoria"
           />
           <FormField
             label="Categoria"
@@ -101,6 +104,12 @@ export default function JewelryForm() {
             name="rota"
             value={formData.rota}
             onChange={handleChange}
+            required
+            placeholder="01-01"
+            pattern="\\d{2}-\\d{2}"
+            title="Informe a rota no formato 00-00"
+            maxLength={5}
+            inputMode="numeric"
           />
           <FormField
             label="STL"

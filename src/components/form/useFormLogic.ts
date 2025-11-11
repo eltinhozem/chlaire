@@ -27,6 +27,57 @@ interface JewelryFormData {
   image_url?: string;
 }
 
+const ROTA_PATTERN = /^\d{2}-\d{2}$/;
+
+const formatDesignerValue = (input: string): string => {
+  if (!input) return '';
+  const trimmedStart = input.trimStart();
+  if (!trimmedStart) return '';
+  const firstChar = trimmedStart.charAt(0).toUpperCase();
+  const rest = trimmedStart.slice(1).toLowerCase();
+  return `${firstChar}${rest}`;
+};
+
+const formatRotaInputValue = (input: string): string => {
+  const digits = input.replace(/\D/g, '').slice(0, 4);
+  if (!digits) return '';
+
+  if (digits.length <= 2) {
+    return digits;
+  }
+
+  const firstPart = digits.slice(0, 2);
+  const secondPart = digits.slice(2, 4);
+  return secondPart ? `${firstPart}-${secondPart}` : firstPart;
+};
+
+const normalizeRotaForState = (value?: string | null): string => {
+  if (!value) return '';
+  if (ROTA_PATTERN.test(value)) return value;
+  return formatRotaInputValue(value);
+};
+
+const buildRotaFromChunks = (first?: string, second?: string): string | null => {
+  const sliceChunk = (chunk?: string): string => {
+    if (!chunk) return '';
+    const digits = chunk.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length >= 2) {
+      return digits.slice(0, 2);
+    }
+    return digits.padStart(2, '0');
+  };
+
+  const partA = sliceChunk(first);
+  const partB = sliceChunk(second);
+
+  if (partA.length !== 2 || partB.length !== 2) {
+    return null;
+  }
+
+  return `${partA}-${partB}`;
+};
+
 export const useFormLogic = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -46,11 +97,11 @@ export const useFormLogic = () => {
     target_audience: product?.target_audience || '',
     client_name: product?.client_name || '',
     size: product?.size || '',
-    rota: product?.rota || '',
+    rota: normalizeRotaForState(product?.rota),
     stl: product?.stl || '',
     volume: product?.volume || null,
     weight: product?.weight || null,
-    designer: product?.designer || '',
+    designer: product?.designer ? formatDesignerValue(product.designer) : '',
     material: product?.material || '',
     finish: product?.finish || '',
     date: product?.date || new Date().toISOString().split('T')[0],
@@ -69,11 +120,11 @@ export const useFormLogic = () => {
         target_audience: product.target_audience,
         client_name: product.client_name,
         size: product.size,
-        rota: product.rota,
+        rota: normalizeRotaForState(product.rota),
         stl: product.stl,
         volume: product.volume,
         weight: product.weight,
-        designer: product.designer,
+        designer: formatDesignerValue(product.designer || ''),
         material: product.material,
         finish: product.finish,
         date: product.date || new Date().toISOString().split('T')[0],
@@ -105,7 +156,7 @@ export const useFormLogic = () => {
       const dateFromImage = fileDate.toISOString().split('T')[0];
       setFormData((prev) => ({
         ...prev,
-        ...(rota ? { rota } : {}),
+        ...(rota ? { rota: normalizeRotaForState(rota) } : {}),
         ...(client_name ? { client_name } : {}),
         ...(!product ? { date: dateFromImage } : {})
       }));
@@ -120,7 +171,7 @@ export const useFormLogic = () => {
       const dateFromImage = fileDate.toISOString().split('T')[0];
       setFormData((prev) => ({
         ...prev,
-        ...(rota ? { rota } : {}),
+        ...(rota ? { rota: normalizeRotaForState(rota) } : {}),
         ...(client_name ? { client_name } : {}),
         ...(!product ? { date: dateFromImage } : {})
       }));
@@ -133,7 +184,7 @@ export const useFormLogic = () => {
     const base = filename.replace(/\.[^.]+$/, '');
     // capturar todos os blocos de dígitos
     const numbers = base.match(/\d+/g) || [];
-    const rota = numbers.length >= 2 ? `${numbers[0]}-${numbers[1]}` : null;
+    const rota = numbers.length >= 2 ? buildRotaFromChunks(numbers[0], numbers[1]) : null;
 
     // cliente = tudo após o último parêntese ")"
     const idx = base.lastIndexOf(')');
@@ -176,12 +227,21 @@ export const useFormLogic = () => {
 
       if (!user) throw new Error('Usuário não autenticado');
 
+      const normalizedRota = normalizeRotaForState(formData.rota).trim();
+      if (!normalizedRota || !ROTA_PATTERN.test(normalizedRota)) {
+        throw new Error('A rota é obrigatória e deve seguir o formato 00-00');
+      }
+
+      const normalizedDesigner = formData.designer
+        ? formatDesignerValue(formData.designer)
+        : '';
+
       // Verificar se já existe uma peça com a mesma rota (apenas para novos registros)
-      if (!formData.id && formData.rota) {
+      if (!formData.id && normalizedRota) {
         const { data: existingJewelry } = await supabase
           .from('jewelry')
           .select('id')
-          .eq('rota', formData.rota)
+          .eq('rota', normalizedRota)
           .limit(1);
 
         if (existingJewelry && existingJewelry.length > 0) {
@@ -196,6 +256,8 @@ export const useFormLogic = () => {
 
       const payload: any = {
         ...formData,
+        designer: normalizedDesigner,
+        rota: normalizedRota,
         stones,
         image_url,
         user_id: user.id
@@ -238,6 +300,22 @@ export const useFormLogic = () => {
         ...prev,
         volume: volumeValue,
         weight: calculatedWeight
+      }));
+      return;
+    }
+
+    if (name === 'designer') {
+      setFormData((prev) => ({
+        ...prev,
+        designer: value ? formatDesignerValue(value) : ''
+      }));
+      return;
+    }
+
+    if (name === 'rota') {
+      setFormData((prev) => ({
+        ...prev,
+        rota: formatRotaInputValue(value)
       }));
       return;
     }

@@ -15,6 +15,10 @@ interface FormFieldProps {
   rows?: number;
   isTextArea?: boolean;
   readOnly?: boolean;
+  pattern?: string;
+  title?: string;
+  maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
 }
 
 const FormField: React.FC<FormFieldProps> = ({
@@ -30,7 +34,11 @@ const FormField: React.FC<FormFieldProps> = ({
   step,
   rows = 4,
   isTextArea = false,
-  readOnly = false
+  readOnly = false,
+  pattern,
+  title,
+  maxLength,
+  inputMode
 }) => {
   return (
     <div>
@@ -59,6 +67,7 @@ const FormField: React.FC<FormFieldProps> = ({
           rows={rows}
           placeholder={placeholder}
           style={{ width: '100%' }}
+          required={required}
         />
       ) : (
         <InputField
@@ -71,6 +80,10 @@ const FormField: React.FC<FormFieldProps> = ({
           placeholder={placeholder}
           step={step}
           readOnly={readOnly}
+          pattern={pattern}
+          title={title}
+          maxLength={maxLength}
+          inputMode={inputMode}
         />
       )}
     </div>
