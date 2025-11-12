@@ -27,7 +27,7 @@ interface JewelryFormData {
   image_url?: string;
 }
 
-const ROTA_PATTERN = /^\d{2}-\d{2}$/;
+const ROTA_PATTERN = /^[0-9]{2}-[0-9]{2}$/;
 
 const formatDesignerValue = (input: string): string => {
   if (!input) return '';

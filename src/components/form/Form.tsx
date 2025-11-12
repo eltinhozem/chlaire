@@ -106,7 +106,7 @@ export default function JewelryForm() {
             onChange={handleChange}
             required
             placeholder="01-01"
-            pattern="\\d{2}-\\d{2}"
+            pattern="[0-9]{2}-[0-9]{2}"
             title="Informe a rota no formato 00-00"
             maxLength={5}
             inputMode="numeric"
