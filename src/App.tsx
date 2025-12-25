@@ -11,6 +11,7 @@ import CadastroPedidos from './components/pedidos/CadastroPedidos'
 import ListaPedidos from './components/pedidos/ListaPedidos'
 import { ThemeProvider } from 'styled-components'
 import { darkTheme, lightTheme } from './components/Styles'
+import CalculadoraJoia from './components/calculadora/CalculadoraJoia'
 
 // Rota privada: só permite acesso se houver sessão
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -101,6 +102,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <ListaPedidos />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="calcular-joia"
+              element={
+                <PrivateRoute>
+                  <CalculadoraJoia />
                 </PrivateRoute>
               }
             />

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { translate } from '../Styles';
 import { supabase } from '../../lib/supabase';
-import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package, Calculator } from 'lucide-react';
 import {
   ActionButton,
   CustomButton,
@@ -290,6 +290,17 @@ export default function Info() {
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 justify-end">
+        <CustomButton
+          onClick={() =>
+            navigate('/calcular-joia', {
+              state: { product }
+            })
+          }
+          className="inline-flex items-center gap-2"
+        >
+          <Calculator size={16} />
+          Calcular valor dessa joia
+        </CustomButton>
         <CustomButton
           onClick={() =>
             navigate('/register', {
