@@ -112,7 +112,8 @@ const CadastroPedidos: React.FC = () => {
       await savePedido(novoPedido);
       alert('Pedido cadastrado com sucesso!');
       navigate('/lista-pedidos');
-    } catch (error) {
+    } catch (err) {
+      console.error('Erro ao cadastrar pedido:', err);
       alert('Erro ao cadastrar pedido. Tente novamente.');
     }
   };

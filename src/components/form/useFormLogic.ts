@@ -254,7 +254,7 @@ export const useFormLogic = () => {
         image_url = await uploadImage(imageFile);
       }
 
-      const payload: any = {
+      const payload: Partial<JewelryFormData> & { user_id: string; stones: Stone[] } = {
         ...formData,
         designer: normalizedDesigner,
         rota: normalizedRota,
@@ -277,8 +277,9 @@ export const useFormLogic = () => {
       if (data && data[0]) {
         navigate('/info', { state: { product: data[0] } });
       }
-    } catch (error: any) {
-      alert(error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao salvar o cadastro';
+      alert(message);
     } finally {
       setLoading(false);
     }

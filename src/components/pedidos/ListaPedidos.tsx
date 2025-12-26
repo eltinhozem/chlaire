@@ -4,6 +4,7 @@ import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Ge
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
+import type { PedidoStone } from './types';
 
 const ListaPedidos: React.FC = () => {
   const navigate = useNavigate();
@@ -107,7 +108,7 @@ const ListaPedidos: React.FC = () => {
     return categoryMap[value] || value;
   };
 
-  const getQuantidadeDisplay = (stone: any) => {
+  const getQuantidadeDisplay = (stone: PedidoStone) => {
     if (stone.tipoQuantidade === 'maximo') {
       return `No máximo ${stone.quantidade}`;
     } else if (stone.tipoQuantidade === 'minimo') {
@@ -117,7 +118,7 @@ const ListaPedidos: React.FC = () => {
     }
   };
 
-  const getTamanhoDisplay = (stone: any) => {
+  const getTamanhoDisplay = (stone: PedidoStone) => {
     const largura = stone.largura || '0';
     const comprimento = stone.comprimento || '0';
     const altura = stone.altura || '0';

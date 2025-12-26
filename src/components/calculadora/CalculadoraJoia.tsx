@@ -58,8 +58,9 @@ import {
   TableCol,
   TableHeader,
   TableRow,
-  ActionsControls,
-  TitleRow
+  TitleRow,
+  HeaderActions,
+  ValueSection
 } from './styles'
 import {
   StonePriceTiers,
@@ -88,16 +89,32 @@ export interface Stone {
   tierName: string
 }
 
+interface ProductStoneInput {
+  quantity?: number | string
+  quilates?: number | string
+  pts?: number | string
+}
+
+interface ProductData {
+  weight?: number | string
+  material?: string
+  stones?: ProductStoneInput[]
+  reference_name?: string
+  category?: string
+  client_name?: string
+  rota?: string
+}
+
 const goldOptions: Array<{ value: GoldType; label: string; color: string }> = [
   { value: 'yellow', label: 'Ouro Amarelo', color: '#c08a3f' },
   { value: 'white', label: 'Ouro Branco', color: '#d7d7d7' },
   { value: 'rose', label: 'Ouro Rosé', color: '#d48c7b' }
 ]
 
-const stoneTierOptions = [
-  { key: 'tier1' as const, label: 'Até 0.07 ct', description: 'Pedras pequenas' },
-  { key: 'tier2' as const, label: '0.08 a 0.725 ct', description: 'Pedras médias' },
-  { key: 'tier3' as const, label: 'Acima de 0.725 ct', description: 'Pedras grandes' }
+const stoneTierOptions: Array<{ key: keyof StonePriceTiers; description: string }> = [
+  { key: 'tier1', description: 'Pedras Até 0.07 ct' },
+  { key: 'tier2', description: 'Pedras 0.08 a 0.725 ct' },
+  { key: 'tier3', description: 'Pedras Acima de 0.725 ct' }
 ]
 
 const mapMaterialToGoldType = (material?: string): GoldType => {
@@ -183,7 +200,7 @@ const parseTxtData = (
 
   diamondMatches.forEach((match) => {
     const line = match[1]
-    const entries = [...line.matchAll(/(\d+(?:[,\.]\d+)?)\s*DE\s*([\d.,]+)\s*mm/gi)]
+    const entries = [...line.matchAll(/(\d+(?:[,.]\d+)?)\s*DE\s*([\d.,]+)\s*mm/gi)]
     entries.forEach((entry) => {
       const qty = parseNumber(entry[1])
       const sizeMm = parseNumber(entry[2])
@@ -336,25 +353,31 @@ function ConversionTable() {
 
 interface CalculationSummaryProps {
   selectedGold: GoldType
-  goldPrices: GoldPrices
+  goldLabel: string
   goldWeight: number
-  stones: Stone[]
+  goldPrice: number
+  goldValue: number
+  stonesValue: number
+  totalValue: number
+  totalCt: number
+  totalQty: number
+  validStones: Stone[]
 }
 
 function CalculationSummary({
   selectedGold,
-  goldPrices,
+  goldLabel,
   goldWeight,
-  stones
+  goldPrice,
+  goldValue,
+  stonesValue,
+  totalValue,
+  totalCt,
+  totalQty,
+  validStones
 }: CalculationSummaryProps) {
-  const goldValue = goldWeight * goldPrices[selectedGold]
-  const stonesValue = stones.reduce((sum, s) => sum + s.totalPrice, 0)
-  const totalValue = goldValue + stonesValue
-  const totalCt = stones.reduce((sum, s) => sum + s.totalCt, 0)
-  const totalQty = stones.reduce((sum, s) => sum + s.quantity, 0)
-
-  const goldLabel = goldOptions.find((g) => g.value === selectedGold)?.label ?? ''
-  const validStones = stones.filter((s) => s.sizeMm > 0)
+  const selectedGoldColor =
+    goldOptions.find((g) => g.value === selectedGold)?.color || '#c08a3f'
 
   return (
     <SummaryCard>
@@ -362,7 +385,7 @@ function CalculationSummary({
         <SummaryLine>
           <SummaryLabel>Tipo de ouro</SummaryLabel>
           <Pill>
-            <ColorDot $color={goldOptions.find((g) => g.value === selectedGold)?.color || '#c08a3f'} />
+            <ColorDot $color={selectedGoldColor} />
             {goldLabel}
           </Pill>
         </SummaryLine>
@@ -372,7 +395,7 @@ function CalculationSummary({
         </SummaryLine>
         <SummaryLine>
           <SummaryLabel>Preço/g</SummaryLabel>
-          <SummaryValue>R$ {goldPrices[selectedGold].toFixed(2)}</SummaryValue>
+          <SummaryValue>R$ {goldPrice.toFixed(2)}</SummaryValue>
         </SummaryLine>
         <SummaryLine>
           <SummaryLabel>Subtotal ouro</SummaryLabel>
@@ -402,7 +425,7 @@ function CalculationSummary({
 
       <Formula>
         <strong>Cálculo:</strong>{' '}
-        ({goldWeight.toFixed(2)}g × R$ {goldPrices[selectedGold].toFixed(2)}/g)
+        ({goldWeight.toFixed(2)}g × R$ {goldPrice.toFixed(2)}/g)
         {validStones.length > 0 && (
           <>
             {' + '}
@@ -422,7 +445,7 @@ function CalculationSummary({
 
 export default function CalculadoraJoia() {
   const location = useLocation()
-  const product = (location.state as { product?: any })?.product
+  const product = (location.state as { product?: ProductData })?.product
   const [selectedGold, setSelectedGold] = useState<GoldType>('yellow')
   const [goldPrices, setGoldPrices] = useState<GoldPrices>({
     yellow: 0,
@@ -631,9 +654,41 @@ export default function CalculadoraJoia() {
     [stonePrices]
   )
 
-  const stonesValue = useMemo(() => stones.reduce((sum, s) => sum + s.totalPrice, 0), [stones])
-  const selectedGoldLabel =
-    goldOptions.find((g) => g.value === selectedGold)?.label ?? ''
+  const pricingSummary = useMemo(() => {
+    const goldPrice = goldPrices[selectedGold] || 0
+    const goldLabel = goldOptions.find((g) => g.value === selectedGold)?.label ?? ''
+    const goldValue = goldWeight * goldPrice
+    const totalCt = stones.reduce((sum, s) => sum + s.totalCt, 0)
+    const totalQty = stones.reduce((sum, s) => sum + s.quantity, 0)
+    const stonesValue = stones.reduce((sum, s) => sum + s.totalPrice, 0)
+    const totalValue = goldValue + stonesValue
+    const validStones = stones.filter((s) => s.sizeMm > 0)
+    const averagePricePerCt = totalCt > 0 ? stonesValue / totalCt : 0
+
+    return {
+      goldPrice,
+      goldLabel,
+      goldValue,
+      totalCt,
+      totalQty,
+      stonesValue,
+      totalValue,
+      validStones,
+      averagePricePerCt
+    }
+  }, [goldPrices, selectedGold, goldWeight, stones])
+
+  const {
+    goldPrice: selectedGoldPrice,
+    goldLabel: selectedGoldLabel,
+    goldValue,
+    totalCt,
+    totalQty,
+    stonesValue,
+    totalValue,
+    validStones,
+    averagePricePerCt
+  } = pricingSummary
 
   useEffect(() => {
     if (!product) return
@@ -644,11 +699,9 @@ export default function CalculadoraJoia() {
 
     if (Array.isArray(product.stones) && product.stones.length > 0) {
       const mapped = product.stones
-        .map((stone: any) => {
+        .map((stone) => {
           const quantity = Number(stone.quantity ?? 1)
-          const ct =
-            Number(stone.quilates) ||
-            (stone.pts ? Number(stone.pts) / 100 : 0)
+          const ct = Number(stone.quilates) || (stone.pts ? Number(stone.pts) / 100 : 0)
 
           const sizeMm = ctToMm(ct)
           return {
@@ -671,19 +724,12 @@ export default function CalculadoraJoia() {
   }, [product])
 
   const handleExportPdf = useCallback(() => {
-    const goldPrice = goldPrices[selectedGold]
-    const goldValue = goldWeight * goldPrice
-    const totalCt = stones.reduce((sum, s) => sum + s.totalCt, 0)
-    const totalQty = stones.reduce((sum, s) => sum + s.quantity, 0)
-    const stonesSubtotal = stonesValue
-    const averagePricePerCt = totalCt > 0 ? stonesSubtotal / totalCt : 0
-    const totalValue = goldValue + stonesSubtotal
     const calculationLine =
       totalCt > 0
-        ? `(${goldWeight.toFixed(2)}g × R$ ${goldPrice.toFixed(2)}/g) + (${totalCt.toFixed(
+        ? `(${goldWeight.toFixed(2)}g × R$ ${selectedGoldPrice.toFixed(2)}/g) + (${totalCt.toFixed(
             3
           )}ct × R$ ${averagePricePerCt.toFixed(2)}/ct) = R$ ${totalValue.toFixed(2)}`
-        : `(${goldWeight.toFixed(2)}g × R$ ${goldPrice.toFixed(2)}/g) = R$ ${goldValue.toFixed(
+        : `(${goldWeight.toFixed(2)}g × R$ ${selectedGoldPrice.toFixed(2)}/g) = R$ ${goldValue.toFixed(
             2
           )}`
 
@@ -751,7 +797,7 @@ export default function CalculadoraJoia() {
               </div>
               <div class="summary-item">
                 <span class="summary-label">Preço/g</span>
-                <span class="summary-value">R$ ${goldPrice.toFixed(2)}</span>
+                <span class="summary-value">R$ ${selectedGoldPrice.toFixed(2)}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Subtotal ouro</span>
@@ -767,7 +813,7 @@ export default function CalculadoraJoia() {
               </div>
               <div class="summary-item">
                 <span class="summary-label">Subtotal pedras</span>
-                <span class="summary-value">R$ ${stonesSubtotal.toFixed(2)}</span>
+                <span class="summary-value">R$ ${stonesValue.toFixed(2)}</span>
               </div>
               <div class="summary-item total">
                 <span class="summary-label">Total da joia</span>
@@ -786,7 +832,7 @@ export default function CalculadoraJoia() {
             <h2>Ouro</h2>
             <p>
               Tipo: ${selectedGoldLabel}<br/>
-              Preço/g: R$ ${goldPrice.toFixed(2)}<br/>
+              Preço/g: R$ ${selectedGoldPrice.toFixed(2)}<br/>
               Peso: ${goldWeight.toFixed(2)} g<br/>
               Subtotal ouro: R$ ${goldValue.toFixed(2)}
             </p>
@@ -794,7 +840,7 @@ export default function CalculadoraJoia() {
 
           <div class="section">
             <h2>Pedras</h2>
-            <p>Qtd total: ${totalQty} | Total ct: ${totalCt.toFixed(3)} | Preço médio/ct: R$ ${averagePricePerCt.toFixed(2)} | Subtotal: R$ ${stonesSubtotal.toFixed(2)}</p>
+            <p>Qtd total: ${totalQty} | Total ct: ${totalCt.toFixed(3)} | Preço médio/ct: R$ ${averagePricePerCt.toFixed(2)} | Subtotal: R$ ${stonesValue.toFixed(2)}</p>
             ${stonesHtml}
           </div>
 
@@ -814,7 +860,19 @@ export default function CalculadoraJoia() {
       printWindow.print()
       printWindow.close()
     }, 400)
-  }, [goldPrices, selectedGold, selectedGoldLabel, goldWeight, stones, stonesValue, product])
+  }, [
+    averagePricePerCt,
+    goldValue,
+    goldWeight,
+    product,
+    selectedGoldLabel,
+    selectedGoldPrice,
+    stones,
+    stonesValue,
+    totalCt,
+    totalQty,
+    totalValue
+  ])
 
   return (
     <PageContainer>
@@ -824,6 +882,25 @@ export default function CalculadoraJoia() {
           <Title>Calcular Joia</Title>
           <Subtitle>Precifique ouro e pedras de forma detalhada</Subtitle>
         </HeaderText>
+        <HeaderActions>
+          <SecondaryButton type="button" onClick={handleImportTxtClick}>
+            Importar TXT
+          </SecondaryButton>
+          <SecondaryButton
+            type="button"
+            onClick={handleExportPdf}
+            disabled={pricingLoading}
+          >
+            Salvar dados (PDF)
+          </SecondaryButton>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".txt"
+            onChange={handleImportTxt}
+            style={{ display: 'none' }}
+          />
+        </HeaderActions>
       </Header>
 
       <SectionCard>
@@ -836,51 +913,28 @@ export default function CalculadoraJoia() {
                 {pricingLoading ? 'Carregando valores...' : `Última atualização: ${formatDateTime(lastUpdatedAt)}`}
               </StatusChip>
             </TitleRow>
-            <HelperText>
-              Edite os valores base de ouro e quilate. Os campos ficam bloqueados até clicar em
-              Alterar valores.
-            </HelperText>
           </SectionHeader>
 
-          <ActionsControls>
-            <ButtonsRow>
-              <SecondaryButton type="button" onClick={handleImportTxtClick}>
-                Importar TXT
-              </SecondaryButton>
-              <SecondaryButton
-                type="button"
-                onClick={handleExportPdf}
-                disabled={pricingLoading}
-              >
-                Salvar dados (PDF)
-              </SecondaryButton>
-              <SecondaryButton
-                type="button"
-                onClick={handleToggleEdit}
-                disabled={pricingLoading || savingPricing}
-              >
-                {isEditingPrices ? 'Cancelar' : 'Alterar valores'}
-              </SecondaryButton>
-              <PrimaryButton
-                type="button"
-                onClick={handleSavePricing}
-                disabled={!isEditingPrices || savingPricing || pricingLoading}
-              >
-                {savingPricing ? 'Salvando...' : 'Salvar'}
-              </PrimaryButton>
-            </ButtonsRow>
-            <input
-              ref={importInputRef}
-              type="file"
-              accept=".txt"
-              onChange={handleImportTxt}
-              style={{ display: 'none' }}
-            />
-          </ActionsControls>
+          <ButtonsRow>
+            <SecondaryButton
+              type="button"
+              onClick={handleToggleEdit}
+              disabled={pricingLoading || savingPricing}
+            >
+              {isEditingPrices ? 'Cancelar' : 'Alterar valores'}
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              onClick={handleSavePricing}
+              disabled={!isEditingPrices || savingPricing || pricingLoading}
+            >
+              {savingPricing ? 'Salvando...' : 'Salvar'}
+            </PrimaryButton>
+          </ButtonsRow>
         </ActionsRow>
 
         <ValuesGrid>
-          <div>
+          <ValueSection>
             <SubsectionTitle>Preço do ouro (R$/g)</SubsectionTitle>
             <PriceGrid>
               {goldOptions.map((option) => (
@@ -905,17 +959,14 @@ export default function CalculadoraJoia() {
                 </div>
               ))}
             </PriceGrid>
-          </div>
+          </ValueSection>
 
-          <div>
+          <ValueSection>
             <SubsectionTitle>Preço das pedras (R$/ct)</SubsectionTitle>
             <PriceGrid>
               {stoneTierOptions.map((tier) => (
                 <div key={tier.key}>
-                  <Label>
-                    {tier.label}
-                    <SmallText>{tier.description}</SmallText>
-                  </Label>
+                  <Label>{tier.description}</Label>
                   <div style={{ position: 'relative' }}>
                     <span
                       style={{
@@ -944,7 +995,7 @@ export default function CalculadoraJoia() {
                 </div>
               ))}
             </PriceGrid>
-          </div>
+          </ValueSection>
         </ValuesGrid>
       </SectionCard>
 
@@ -956,9 +1007,9 @@ export default function CalculadoraJoia() {
             <SmallText style={{ marginTop: '0.25rem' }}>
               {pricingLoading
                 ? 'Carregando valores do ouro...'
-                : `Preço selecionado (${selectedGoldLabel}): R$ ${goldPrices[
-                    selectedGold
-                  ].toFixed(2)} / g`}
+                : `Preço selecionado (${selectedGoldLabel}): R$ ${selectedGoldPrice.toFixed(
+                    2
+                  )} / g`}
             </SmallText>
             <Divider />
 
@@ -989,14 +1040,14 @@ export default function CalculadoraJoia() {
               placeholder="0.00"
             />
 
-            {goldWeight > 0 && goldPrices[selectedGold] > 0 && (
+            {goldWeight > 0 && selectedGoldPrice > 0 && (
               <PreviewCard>
                 <SmallText>Valor do Ouro</SmallText>
                 <PreviewValue>
-                  R$ {(goldWeight * goldPrices[selectedGold]).toFixed(2)}
+                  R$ {goldValue.toFixed(2)}
                 </PreviewValue>
                 <SmallText>
-                  {goldWeight}g × R$ {goldPrices[selectedGold].toFixed(2)}/g
+                  {goldWeight}g × R$ {selectedGoldPrice.toFixed(2)}/g
                 </SmallText>
               </PreviewCard>
             )}
@@ -1032,9 +1083,8 @@ export default function CalculadoraJoia() {
                 <SmallText>Valor total das pedras</SmallText>
                 <PreviewValue>R$ {stonesValue.toFixed(2)}</PreviewValue>
                 <SmallText>
-                  {stones.reduce((sum, s) => sum + s.quantity, 0)} pedra
-                  {stones.reduce((sum, s) => sum + s.quantity, 0) !== 1 ? 's' : ''} •{' '}
-                  {stones.reduce((sum, s) => sum + s.totalCt, 0).toFixed(3)} ct total
+                  {totalQty} pedra
+                  {totalQty !== 1 ? 's' : ''} • {totalCt.toFixed(3)} ct total
                 </SmallText>
               </PreviewCard>
             )}
@@ -1045,9 +1095,15 @@ export default function CalculadoraJoia() {
 
         <CalculationSummary
           selectedGold={selectedGold}
-          goldPrices={goldPrices}
+          goldLabel={selectedGoldLabel}
           goldWeight={goldWeight}
-          stones={stones}
+          goldPrice={selectedGoldPrice}
+          goldValue={goldValue}
+          stonesValue={stonesValue}
+          totalValue={totalValue}
+          totalCt={totalCt}
+          totalQty={totalQty}
+          validStones={validStones}
         />
       </MainGrid>
     </PageContainer>

@@ -58,7 +58,7 @@ export const checkConnection = async () => {
 const MAX_LOGIN_ATTEMPTS = Number.MAX_SAFE_INTEGER;
 const LOCKOUT_TIME = 0; // sem bloqueio
 
-const encodeData = (data: any) => {
+const encodeData = (data: unknown) => {
   try {
     return btoa(JSON.stringify(data));
   } catch {

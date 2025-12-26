@@ -105,9 +105,10 @@ export default function Login() {
 
       resetLoginAttempts()
       navigate('/search')
-    } catch (err: any) {
-      console.error('Login error:', err.message)
-      setError(err.message)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao fazer login'
+      console.error('Login error:', message)
+      setError(message)
     } finally {
       setLoading(false)
     }

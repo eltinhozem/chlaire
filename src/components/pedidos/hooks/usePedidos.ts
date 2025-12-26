@@ -94,7 +94,7 @@ export const usePedidos = () => {
   const updatePedido = async (id: string, updates: Partial<Pedido>) => {
     try {
       setLoading(true);
-      const dbUpdates: any = {};
+      const dbUpdates: Partial<Pick<Pedido, 'riscado' | 'prioridade'>> = {};
 
       if (updates.riscado !== undefined) dbUpdates.riscado = updates.riscado;
       if (updates.prioridade !== undefined) dbUpdates.prioridade = updates.prioridade;

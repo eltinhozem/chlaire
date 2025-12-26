@@ -26,6 +26,7 @@ import {
   FilterTag
 } from './styles'
 import { translate } from '../Styles'
+import type { Stone } from '../pedra/types'
 
 interface Jewelry {
   id: string
@@ -39,7 +40,7 @@ interface Jewelry {
   target_audience: string | null
   client_name: string | null
   observations: string | null
-  stones: any[]
+  stones: Stone[]
   image_url: string | null
   created_at: string
 }

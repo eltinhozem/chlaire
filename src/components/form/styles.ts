@@ -1,4 +1,5 @@
 import styled from 'styled-components'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 export const Container = styled.div`
   display: flex;
@@ -361,7 +362,7 @@ export const getCategoryPrefix = (category: string): string => {
 // Função para obter a próxima referência disponível no banco
 export const getNextReference = async (
   category: string,
-  supabaseClient: any
+  supabaseClient: SupabaseClient
 ): Promise<string> => {
   const prefix = getCategoryPrefix(category)
   const { data, error } = await supabaseClient

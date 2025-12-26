@@ -14,12 +14,22 @@ export const Header = styled.header`
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
+  flex-wrap: wrap;
 `
 
 export const HeaderText = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
+  flex: 1;
+  min-width: 200px;
+`
+
+export const HeaderActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
 `
 
 export const Title = styled.h1`
@@ -103,15 +113,6 @@ export const ButtonsRow = styled.div`
   justify-content: flex-end;
 `
 
-export const ActionsControls = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: flex-end;
-  flex: 1;
-  min-width: 260px;
-  max-width: 560px;
-`
 
 export const PriceGrid = styled.div`
   display: grid;
@@ -258,6 +259,13 @@ export const ValuesGrid = styled.div`
   @media (min-width: 960px) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+`
+
+export const ValueSection = styled.div`
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid ${({ theme }) => theme.inputBorderColor};
+  background: ${({ theme }) => theme.background};
 `
 
 export const Divider = styled.hr`

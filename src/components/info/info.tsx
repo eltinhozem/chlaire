@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { translate } from '../Styles';
 import { supabase } from '../../lib/supabase';
+import type { Stone } from '../pedra/types';
 import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package, Calculator } from 'lucide-react';
 import {
   ActionButton,
@@ -43,7 +44,8 @@ export default function Info() {
         if (error) throw error;
         alert('Joia excluída com sucesso!');
         navigate('/search');
-      } catch (error) {
+      } catch (err) {
+        console.error('Erro ao excluir a joia:', err);
         alert('Erro ao excluir a joia.');
       }
     } else {
@@ -237,7 +239,7 @@ export default function Info() {
             Pedras
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {product.stones.map((stone: any, index: number) => (
+            {product.stones.map((stone: Stone, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-amber-500"
