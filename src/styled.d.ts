@@ -44,6 +44,7 @@ declare module 'styled-components' {
     addStoneButtonBackground: string
     addStoneButtonHoverBackground: string
     addStoneButtonFocusShadow: string
+    addStoneButtonFocusColor: string
 
     /* Botões de ação (Cancelar - cinza suave) */
     actionButtonBorder: string
@@ -64,5 +65,10 @@ declare module 'styled-components' {
 
     /* Cor do título */
     titleColor: string
+
+    /* Submit button */
+    submitButtonText: string
+    submitButtonBackground: string
+    submitButtonFocusColor: string
   }
 }

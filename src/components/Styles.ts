@@ -47,6 +47,7 @@ export const lightTheme = {
   addStoneButtonBackground: 'linear-gradient(to right, #d1fae5, #a7f3d0, #6ee7b7)',
   addStoneButtonHoverBackground: 'linear-gradient(to right, #a7f3d0, #6ee7b7, #34d399)',
   addStoneButtonFocusShadow: '0 0 0 3px rgba(110, 231, 183, 0.3)',
+  addStoneButtonFocusColor: '#047857',
 
   /* Botões de ação (Cancelar - cinza suave) */
   actionButtonBorder: 'none',
@@ -66,7 +67,12 @@ export const lightTheme = {
   imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
 
   /* Cor do título */
-  titleColor: '#1f2937'
+  titleColor: '#1f2937',
+
+  /* Submit button */
+  submitButtonText: '#ffffff',
+  submitButtonBackground: 'linear-gradient(to right, #3b82f6, #2563eb)',
+  submitButtonFocusColor: '#1d4ed8'
 }
 
 export const darkTheme = {
@@ -112,6 +118,7 @@ export const darkTheme = {
   addStoneButtonBackground: 'linear-gradient(to right, #047857, #059669, #10b981)',
   addStoneButtonHoverBackground: 'linear-gradient(to right, #059669, #10b981, #34d399)',
   addStoneButtonFocusShadow: '0 0 0 3px rgba(16, 185, 129, 0.3)',
+  addStoneButtonFocusColor: '#10b981',
 
   /* Botões de ação (Cancelar - cinza suave) */
   actionButtonBorder: 'none',
@@ -131,7 +138,12 @@ export const darkTheme = {
   imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
 
   /* Cor do título */
-  titleColor: '#f9fafb'
+  titleColor: '#f9fafb',
+
+  /* Submit button */
+  submitButtonText: '#ffffff',
+  submitButtonBackground: 'linear-gradient(to right, #2563eb, #1d4ed8)',
+  submitButtonFocusColor: '#3b82f6'
 };
 
 // Defina a interface para o objeto de tradução

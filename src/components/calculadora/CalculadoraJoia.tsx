@@ -1,10 +1,11 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Gem, Gauge, Plus, Trash2, Clock3, ChevronDown, ChevronUp } from 'lucide-react'
+import { Gem, Gauge, Plus, Trash2, Clock3, ChevronDown, ChevronUp, RefreshCw, Check, Edit2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { PrimaryButton } from '../buttons/PrimaryButton'
 import { SecondaryButton } from '../buttons/SecondaryButton'
 import { DangerButton } from '../buttons/DangerButton'
+import { SuccessButton } from '../buttons/SuccessButton'
 import {
   PageContainer,
   Header,
@@ -18,15 +19,9 @@ import {
   SectionHeader,
   ActionsRow,
   ButtonsRow,
-  PriceGrid,
   Label,
   Input,
   SubsectionTitle,
-  RadioOptions,
-  RadioOption,
-  RadioInput,
-  ColorDot,
-  OptionLabel,
   PreviewCard,
   PreviewValue,
   SmallText,
@@ -50,7 +45,6 @@ import {
   SummaryLabel,
   SummaryValue,
   HighlightValue,
-  Pill,
   Formula,
   ToggleButton,
   TableWrapper,
@@ -62,31 +56,16 @@ import {
   HeaderActions,
   ValueSection
 } from './styles'
-import {
-  StonePriceTiers,
-  stoneConversionTable,
-  mmToCt,
-  getStonePricePerCt,
-  getStoneTierName
-} from './stoneConversionTable'
-
-type GoldType = 'yellow' | 'white' | 'rose'
-
-interface GoldPrices {
-  yellow: number
-  white: number
-  rose: number
-}
+import { stoneConversionTable } from './stoneConversionTable'
+import { suppliers, getStonePriceByMm, getSupplierById, SupplierPriceEntry, Supplier } from './fornecedor'
 
 export interface Stone {
   id: string
   quantity: number
   sizeMm: number
-  ctPerStone: number
-  totalCt: number
-  pricePerCt: number
+  ct: number
+  pricePerUnit: number
   totalPrice: number
-  tierName: string
 }
 
 interface ProductStoneInput {
@@ -105,55 +84,15 @@ interface ProductData {
   rota?: string
 }
 
-const goldOptions: Array<{ value: GoldType; label: string; color: string }> = [
-  { value: 'yellow', label: 'Ouro Amarelo', color: '#c08a3f' },
-  { value: 'white', label: 'Ouro Branco', color: '#d7d7d7' },
-  { value: 'rose', label: 'Ouro Rosé', color: '#d48c7b' }
-]
-
-const stoneTierOptions: Array<{ key: keyof StonePriceTiers; description: string }> = [
-  { key: 'tier1', description: 'Pedras Até 0.07 ct' },
-  { key: 'tier2', description: 'Pedras 0.08 a 0.725 ct' },
-  { key: 'tier3', description: 'Pedras Acima de 0.725 ct' }
-]
-
-const mapMaterialToGoldType = (material?: string): GoldType => {
-  const normalized = (material || '').toLowerCase()
-  if (normalized.includes('branco')) return 'white'
-  if (normalized.includes('rose') || normalized.includes('rosé')) return 'rose'
-  return 'yellow'
-}
-
-const ctToMm = (ct: number): number => {
-  if (!ct || ct <= 0) return 0
-  const sorted = [...stoneConversionTable].sort((a, b) => a.ct - b.ct)
-
-  if (ct <= sorted[0].ct) return sorted[0].mm
-  if (ct >= sorted[sorted.length - 1].ct) return sorted[sorted.length - 1].mm
-
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const current = sorted[i]
-    const next = sorted[i + 1]
-    if (ct >= current.ct && ct <= next.ct) {
-      const ratio = (ct - current.ct) / (next.ct - current.ct)
-      return current.mm + ratio * (next.mm - current.mm)
-    }
-  }
-
-  return sorted[sorted.length - 1].mm
-}
-
 const generateId = () => Math.random().toString(36).substring(2, 9)
 
 const createEmptyStone = (): Stone => ({
   id: generateId(),
   quantity: 1,
   sizeMm: 0,
-  ctPerStone: 0,
-  totalCt: 0,
-  pricePerCt: 0,
-  totalPrice: 0,
-  tierName: ''
+  ct: 0,
+  pricePerUnit: 0,
+  totalPrice: 0
 })
 
 const parseNumber = (raw: string): number | null => {
@@ -163,34 +102,13 @@ const parseNumber = (raw: string): number | null => {
   return Number.isFinite(parsed) ? parsed : null
 }
 
-const guessGoldTypeFromText = (text?: string): GoldType | undefined => {
-  if (!text) return undefined
-  const upper = text.toUpperCase()
-  const idxRose = [upper.indexOf('ROSE'), upper.indexOf('ROSÉ')].filter((i) => i >= 0)
-  const idxBranco = upper.indexOf('BRANCO')
-  const idxAmarelo = upper.indexOf('AMARELO')
-
-  const candidates: Array<{ type: GoldType; index: number }> = []
-  if (idxBranco >= 0) candidates.push({ type: 'white', index: idxBranco })
-  if (idxRose.length > 0) candidates.push({ type: 'rose', index: Math.min(...idxRose) })
-  if (idxAmarelo >= 0) candidates.push({ type: 'yellow', index: idxAmarelo })
-
-  if (candidates.length === 0) return undefined
-
-  return candidates.sort((a, b) => a.index - b.index)[0].type
-}
-
 const parseTxtData = (
   content: string
 ): {
-  goldType?: GoldType
   weight?: number
   stones: Array<{ quantity: number; sizeMm: number }>
 } => {
   const normalized = content.replace(/\r/g, '')
-
-  const materialMatch = normalized.match(/MATERIAL\s*:\s*([^\n]+)/i)
-  const goldType = guessGoldTypeFromText(materialMatch?.[1])
 
   const weightMatch = normalized.match(/PESO\s*:\s*([\d.,]+)/i)
   const weight = weightMatch ? parseNumber(weightMatch[1]) || undefined : undefined
@@ -209,39 +127,130 @@ const parseTxtData = (
     })
   })
 
-  return { goldType, weight, stones }
+  return { weight, stones }
+}
+
+const TROY_OUNCE_IN_GRAMS = 31.1034768
+
+// Fonte 1: GoldPrice.org (XAU em BRL) - converte de onça troy para grama
+const fetchGoldQuoteFromGoldPriceOrg = async (): Promise<number> => {
+  const response = await fetch('https://data-asg.goldprice.org/dbXRates/BRL', { cache: 'no-store' })
+  if (!response.ok) {
+    throw new Error(`Resposta inválida do GoldPrice.org (${response.status})`)
+  }
+
+  const payload = await response.json()
+  const ouncePriceBrl = parseFloat(payload?.items?.[0]?.xauPrice)
+
+  if (!Number.isFinite(ouncePriceBrl)) {
+    throw new Error('Cotação do ouro não encontrada na resposta do GoldPrice.org')
+  }
+
+  const gramPrice = ouncePriceBrl / TROY_OUNCE_IN_GRAMS
+  return Math.round(gramPrice * 100) / 100
+}
+
+// Fonte 2: AwesomeAPI (XAU/BRL) - converte de onça troy para grama
+const fetchGoldQuoteFromAwesomeApi = async (): Promise<number> => {
+  const response = await fetch('https://economia.awesomeapi.com.br/json/last/XAU-BRL')
+  if (!response.ok) {
+    throw new Error(`Resposta inválida da AwesomeAPI (${response.status})`)
+  }
+
+  const payload = await response.json()
+  const ouncePriceBrl = parseFloat(payload?.XAUBRL?.bid ?? payload?.XAU?.bid)
+
+  if (!Number.isFinite(ouncePriceBrl)) {
+    throw new Error('Cotação do ouro não encontrada na resposta da AwesomeAPI')
+  }
+
+  const gramPrice = ouncePriceBrl / TROY_OUNCE_IN_GRAMS
+  return Math.round(gramPrice * 100) / 100
+}
+
+// Tenta múltiplas fontes e retorna a primeira cotação válida encontrada
+const fetchGoldQuoteInBrlPerGram = async (): Promise<number> => {
+  const providers = [fetchGoldQuoteFromGoldPriceOrg, fetchGoldQuoteFromAwesomeApi]
+  const errors: unknown[] = []
+
+  for (const provider of providers) {
+    try {
+      const price = await provider()
+      if (Number.isFinite(price) && price > 0) return price
+    } catch (err) {
+      errors.push(err)
+      // tenta próxima fonte
+    }
+  }
+
+  console.error('Todas as fontes de cotação falharam:', errors)
+  throw new Error('Não foi possível obter a cotação do ouro.')
+}
+
+// Converte ct -> mm (linear entre tabelas conhecidas)
+const ctToMm = (ct: number): number => {
+  if (!ct || ct <= 0) return 0
+  const sorted = [...stoneConversionTable].sort((a, b) => a.ct - b.ct)
+  if (ct <= sorted[0].ct) return sorted[0].mm
+  if (ct >= sorted[sorted.length - 1].ct) return sorted[sorted.length - 1].mm
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const current = sorted[i]
+    const next = sorted[i + 1]
+    if (ct >= current.ct && ct <= next.ct) {
+      const ratio = (ct - current.ct) / (next.ct - current.ct)
+      return current.mm + ratio * (next.mm - current.mm)
+    }
+  }
+  return sorted[sorted.length - 1].mm
+}
+
+// Converte mm -> ct (linear entre tabelas conhecidas)
+const mmToCt = (mm: number): number => {
+  if (!mm || mm <= 0) return 0
+  const sorted = [...stoneConversionTable].sort((a, b) => a.mm - b.mm)
+  if (mm <= sorted[0].mm) return sorted[0].ct
+  if (mm >= sorted[sorted.length - 1].mm) return sorted[sorted.length - 1].ct
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const current = sorted[i]
+    const next = sorted[i + 1]
+    if (mm >= current.mm && mm <= next.mm) {
+      const ratio = (mm - current.mm) / (next.mm - current.mm)
+      return current.ct + ratio * (next.ct - current.ct)
+    }
+  }
+  return sorted[sorted.length - 1].ct
 }
 
 interface StoneEntryProps {
   stone: Stone
-  stonePrices: StonePriceTiers
+  fornecedor: SupplierPriceEntry[]
+  margin: number
+  dollarStone: number
   onUpdate: (stone: Stone) => void
   onRemove: (id: string) => void
   canRemove: boolean
 }
 
-function StoneEntry({ stone, stonePrices, onUpdate, onRemove, canRemove }: StoneEntryProps) {
+function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, onRemove, canRemove }: StoneEntryProps) {
   const [quantity, setQuantity] = useState<number>(stone.quantity || 1)
   const [sizeMm, setSizeMm] = useState<number>(stone.sizeMm || 0)
 
+  const stoneCt = useMemo(() => mmToCt(sizeMm), [sizeMm])
+
   useEffect(() => {
-    const ctPerStone = mmToCt(sizeMm)
-    const totalCt = ctPerStone * quantity
-    const pricePerCt = getStonePricePerCt(ctPerStone, stonePrices)
-    const totalPrice = totalCt * pricePerCt
-    const tierName = getStoneTierName(ctPerStone)
+    const basePrice = getStonePriceByMm(sizeMm, fornecedor)
+    const pricePerUnit = basePrice * (stoneCt || 0) * dollarStone * margin
+    const totalPrice = pricePerUnit * quantity
 
     onUpdate({
       ...stone,
       quantity,
       sizeMm,
-      ctPerStone,
-      totalCt,
-      pricePerCt,
-      totalPrice,
-      tierName
+      ct: stoneCt || 0,
+      pricePerUnit,
+      totalPrice
     })
-  }, [quantity, sizeMm, stonePrices, onUpdate, stone.id])
+  }, [quantity, sizeMm, fornecedor, stoneCt, dollarStone, margin, onUpdate, stone.id])
 
   return (
     <StoneCard>
@@ -249,7 +258,8 @@ function StoneEntry({ stone, stonePrices, onUpdate, onRemove, canRemove }: Stone
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Gem size={18} />
           <span>Pedra</span>
-          {stone.tierName && <Tag>{stone.tierName}</Tag>}
+          {sizeMm > 0 && <Tag>{sizeMm.toFixed(1)}mm</Tag>}
+          {stoneCt > 0 && <Tag>{stoneCt.toFixed(3)}ct</Tag>}
         </div>
 
         <InlineActions>
@@ -288,16 +298,8 @@ function StoneEntry({ stone, stonePrices, onUpdate, onRemove, canRemove }: Stone
       {sizeMm > 0 && (
         <StoneMetricsGrid>
           <Metric>
-            <MetricLabel>ct/pedra</MetricLabel>
-            <MetricValue>{stone.ctPerStone.toFixed(3)}</MetricValue>
-          </Metric>
-          <Metric>
-            <MetricLabel>Total ct</MetricLabel>
-            <MetricValue>{stone.totalCt.toFixed(3)}</MetricValue>
-          </Metric>
-          <Metric>
-            <MetricLabel>Preço/ct</MetricLabel>
-            <MetricValue>R$ {stone.pricePerCt.toFixed(2)}</MetricValue>
+            <MetricLabel>Preço/unidade</MetricLabel>
+            <MetricValue>R$ {stone.pricePerUnit.toFixed(2)}</MetricValue>
           </Metric>
           <Metric>
             <MetricLabel>Subtotal</MetricLabel>
@@ -351,51 +353,148 @@ function ConversionTable() {
   )
 }
 
+interface SupplierPriceTableProps {
+  supplier: Supplier
+  onUpdatePrices: (prices: SupplierPriceEntry[]) => void
+  isEditing: boolean
+  onToggleEdit: () => void
+  onSave: () => void
+}
+
+function SupplierPriceTable({ supplier, onUpdatePrices, isEditing, onToggleEdit, onSave }: SupplierPriceTableProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [editPrices, setEditPrices] = useState<SupplierPriceEntry[]>(supplier.prices)
+
+  useEffect(() => {
+    setEditPrices(supplier.prices)
+  }, [supplier])
+
+  const handleRowChange = (index: number, field: 'mm' | 'price', value: number) => {
+    const updated = editPrices.map((p, i) => (i === index ? { ...p, [field]: value } : p))
+    setEditPrices(updated)
+    onUpdatePrices(updated)
+  }
+
+  const handleAddRow = () => {
+    const updated = [...editPrices, { mm: 0, price: 0 }]
+    setEditPrices(updated)
+    onUpdatePrices(updated)
+  }
+
+  const handleRemoveRow = (index: number) => {
+    const updated = editPrices.filter((_, i) => i !== index)
+    setEditPrices(updated)
+    onUpdatePrices(updated)
+  }
+
+  return (
+    <SectionCard>
+      <ToggleButton type="button" onClick={() => setIsOpen((prev) => !prev)}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Gem size={18} />
+          Tabela de Preços - {supplier.name}
+        </span>
+        {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+      </ToggleButton>
+
+      {isOpen && (
+        <>
+          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', marginBottom: '0.5rem' }}>
+            <SecondaryButton type="button" onClick={onToggleEdit}>
+              <Edit2 size={16} style={{ marginRight: 6 }} />
+              {isEditing ? 'Cancelar' : 'Alterar valores'}
+            </SecondaryButton>
+            {isEditing && (
+              <PrimaryButton type="button" onClick={onSave}>
+                <Check size={16} style={{ marginRight: 6 }} />
+                Salvar
+              </PrimaryButton>
+            )}
+            {isEditing && (
+              <SecondaryButton type="button" onClick={handleAddRow}>
+                <Plus size={16} style={{ marginRight: 6 }} />
+                Adicionar linha
+              </SecondaryButton>
+            )}
+          </div>
+          <TableWrapper>
+            <TableHeader>
+              <span>Tamanho (mm)</span>
+              <span>Preço (R$)</span>
+              {isEditing && <span>Ações</span>}
+            </TableHeader>
+            {editPrices.map((entry, idx) => (
+              <TableRow key={`${entry.mm}-${idx}`} style={{ display: 'grid', gridTemplateColumns: isEditing ? '1fr 1fr auto' : '1fr 1fr', gap: '0.5rem', alignItems: 'center' }}>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.1"
+                    value={entry.mm || 0}
+                    onChange={(e) => handleRowChange(idx, 'mm', parseFloat(e.target.value) || 0)}
+                    style={{ padding: '0.3rem 0.5rem', fontSize: '0.85rem' }}
+                  />
+                ) : (
+                  <span>{entry.mm.toFixed(1)}mm</span>
+                )}
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={entry.price || 0}
+                    onChange={(e) => handleRowChange(idx, 'price', parseFloat(e.target.value) || 0)}
+                    style={{ padding: '0.3rem 0.5rem', fontSize: '0.85rem' }}
+                  />
+                ) : (
+                  <span>R$ {entry.price.toFixed(2)}</span>
+                )}
+                {isEditing && (
+                  <DangerButton type="button" onClick={() => handleRemoveRow(idx)}>
+                    <Trash2 size={14} style={{ marginRight: 4 }} />
+                    Remover
+                  </DangerButton>
+                )}
+              </TableRow>
+            ))}
+          </TableWrapper>
+        </>
+      )}
+    </SectionCard>
+  )
+}
+
 interface CalculationSummaryProps {
-  selectedGold: GoldType
-  goldLabel: string
   goldWeight: number
   goldPrice: number
   goldValue: number
   stonesValue: number
   totalValue: number
-  totalCt: number
   totalQty: number
   validStones: Stone[]
+  supplierName: string
 }
 
 function CalculationSummary({
-  selectedGold,
-  goldLabel,
   goldWeight,
   goldPrice,
   goldValue,
   stonesValue,
   totalValue,
-  totalCt,
   totalQty,
-  validStones
+  validStones,
+  supplierName
 }: CalculationSummaryProps) {
-  const selectedGoldColor =
-    goldOptions.find((g) => g.value === selectedGold)?.color || '#c08a3f'
-
   return (
     <SummaryCard>
       <SummaryGroup>
         <SummaryLine>
-          <SummaryLabel>Tipo de ouro</SummaryLabel>
-          <Pill>
-            <ColorDot $color={selectedGoldColor} />
-            {goldLabel}
-          </Pill>
+          <SummaryLabel>Ouro 18K</SummaryLabel>
+          <SummaryValue>R$ {goldPrice.toFixed(2)}/g</SummaryValue>
         </SummaryLine>
         <SummaryLine>
           <SummaryLabel>Peso</SummaryLabel>
           <SummaryValue>{goldWeight.toFixed(2)} g</SummaryValue>
-        </SummaryLine>
-        <SummaryLine>
-          <SummaryLabel>Preço/g</SummaryLabel>
-          <SummaryValue>R$ {goldPrice.toFixed(2)}</SummaryValue>
         </SummaryLine>
         <SummaryLine>
           <SummaryLabel>Subtotal ouro</SummaryLabel>
@@ -407,11 +506,11 @@ function CalculationSummary({
 
       <SummaryGroup>
         <SummaryLine>
-          <SummaryLabel>Pedras ({totalQty})</SummaryLabel>
-          <SummaryValue>{totalCt.toFixed(3)} ct</SummaryValue>
+          <SummaryLabel>Fornecedor</SummaryLabel>
+          <SummaryValue>{supplierName}</SummaryValue>
         </SummaryLine>
         <SummaryLine>
-          <SummaryLabel>Subtotal pedras</SummaryLabel>
+          <SummaryLabel>Pedras ({totalQty})</SummaryLabel>
           <SummaryValue>R$ {stonesValue.toFixed(2)}</SummaryValue>
         </SummaryLine>
       </SummaryGroup>
@@ -431,7 +530,7 @@ function CalculationSummary({
             {' + '}
             {validStones.map((s, idx) => (
               <span key={s.id}>
-                ({s.totalCt.toFixed(3)}ct × R$ {s.pricePerCt.toFixed(2)}/ct)
+                ({s.quantity} × R$ {s.pricePerUnit.toFixed(2)})
                 {idx < validStones.length - 1 ? ' + ' : ''}
               </span>
             ))}
@@ -446,29 +545,48 @@ function CalculationSummary({
 export default function CalculadoraJoia() {
   const location = useLocation()
   const product = (location.state as { product?: ProductData })?.product
-  const [selectedGold, setSelectedGold] = useState<GoldType>('yellow')
-  const [goldPrices, setGoldPrices] = useState<GoldPrices>({
-    yellow: 0,
-    white: 0,
-    rose: 0
-  })
-  const [goldWeight, setGoldWeight] = useState(0)
 
-  const [stonePrices, setStonePrices] = useState<StonePriceTiers>({
-    tier1: 0,
-    tier2: 0,
-    tier3: 0
+  // Ouro 18K único
+  const [goldPrice18k, setGoldPrice18k] = useState(0)
+  const [goldWeight, setGoldWeight] = useState(0)
+  const [margin, setMargin] = useState(1)
+  const [dollarStone, setDollarStone] = useState(1)
+  const [showBaseCalc, setShowBaseCalc] = useState(false)
+
+  // Cotação do ouro 1000
+  const [goldQuote1000, setGoldQuote1000] = useState(0)
+  const [isLoadingQuote, setIsLoadingQuote] = useState(false)
+  const [quoteError, setQuoteError] = useState<string | null>(null)
+
+  // Fornecedor
+  const [selectedSupplierId, setSelectedSupplierId] = useState(suppliers[0].id)
+  const [fornecedorMap, setfornecedorMap] = useState<Record<string, SupplierPriceEntry[]>>(() => {
+    const map: Record<string, SupplierPriceEntry[]> = {}
+    suppliers.forEach((s) => {
+      map[s.id] = [...s.prices]
+    })
+    return map
   })
+  const [isEditingfornecedor, setIsEditingfornecedor] = useState(false)
+
+  // Pedras
   const [stones, setStones] = useState<Stone[]>([createEmptyStone()])
-  const [isEditingPrices, setIsEditingPrices] = useState(false)
+
+  // Controles de edição
   const [pricingLoading, setPricingLoading] = useState(true)
   const [savingPricing, setSavingPricing] = useState(false)
+  const [savingBase, setSavingBase] = useState(false)
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null)
-  const [savedPricingSnapshot, setSavedPricingSnapshot] = useState<{
-    gold: GoldPrices
-    stones: StonePriceTiers
-  } | null>(null)
   const importInputRef = useRef<HTMLInputElement | null>(null)
+
+  const selectedSupplier = useMemo(() => {
+    const supplier = getSupplierById(selectedSupplierId)
+    if (!supplier) return suppliers[0]
+    return {
+      ...supplier,
+      prices: fornecedorMap[supplier.id] || supplier.prices
+    }
+  }, [selectedSupplierId, fornecedorMap])
 
   const formatDateTime = useCallback((date: Date | null) => {
     return date
@@ -476,33 +594,44 @@ export default function CalculadoraJoia() {
       : 'Nunca atualizado'
   }, [])
 
+  // Carregar configurações do banco
   const fetchPricingSettings = useCallback(async () => {
     try {
       setPricingLoading(true)
       const { data, error } = await supabase
         .from('pricing_settings')
-        .select(
-          'gold_yellow, gold_white, gold_rose, stone_tier1, stone_tier2, stone_tier3, updated_at'
-        )
+        .select('*')
         .eq('id', 'global')
         .maybeSingle()
 
       if (error) throw error
 
-      const nextGold: GoldPrices = {
-        yellow: data?.gold_yellow || 0,
-        white: data?.gold_white || 0,
-        rose: data?.gold_rose || 0
-      }
-      const nextStones: StonePriceTiers = {
-        tier1: data?.stone_tier1 || 0,
-        tier2: data?.stone_tier2 || 0,
-        tier3: data?.stone_tier3 || 0
+      const goldFromDb = Number(data?.gold_18k ?? data?.gold_yellow)
+      if (Number.isFinite(goldFromDb)) {
+        setGoldPrice18k(goldFromDb)
       }
 
-      setGoldPrices(nextGold)
-      setStonePrices(nextStones)
-      setSavedPricingSnapshot({ gold: nextGold, stones: nextStones })
+      const marginFromDb = Number(data?.margin ?? 1)
+      if (Number.isFinite(marginFromDb) && marginFromDb > 0) {
+        setMargin(marginFromDb)
+      }
+
+      const dollarFromDb = Number(data?.dollar_stone ?? 1)
+      if (Number.isFinite(dollarFromDb) && dollarFromDb > 0) {
+        setDollarStone(dollarFromDb)
+      }
+
+      if (data && 'supplier_prices' in data && data.supplier_prices) {
+        try {
+          const parsed = typeof data.supplier_prices === 'string' 
+            ? JSON.parse(data.supplier_prices) 
+            : data.supplier_prices
+          setfornecedorMap(parsed)
+        } catch (e) {
+          console.error('Error parsing supplier prices:', e)
+        }
+      }
+
       setLastUpdatedAt(data?.updated_at ? new Date(data.updated_at) : null)
     } catch (error) {
       console.error('Error fetching pricing settings:', error)
@@ -515,24 +644,8 @@ export default function CalculadoraJoia() {
     fetchPricingSettings()
   }, [fetchPricingSettings])
 
-  const handleToggleEdit = useCallback(() => {
-    if (pricingLoading || savingPricing) return
-
-    if (isEditingPrices) {
-      if (savedPricingSnapshot) {
-        setGoldPrices(savedPricingSnapshot.gold)
-        setStonePrices(savedPricingSnapshot.stones)
-      }
-      setIsEditingPrices(false)
-      return
-    }
-
-    setIsEditingPrices(true)
-  }, [isEditingPrices, pricingLoading, savingPricing, savedPricingSnapshot])
-
-  const handleSavePricing = useCallback(async () => {
-    if (!isEditingPrices) return
-
+  // Salvar configurações de ouro
+  const handleSaveGoldPrice = useCallback(async () => {
     try {
       setSavingPricing(true)
       const {
@@ -543,57 +656,137 @@ export default function CalculadoraJoia() {
 
       const payload = {
         id: 'global',
-        gold_yellow: goldPrices.yellow || 0,
-        gold_white: goldPrices.white || 0,
-        gold_rose: goldPrices.rose || 0,
-        stone_tier1: stonePrices.tier1 || 0,
-        stone_tier2: stonePrices.tier2 || 0,
-        stone_tier3: stonePrices.tier3 || 0,
+        gold_yellow: goldPrice18k,
+        margin,
+        dollar_stone: dollarStone,
         updated_by: user.id,
         updated_at: new Date().toISOString()
       }
 
-      const { data, error } = await supabase
-        .from('pricing_settings')
-        .upsert([payload])
-        .select(
-          'gold_yellow, gold_white, gold_rose, stone_tier1, stone_tier2, stone_tier3, updated_at'
-        )
-        .single()
+      const { error } = await supabase.from('pricing_settings').upsert([payload])
 
-      if (error) throw error
-
-      const nextGold: GoldPrices = {
-        yellow: data.gold_yellow || 0,
-        white: data.gold_white || 0,
-        rose: data.gold_rose || 0
-      }
-      const nextStones: StonePriceTiers = {
-        tier1: data.stone_tier1 || 0,
-        tier2: data.stone_tier2 || 0,
-        tier3: data.stone_tier3 || 0
+      if (error) {
+        const missingColumnCodes = ['42703', 'PGRST204']
+        if (missingColumnCodes.includes(error.code)) {
+          const fallbackPayload = {
+            id: 'global',
+            gold_yellow: goldPrice18k,
+            updated_by: user.id,
+            updated_at: new Date().toISOString()
+          }
+          await supabase.from('pricing_settings').upsert([fallbackPayload])
+          alert('Margem e Dollar pedra não foram salvos porque faltam colunas no banco. Rode o SQL enviado para criar as colunas.')
+        } else {
+          throw error
+        }
       }
 
-      setGoldPrices(nextGold)
-      setStonePrices(nextStones)
-      setSavedPricingSnapshot({ gold: nextGold, stones: nextStones })
-      setLastUpdatedAt(data.updated_at ? new Date(data.updated_at) : new Date())
-      setIsEditingPrices(false)
+      setLastUpdatedAt(new Date())
     } catch (error) {
-      console.error('Error saving pricing settings:', error)
+      console.error('Error saving gold price:', error)
+      alert('Não foi possível salvar o valor. Tente novamente.')
+    } finally {
+      setSavingPricing(false)
+    }
+  }, [goldPrice18k, margin, dollarStone])
+
+  // Salvar cálculo base (margem e dollar pedra)
+  const handleSaveBaseCalc = useCallback(async () => {
+    try {
+      setSavingBase(true)
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+
+      if (!user) throw new Error('Usuário não autenticado')
+
+      const payload = {
+        id: 'global',
+        margin,
+        dollar_stone: dollarStone,
+        updated_by: user.id,
+        updated_at: new Date().toISOString()
+      }
+
+      const { error } = await supabase.from('pricing_settings').upsert([payload])
+
+      if (error) {
+        const missingColumnCodes = ['42703', 'PGRST204']
+        if (missingColumnCodes.includes(error.code)) {
+          alert('Margem e Dollar pedra não foram salvos porque faltam colunas no banco. Rode o SQL enviado para criar as colunas.')
+          return
+        }
+        throw error
+      }
+
+      setLastUpdatedAt(new Date())
+    } catch (error) {
+      console.error('Error saving base calc:', error)
+      alert('Não foi possível salvar margem/dollar. Tente novamente.')
+    } finally {
+      setSavingBase(false)
+    }
+  }, [margin, dollarStone])
+
+  // Salvar preços do fornecedor
+  const handleSavefornecedor = useCallback(async () => {
+    try {
+      setSavingPricing(true)
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
+
+      if (!user) throw new Error('Usuário não autenticado')
+
+      const payload = {
+        id: 'global',
+        supplier_prices: JSON.stringify(fornecedorMap),
+        updated_by: user.id,
+        updated_at: new Date().toISOString()
+      }
+
+      const { error } = await supabase.from('pricing_settings').upsert([payload])
+
+      if (error) {
+        if (error.code === '42703') {
+          alert('A tabela pricing_settings não possui a coluna supplier_prices (jsonb). Rode as migrations no Supabase para habilitar o salvamento dos fornecedores.')
+          return
+        }
+        throw error
+      }
+
+      setLastUpdatedAt(new Date())
+      setIsEditingfornecedor(false)
+    } catch (error) {
+      console.error('Error saving supplier prices:', error)
       alert('Não foi possível salvar os valores. Tente novamente.')
     } finally {
       setSavingPricing(false)
     }
-  }, [goldPrices, stonePrices, isEditingPrices])
+  }, [fornecedorMap])
 
-  const handleGoldPriceChange = (type: GoldType, value: number) => {
-    setGoldPrices((prev) => ({ ...prev, [type]: value }))
+  // Atualizar cotação do ouro 1000
+  const handleUpdateGoldQuote = useCallback(async () => {
+    setIsLoadingQuote(true)
+    setQuoteError(null)
+    try {
+      const goldBrlPerGram = await fetchGoldQuoteInBrlPerGram()
+    setGoldQuote1000(goldBrlPerGram)
+  } catch (error) {
+    console.error('Error fetching gold quote:', error)
+    setQuoteError('Não foi possível atualizar a cotação agora. Tente novamente em instantes.')
+    // não altera o valor atual para evitar cálculos incorretos
+  } finally {
+    setIsLoadingQuote(false)
   }
+}, [])
 
-  const handleStonePriceChange = (tier: keyof StonePriceTiers, value: number) => {
-    setStonePrices((prev) => ({ ...prev, [tier]: value }))
-  }
+  // Usar cotação como referência para 18K
+  const handleUseQuoteAsReference = useCallback(() => {
+    // Ouro 18K = 75% do ouro 1000
+    const gold18kPrice = goldQuote1000 * 0.75
+    setGoldPrice18k(Math.round(gold18kPrice * 100) / 100)
+  }, [goldQuote1000])
 
   const handleAddStone = useCallback(() => {
     setStones((prev) => [...prev, createEmptyStone()])
@@ -620,28 +813,23 @@ export default function CalculadoraJoia() {
         const content = await file.text()
         const parsed = parseTxtData(content)
 
-        if (parsed.goldType) {
-          setSelectedGold(parsed.goldType)
-        }
         if (parsed.weight && parsed.weight > 0) {
           setGoldWeight(parsed.weight)
         }
 
         if (parsed.stones.length > 0) {
           const importedStones: Stone[] = parsed.stones.map(({ quantity, sizeMm }) => {
-            const ctPerStone = mmToCt(sizeMm)
-            const totalCt = ctPerStone * quantity
-            const pricePerCt = getStonePricePerCt(ctPerStone, stonePrices)
-            const totalPrice = totalCt * pricePerCt
+            const ct = mmToCt(sizeMm)
+            const basePrice = getStonePriceByMm(sizeMm, selectedSupplier.prices)
+            const pricePerUnit = basePrice * (ct || 0) * dollarStone * margin
+            const totalPrice = pricePerUnit * quantity
             return {
               id: generateId(),
               quantity,
               sizeMm,
-              ctPerStone,
-              totalCt,
-              pricePerCt,
-              totalPrice,
-              tierName: getStoneTierName(ctPerStone)
+              ct,
+              pricePerUnit,
+              totalPrice
             }
           })
 
@@ -651,68 +839,58 @@ export default function CalculadoraJoia() {
         event.target.value = ''
       }
     },
-    [stonePrices]
+    [selectedSupplier.prices, dollarStone, margin]
   )
 
+  const handleUpdatefornecedor = useCallback((newPrices: SupplierPriceEntry[]) => {
+    setfornecedorMap((prev) => ({
+      ...prev,
+      [selectedSupplierId]: newPrices
+    }))
+  }, [selectedSupplierId])
+
+  const effectiveGoldPrice = useMemo(() => goldPrice18k * margin, [goldPrice18k, margin])
+
   const pricingSummary = useMemo(() => {
-    const goldPrice = goldPrices[selectedGold] || 0
-    const goldLabel = goldOptions.find((g) => g.value === selectedGold)?.label ?? ''
-    const goldValue = goldWeight * goldPrice
-    const totalCt = stones.reduce((sum, s) => sum + s.totalCt, 0)
+    const goldValue = goldWeight * effectiveGoldPrice
     const totalQty = stones.reduce((sum, s) => sum + s.quantity, 0)
     const stonesValue = stones.reduce((sum, s) => sum + s.totalPrice, 0)
     const totalValue = goldValue + stonesValue
     const validStones = stones.filter((s) => s.sizeMm > 0)
-    const averagePricePerCt = totalCt > 0 ? stonesValue / totalCt : 0
 
     return {
-      goldPrice,
-      goldLabel,
       goldValue,
-      totalCt,
       totalQty,
       stonesValue,
       totalValue,
-      validStones,
-      averagePricePerCt
+      validStones
     }
-  }, [goldPrices, selectedGold, goldWeight, stones])
+  }, [effectiveGoldPrice, goldWeight, stones])
 
-  const {
-    goldPrice: selectedGoldPrice,
-    goldLabel: selectedGoldLabel,
-    goldValue,
-    totalCt,
-    totalQty,
-    stonesValue,
-    totalValue,
-    validStones,
-    averagePricePerCt
-  } = pricingSummary
+  const { goldValue, totalQty, stonesValue, totalValue, validStones } = pricingSummary
 
+  // Carregar dados do produto
   useEffect(() => {
     if (!product) return
 
     const weightNumber = Number(product.weight ?? 0)
     setGoldWeight(Number.isFinite(weightNumber) ? weightNumber : 0)
-    setSelectedGold(mapMaterialToGoldType(product.material))
 
     if (Array.isArray(product.stones) && product.stones.length > 0) {
       const mapped = product.stones
         .map((stone) => {
           const quantity = Number(stone.quantity ?? 1)
           const ct = Number(stone.quilates) || (stone.pts ? Number(stone.pts) / 100 : 0)
-
           const sizeMm = ctToMm(ct)
+          const basePrice = getStonePriceByMm(sizeMm, selectedSupplier.prices)
+          const pricePerUnit = basePrice * (ct || 0) * dollarStone * margin
           return {
             id: generateId(),
             quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
             sizeMm,
-            ctPerStone: 0,
-            totalCt: 0,
-            pricePerCt: 0,
-            totalPrice: 0,
-            tierName: ''
+            ct,
+            pricePerUnit,
+            totalPrice: pricePerUnit * quantity
           } as Stone
         })
         .filter((stone: Stone) => stone.quantity > 0)
@@ -721,17 +899,20 @@ export default function CalculadoraJoia() {
         setStones(mapped)
       }
     }
-  }, [product])
+  }, [product, selectedSupplier.prices, dollarStone, margin])
 
   const handleExportPdf = useCallback(() => {
-    const calculationLine =
-      totalCt > 0
-        ? `(${goldWeight.toFixed(2)}g × R$ ${selectedGoldPrice.toFixed(2)}/g) + (${totalCt.toFixed(
-            3
-          )}ct × R$ ${averagePricePerCt.toFixed(2)}/ct) = R$ ${totalValue.toFixed(2)}`
-        : `(${goldWeight.toFixed(2)}g × R$ ${selectedGoldPrice.toFixed(2)}/g) = R$ ${goldValue.toFixed(
-            2
-          )}`
+    const goldFormula = `${goldWeight.toFixed(2)}g × R$ ${goldPrice18k.toFixed(2)}/g × margem ${margin.toFixed(2)} = R$ ${goldValue.toFixed(2)}`
+    const stonesFormula =
+      stones.length === 0
+        ? 'Sem pedras'
+        : stones
+            .map((s) => {
+              const basePrice = getStonePriceByMm(s.sizeMm, selectedSupplier.prices)
+              return `${s.quantity} × (R$ ${basePrice.toFixed(2)} × ${s.ct.toFixed(3)}ct × dollar ${dollarStone.toFixed(2)} × margem ${margin.toFixed(2)}) = R$ ${s.totalPrice.toFixed(2)}`
+            })
+            .join('<br/>')
+    const calculationLine = `${goldFormula}${stones.length ? '<br/>' + stonesFormula + '<br/>' : '<br/>'}<strong>Total: R$ ${totalValue.toFixed(2)}</strong>`
 
     const printWindow = window.open('', '_blank', 'width=900,height=1200')
     if (!printWindow) return
@@ -747,17 +928,19 @@ export default function CalculadoraJoia() {
       stones.length === 0
         ? '<p>Sem pedras.</p>'
         : `<ol>${stones
-            .map(
-              (s, idx) => `<li>
+            .map((s, idx) => {
+              const basePrice = getStonePriceByMm(s.sizeMm, selectedSupplier.prices)
+              const calcDetail = `R$ ${basePrice.toFixed(2)} × ${s.ct.toFixed(3)}ct × dollar ${dollarStone.toFixed(2)} × margem ${margin.toFixed(2)}`
+              return `<li>
                 <strong>Pedra ${idx + 1}</strong><br/>
                 Quantidade: ${s.quantity}<br/>
                 Tamanho (mm): ${s.sizeMm.toFixed(2)}<br/>
-                ct/pedra: ${s.ctPerStone.toFixed(3)}<br/>
-                Total ct: ${s.totalCt.toFixed(3)}<br/>
-                Preço/ct: R$ ${s.pricePerCt.toFixed(2)}<br/>
+                CT estimado: ${s.ct.toFixed(3)}<br/>
+                Preço/unidade: R$ ${s.pricePerUnit.toFixed(2)}<br/>
+                Cálculo: ${calcDetail} = R$ ${s.pricePerUnit.toFixed(2)} (un)<br/>
                 Subtotal: R$ ${s.totalPrice.toFixed(2)}
               </li>`
-            )
+            })
             .join('')}</ol>`
 
     const html = `
@@ -788,31 +971,23 @@ export default function CalculadoraJoia() {
             <h2>Resumo financeiro</h2>
             <div class="summary-grid">
               <div class="summary-item">
-                <span class="summary-label">Tipo de ouro</span>
-                <span class="summary-value">${selectedGoldLabel}</span>
+                <span class="summary-label">Ouro 18K</span>
+                <span class="summary-value">R$ ${effectiveGoldPrice.toFixed(2)}/g</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Peso</span>
                 <span class="summary-value">${goldWeight.toFixed(2)} g</span>
               </div>
               <div class="summary-item">
-                <span class="summary-label">Preço/g</span>
-                <span class="summary-value">R$ ${selectedGoldPrice.toFixed(2)}</span>
-              </div>
-              <div class="summary-item">
                 <span class="summary-label">Subtotal ouro</span>
                 <span class="summary-value">R$ ${goldValue.toFixed(2)}</span>
               </div>
               <div class="summary-item">
+                <span class="summary-label">Fornecedor</span>
+                <span class="summary-value">${selectedSupplier.name}</span>
+              </div>
+              <div class="summary-item">
                 <span class="summary-label">Pedras (${totalQty})</span>
-                <span class="summary-value">${totalCt.toFixed(3)} ct</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">Preço médio/ct</span>
-                <span class="summary-value">R$ ${averagePricePerCt.toFixed(2)}</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">Subtotal pedras</span>
                 <span class="summary-value">R$ ${stonesValue.toFixed(2)}</span>
               </div>
               <div class="summary-item total">
@@ -831,8 +1006,7 @@ export default function CalculadoraJoia() {
           <div class="section">
             <h2>Ouro</h2>
             <p>
-              Tipo: ${selectedGoldLabel}<br/>
-              Preço/g: R$ ${selectedGoldPrice.toFixed(2)}<br/>
+              Preço 18K/g (c/ margem): R$ ${effectiveGoldPrice.toFixed(2)}<br/>
               Peso: ${goldWeight.toFixed(2)} g<br/>
               Subtotal ouro: R$ ${goldValue.toFixed(2)}
             </p>
@@ -840,7 +1014,7 @@ export default function CalculadoraJoia() {
 
           <div class="section">
             <h2>Pedras</h2>
-            <p>Qtd total: ${totalQty} | Total ct: ${totalCt.toFixed(3)} | Preço médio/ct: R$ ${averagePricePerCt.toFixed(2)} | Subtotal: R$ ${stonesValue.toFixed(2)}</p>
+            <p>Fornecedor: ${selectedSupplier.name} | Qtd total: ${totalQty} | Subtotal: R$ ${stonesValue.toFixed(2)}</p>
             ${stonesHtml}
           </div>
 
@@ -861,18 +1035,18 @@ export default function CalculadoraJoia() {
       printWindow.close()
     }, 400)
   }, [
-    averagePricePerCt,
     goldValue,
     goldWeight,
+    effectiveGoldPrice,
     product,
-    selectedGoldLabel,
-    selectedGoldPrice,
+    selectedSupplier,
     stones,
     stonesValue,
-    totalCt,
     totalQty,
     totalValue
   ])
+
+  const gold18kFromQuote = goldQuote1000 > 0 ? (goldQuote1000 * 0.75 * margin).toFixed(2) : '0.00'
 
   return (
     <PageContainer>
@@ -893,6 +1067,9 @@ export default function CalculadoraJoia() {
           >
             Salvar dados (PDF)
           </SecondaryButton>
+          <SecondaryButton type="button" onClick={() => setShowBaseCalc((prev) => !prev)}>
+            {showBaseCalc ? 'Ocultar cálculo base' : 'Calculo base'}
+          </SecondaryButton>
           <input
             ref={importInputRef}
             type="file"
@@ -902,6 +1079,8 @@ export default function CalculadoraJoia() {
           />
         </HeaderActions>
       </Header>
+
+      <ConversionTable />
 
       <SectionCard>
         <ActionsRow>
@@ -914,89 +1093,165 @@ export default function CalculadoraJoia() {
               </StatusChip>
             </TitleRow>
           </SectionHeader>
-
-          <ButtonsRow>
-            <SecondaryButton
-              type="button"
-              onClick={handleToggleEdit}
-              disabled={pricingLoading || savingPricing}
-            >
-              {isEditingPrices ? 'Cancelar' : 'Alterar valores'}
-            </SecondaryButton>
-            <PrimaryButton
-              type="button"
-              onClick={handleSavePricing}
-              disabled={!isEditingPrices || savingPricing || pricingLoading}
-            >
-              {savingPricing ? 'Salvando...' : 'Salvar'}
-            </PrimaryButton>
-          </ButtonsRow>
         </ActionsRow>
 
         <ValuesGrid>
-          <ValueSection>
-            <SubsectionTitle>Preço do ouro (R$/g)</SubsectionTitle>
-            <PriceGrid>
-              {goldOptions.map((option) => (
-                <div key={option.value}>
-                  <Label>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <ColorDot $color={option.color} />
-                      {option.label}
-                    </span>
-                  </Label>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={goldPrices[option.value] || ''}
-                    onChange={(e) =>
-                      handleGoldPriceChange(option.value, parseFloat(e.target.value) || 0)
-                    }
-                    placeholder="0.00"
-                    disabled={!isEditingPrices || savingPricing || pricingLoading}
-                  />
-                </div>
-              ))}
-            </PriceGrid>
-          </ValueSection>
-
-          <ValueSection>
-            <SubsectionTitle>Preço das pedras (R$/ct)</SubsectionTitle>
-            <PriceGrid>
-              {stoneTierOptions.map((tier) => (
-                <div key={tier.key}>
-                  <Label>{tier.description}</Label>
-                  <div style={{ position: 'relative' }}>
-                    <span
-                      style={{
-                        position: 'absolute',
-                        left: '0.75rem',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        color: 'rgba(0,0,0,0.5)',
-                        fontSize: '0.9rem'
-                      }}
-                    >
-                      R$
-                    </span>
+          {/* Cálculo base */}
+          {showBaseCalc && (
+            <ValueSection>
+              <SubsectionTitle>Cálculo base</SubsectionTitle>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.65rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: '140px' }}>
+                    <Label>Margem (multiplicador)</Label>
                     <Input
                       type="number"
                       min="0"
                       step="0.01"
-                      value={stonePrices[tier.key] || ''}
-                      onChange={(e) =>
-                        handleStonePriceChange(tier.key, parseFloat(e.target.value) || 0)
-                      }
-                      style={{ paddingLeft: '2.25rem' }}
-                      disabled={!isEditingPrices || savingPricing || pricingLoading}
+                      value={margin}
+                      onChange={(e) => setMargin(parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
+                  <div style={{ flex: 1, minWidth: '140px' }}>
+                    <Label>Dollar pedra (multiplicador)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={dollarStone}
+                      onChange={(e) => setDollarStone(parseFloat(e.target.value) || 0)}
                     />
                   </div>
                 </div>
-              ))}
-            </PriceGrid>
+                <ButtonsRow>
+                  <PrimaryButton
+                    type="button"
+                    onClick={handleSaveBaseCalc}
+                    disabled={savingBase || pricingLoading}
+                  >
+                    {savingBase ? 'Salvando...' : 'Salvar cálculo base'}
+                  </PrimaryButton>
+                </ButtonsRow>
+                <SmallText>
+                  Ouro e pedras aplicam automaticamente: ouro final = OURO 18K × margem; pedra final = tabela × ct × dollar pedra × margem.
+                </SmallText>
+              </div>
+            </ValueSection>
+          )}
+
+          {/* Cotação do Ouro 1000 */}
+          <ValueSection>
+            <SubsectionTitle>Cotação do Ouro 1000</SubsectionTitle>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '120px' }}>
+                <Label>Ouro hoje (R$/g)</Label>
+                <Input
+                  type="number"
+                  value={goldQuote1000 || ''}
+                  readOnly
+                  placeholder="Clique em atualizar"
+                />
+              </div>
+              <SecondaryButton 
+                type="button" 
+                onClick={handleUpdateGoldQuote}
+                disabled={isLoadingQuote}
+                style={{ marginBottom: '0.1rem' }}
+              >
+                <RefreshCw size={16} style={{ marginRight: 6 }} className={isLoadingQuote ? 'animate-spin' : ''} />
+                {isLoadingQuote ? 'Atualizando...' : 'Atualizar'}
+              </SecondaryButton>
+            </div>
+
+            {quoteError && (
+              <SmallText style={{ marginTop: '0.35rem', color: '#b91c1c' }}>
+                {quoteError}
+              </SmallText>
+            )}
+
+            {goldQuote1000 > 0 && (
+              <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                <SmallText style={{ margin: 0 }}>
+                  Ouro 18K (750): <strong>R$ {gold18kFromQuote}</strong>
+                </SmallText>
+                <SuccessButton type="button" onClick={handleUseQuoteAsReference}>
+                  <Check size={16} style={{ marginRight: 6 }} />
+                  Usar essa referência
+                </SuccessButton>
+              </div>
+            )}
+          </ValueSection>
+
+          {/* Preço do Ouro 18K */}
+          <ValueSection>
+            <SubsectionTitle>Preço do OURO 18K (R$/g)</SubsectionTitle>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '120px' }}>
+                <Label>OURO 18K</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={goldPrice18k || ''}
+                  onChange={(e) => setGoldPrice18k(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
+                  disabled={pricingLoading || savingPricing}
+                />
+              </div>
+              <ButtonsRow style={{ marginBottom: '0.1rem' }}>
+                <PrimaryButton
+                  type="button"
+                  onClick={handleSaveGoldPrice}
+                  disabled={savingPricing || pricingLoading}
+                >
+                  {savingPricing ? 'Salvando...' : 'Salvar valor padrão'}
+                </PrimaryButton>
+              </ButtonsRow>
+              <SmallText style={{ marginTop: '0.25rem' }}>
+                Ouro com margem: R$ {effectiveGoldPrice.toFixed(2)}/g
+              </SmallText>
+            </div>
+            <SmallText style={{ marginTop: '0.35rem' }}>
+              Última atualização: {formatDateTime(lastUpdatedAt)}
+            </SmallText>
           </ValueSection>
         </ValuesGrid>
+
+        <Divider />
+
+        {/* Seleção de Fornecedor */}
+        <SubsectionTitle>Fornecedor de Pedras</SubsectionTitle>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+          <select
+            value={selectedSupplierId}
+            onChange={(e) => setSelectedSupplierId(e.target.value)}
+            style={{
+              padding: '0.65rem 0.75rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ccc',
+              background: '#fff',
+              fontSize: '1rem',
+              minWidth: '200px'
+            }}
+          >
+            {suppliers.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <SmallText style={{ marginBottom: '0.5rem' }}>
+          Última atualização: {formatDateTime(lastUpdatedAt)}
+        </SmallText>
+
+        <SupplierPriceTable
+          supplier={selectedSupplier}
+          onUpdatePrices={handleUpdatefornecedor}
+          isEditing={isEditingfornecedor}
+          onToggleEdit={() => setIsEditingfornecedor(!isEditingfornecedor)}
+          onSave={handleSavefornecedor}
+        />
       </SectionCard>
 
       <MainGrid>
@@ -1007,27 +1262,8 @@ export default function CalculadoraJoia() {
             <SmallText style={{ marginTop: '0.25rem' }}>
               {pricingLoading
                 ? 'Carregando valores do ouro...'
-                : `Preço selecionado (${selectedGoldLabel}): R$ ${selectedGoldPrice.toFixed(
-                    2
-                  )} / g`}
+                : `Preço OURO 18K (com margem): R$ ${effectiveGoldPrice.toFixed(2)} / g`}
             </SmallText>
-            <Divider />
-
-            <Label>Tipo de Ouro da Peça</Label>
-            <RadioOptions>
-              {goldOptions.map((option) => (
-                <RadioOption key={option.value} $active={selectedGold === option.value}>
-                  <RadioInput
-                    type="radio"
-                    checked={selectedGold === option.value}
-                    onChange={() => setSelectedGold(option.value)}
-                  />
-                  <ColorDot $color={option.color} />
-                  <OptionLabel>{option.label}</OptionLabel>
-                </RadioOption>
-              ))}
-            </RadioOptions>
-
             <Divider />
 
             <Label>Peso do Ouro (gramas)</Label>
@@ -1040,14 +1276,14 @@ export default function CalculadoraJoia() {
               placeholder="0.00"
             />
 
-            {goldWeight > 0 && selectedGoldPrice > 0 && (
+            {goldWeight > 0 && effectiveGoldPrice > 0 && (
               <PreviewCard>
                 <SmallText>Valor do Ouro</SmallText>
                 <PreviewValue>
                   R$ {goldValue.toFixed(2)}
                 </PreviewValue>
                 <SmallText>
-                  {goldWeight}g × R$ {selectedGoldPrice.toFixed(2)}/g
+                  {goldWeight}g × R$ {effectiveGoldPrice.toFixed(2)}/g
                 </SmallText>
               </PreviewCard>
             )}
@@ -1055,6 +1291,9 @@ export default function CalculadoraJoia() {
 
           <SectionCard>
             <SectionTitle>Pedras</SectionTitle>
+            <SmallText style={{ marginBottom: '0.5rem' }}>
+              Fornecedor: <strong>{selectedSupplier.name}</strong>
+            </SmallText>
 
             <InlineActions>
               <PrimaryButton type="button" onClick={handleAddStone}>
@@ -1070,7 +1309,9 @@ export default function CalculadoraJoia() {
                 <StoneEntry
                   key={stone.id}
                   stone={stone}
-                  stonePrices={stonePrices}
+                  fornecedor={selectedSupplier.prices}
+                  margin={margin}
+                  dollarStone={dollarStone}
                   onUpdate={handleUpdateStone}
                   onRemove={handleRemoveStone}
                   canRemove={stones.length > 1}
@@ -1084,26 +1325,22 @@ export default function CalculadoraJoia() {
                 <PreviewValue>R$ {stonesValue.toFixed(2)}</PreviewValue>
                 <SmallText>
                   {totalQty} pedra
-                  {totalQty !== 1 ? 's' : ''} • {totalCt.toFixed(3)} ct total
+                  {totalQty !== 1 ? 's' : ''}
                 </SmallText>
               </PreviewCard>
             )}
           </SectionCard>
-
-          <ConversionTable />
         </LeftColumn>
 
         <CalculationSummary
-          selectedGold={selectedGold}
-          goldLabel={selectedGoldLabel}
           goldWeight={goldWeight}
-          goldPrice={selectedGoldPrice}
+          goldPrice={effectiveGoldPrice}
           goldValue={goldValue}
           stonesValue={stonesValue}
           totalValue={totalValue}
-          totalCt={totalCt}
           totalQty={totalQty}
           validStones={validStones}
+          supplierName={selectedSupplier.name}
         />
       </MainGrid>
     </PageContainer>
