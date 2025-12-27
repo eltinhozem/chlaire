@@ -130,6 +130,15 @@ const parseTxtData = (
   return { weight, stones }
 }
 
+const escapeHtml = (value: string): string => {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 const TROY_OUNCE_IN_GRAMS = 31.1034768
 
 // Fonte 1: GoldPrice.org (XAU em BRL) - converte de onça troy para grama
@@ -913,15 +922,17 @@ export default function CalculadoraJoia() {
             })
             .join('<br/>')
     const calculationLine = `${goldFormula}${stones.length ? '<br/>' + stonesFormula + '<br/>' : '<br/>'}<strong>Total: R$ ${totalValue.toFixed(2)}</strong>`
+    const safeSupplierName = escapeHtml(selectedSupplier.name)
 
     const printWindow = window.open('', '_blank', 'width=900,height=1200')
     if (!printWindow) return
+    printWindow.opener = null
 
     const productInfo = `
-      <p><strong>Referência:</strong> ${product?.reference_name || '-'}<br/>
-      <strong>Categoria:</strong> ${product?.category || '-'}<br/>
-      <strong>Cliente:</strong> ${product?.client_name || '-'}<br/>
-      <strong>Rota:</strong> ${product?.rota || '-'}</p>
+      <p><strong>Referência:</strong> ${escapeHtml(product?.reference_name || '-')}<br/>
+      <strong>Categoria:</strong> ${escapeHtml(product?.category || '-')}<br/>
+      <strong>Cliente:</strong> ${escapeHtml(product?.client_name || '-')}<br/>
+      <strong>Rota:</strong> ${escapeHtml(product?.rota || '-')}</p>
     `
 
     const stonesHtml =
@@ -984,7 +995,7 @@ export default function CalculadoraJoia() {
               </div>
               <div class="summary-item">
                 <span class="summary-label">Fornecedor</span>
-                <span class="summary-value">${selectedSupplier.name}</span>
+                <span class="summary-value">${safeSupplierName}</span>
               </div>
               <div class="summary-item">
                 <span class="summary-label">Pedras (${totalQty})</span>
@@ -1014,7 +1025,7 @@ export default function CalculadoraJoia() {
 
           <div class="section">
             <h2>Pedras</h2>
-            <p>Fornecedor: ${selectedSupplier.name} | Qtd total: ${totalQty} | Subtotal: R$ ${stonesValue.toFixed(2)}</p>
+            <p>Fornecedor: ${safeSupplierName} | Qtd total: ${totalQty} | Subtotal: R$ ${stonesValue.toFixed(2)}</p>
             ${stonesHtml}
           </div>
 
