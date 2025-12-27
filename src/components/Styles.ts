@@ -25,7 +25,7 @@ export const lightTheme = {
   inputBackground: '#ffffff',
   inputText: '#333333',
   inputBorderColor: '#d1d5db',
-  inputFocusBorderColor: '#3b82f6',
+  inputFocusBorderColor: '#8493aaff',
   inputFocusShadow: '0 0 0 2px rgba(59, 130, 246, 0.2)',
   inputFocusBackground: '#ffffff',
   placeholderColor: '#9ca3af',
@@ -71,8 +71,8 @@ export const lightTheme = {
 
   /* Submit button */
   submitButtonText: '#ffffff',
-  submitButtonBackground: 'linear-gradient(to right, #3b82f6, #2563eb)',
-  submitButtonFocusColor: '#1d4ed8'
+  submitButtonBackground: 'linear-gradient(to right, #b3b6bbff, #a5acbdff)',
+  submitButtonFocusColor: '#9fa2aaff'
 }
 
 export const darkTheme = {
