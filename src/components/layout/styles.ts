@@ -80,6 +80,30 @@ export const CadastrosJoia = styled.button`
       ${({ theme }) =>
         theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'}; // Adiciona uma borda destacada para acessibilidade
   }
+
+  @media (max-width: 640px) {
+    padding: 8px 10px;
+    border-radius: 10px;
+    gap: 0.25rem;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 0; /* texto escondido, mas acessível via label separado */
+    box-shadow: none;
+
+    &:hover {
+      transform: none;
+      box-shadow: 0 0 0 1px
+        ${({ theme }) =>
+          theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.3)'};
+    }
+  }
+`
+
+export const NavButtonLabel = styled.span`
+  font-size: 14px;
+  @media (max-width: 640px) {
+    display: none;
+  }
 `
 // Styled components para o layout
 export const LayoutContainer = styled.div`

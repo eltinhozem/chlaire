@@ -10,7 +10,8 @@ import {
   NavContent,
   Footer,
   Main,
-  CadastrosJoia
+  CadastrosJoia,
+  NavButtonLabel
 } from './styles'
 import Logo from '../logo/Logo'
 
@@ -49,33 +50,33 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
               {location.pathname !== '/register' && (
                 <Link to="/register">
-                  <CadastrosJoia type="button" className="text-sm">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Cadastrar Nova Joia
+                  <CadastrosJoia type="button" aria-label="Cadastrar nova joia">
+                    <PlusCircle className="h-5 w-5" />
+                    <NavButtonLabel>Cadastrar Nova Joia</NavButtonLabel>
                   </CadastrosJoia>
                 </Link>
               )}
               {location.pathname !== '/calcular-joia' && (
                 <Link to="/calcular-joia">
-                  <CadastrosJoia type="button" className="text-sm">
-                    <Gauge className="h-4 w-4 mr-2" />
-                    Calcular Joia
+                  <CadastrosJoia type="button" aria-label="Calcular joia">
+                    <Gauge className="h-5 w-5" />
+                    <NavButtonLabel>Calcular Joia</NavButtonLabel>
                   </CadastrosJoia>
                 </Link>
               )}
               {location.pathname !== '/cadastro-pedidos' && (
                 <Link to="/cadastro-pedidos">
-                  <CadastrosJoia type="button" className="text-sm">
-                    <PlusCircle className="h-4 w-4 mr-2" />
-                    Novo Pedido
+                  <CadastrosJoia type="button" aria-label="Novo pedido">
+                    <PlusCircle className="h-5 w-5" />
+                    <NavButtonLabel>Novo Pedido</NavButtonLabel>
                   </CadastrosJoia>
                 </Link>
               )}
               {location.pathname !== '/lista-pedidos' && (
                 <Link to="/lista-pedidos">
-                  <CadastrosJoia type="button" className="text-sm">
-                    <List className="h-4 w-4 mr-2" />
-                    Lista Pedidos
+                  <CadastrosJoia type="button" aria-label="Lista de pedidos">
+                    <List className="h-5 w-5" />
+                    <NavButtonLabel>Lista Pedidos</NavButtonLabel>
                   </CadastrosJoia>
                 </Link>
               )}
