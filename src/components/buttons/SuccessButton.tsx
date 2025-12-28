@@ -1,17 +1,5 @@
 
-import styled from 'styled-components';
-import { BaseButton } from './BaseButton';
+import { PrimaryButton } from './PrimaryButton';
 
-// Success button (green) - for positive actions like "Add Stone"
-export const SuccessButton = styled(BaseButton)`
-  color: ${({ theme }) => theme.addStoneButtonText};
-  background: ${({ theme }) => theme.addStoneButtonBackground};
-
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.addStoneButtonHoverBackground};
-  }
-
-  &:focus {
-    box-shadow: ${({ theme }) => theme.addStoneButtonFocusShadow};
-  }
-`;
+// Success actions also use the standard light-blue style
+export const SuccessButton = PrimaryButton;

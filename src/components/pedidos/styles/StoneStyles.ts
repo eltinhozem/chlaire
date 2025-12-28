@@ -31,39 +31,37 @@ export const StoneActions = styled.div`
   gap: 0.5rem;
 `;
 
-export const StoneActionButton = styled.button<ThemeProps & { variant: string }>`
-  display: flex;
+export const StoneActionButton = styled.button<ThemeProps & { variant: 'edit' | 'save' | 'remove' }>`
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.375rem;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   font-size: 0.875rem;
-  
-  background-color: ${props => 
-    props.variant === 'edit' ? 'transparent' :
-    props.variant === 'save' ? props.theme.addStoneButtonBackground :
-    'transparent'
-  };
-  
-  color: ${props => 
-    props.variant === 'edit' ? props.theme.buttonText :
-    props.variant === 'save' ? props.theme.addStoneButtonText :
-    props.theme.buttonTextRed
-  };
-  
-  &:hover {
-    background-color: ${props => 
-      props.variant === 'edit' ? props.theme.inputBorderColor :
-      props.variant === 'save' ? props.theme.addStoneButtonHoverBackground :
-      props.theme.inputBorderColor
-    };
+  background: ${props =>
+    props.variant === 'remove' ? props.theme.buttonBackgroundRed : props.theme.buttonBackground};
+  color: ${props =>
+    props.variant === 'remove' ? props.theme.buttonTextRed : props.theme.buttonText};
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: ${props =>
+      props.variant === 'remove' ? props.theme.buttonHoverBackgroundRed : props.theme.buttonHoverBackground};
+    transform: translateY(-1px);
   }
-  
+
+  &:focus {
+    outline: none;
+    box-shadow: ${props =>
+      props.variant === 'remove' ? props.theme.buttonFocusShadowRed : props.theme.buttonFocusShadow};
+  }
+
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.55;
     cursor: not-allowed;
+    transform: none;
   }
 `;
 

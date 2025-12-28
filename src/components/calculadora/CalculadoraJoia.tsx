@@ -1057,7 +1057,7 @@ export default function CalculadoraJoia() {
     totalValue
   ])
 
-  const gold18kFromQuote = goldQuote1000 > 0 ? (goldQuote1000 * 0.75 * margin).toFixed(2) : '0.00'
+  const gold18kFromQuote = goldQuote1000 > 0 ? (goldQuote1000 * 0.75 ).toFixed(2) : '0.00'
 
   return (
     <PageContainer>

@@ -1,115 +1,86 @@
-
-import  { useState, useEffect } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
-import { PlusCircle, Sun, Moon, List, Gauge } from 'lucide-react'
-import Logo3 from '../logo/logo3.svg'
+import { useState } from 'react'
+import { Outlet } from 'react-router-dom'
+import { Moon, Sun } from 'lucide-react'
 import {
   LayoutContainer,
   Navbar,
-  Container,
-  NavContent,
   Footer,
-  Main,
-  CadastrosJoia,
-  NavButtonLabel
+  HeaderInner,
+  BrandLink,
+  DesktopBrand,
+  MobileBar,
+  MenuToggleButton,
+  NavMenu,
+  NavMenuLink,
+  ThemeToggleButton,
+  Container,
+  Main
 } from './styles'
-import Logo from '../logo/Logo'
 
 interface LayoutProps {
   toggleTheme: () => void
   theme: string
 }
 
-export default function Layout({ toggleTheme, theme }: LayoutProps) {
-  const location = useLocation()
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+const navItems = [
+  { to: '/register', label: 'Cadastrar Nova Joia' },
+  { to: '/calcular-joia', label: 'Calcular Joia' },
+  { to: '/cadastro-pedidos', label: 'Novo Pedido' },
+  { to: '/lista-pedidos', label: 'Lista Pedidos' },
+  { to: '/cadastro-clientes', label: 'Clientes' }
+]
 
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768)
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+export default function Layout({ toggleTheme, theme }: LayoutProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <LayoutContainer>
-      {/* Navbar */}
       <Navbar>
-        <Container>
-          <NavContent>
-            <Link to="/search">
-              {isMobile ? (
-                <img src={Logo3} alt="Logo" className="max-h-12" />
-              ) : (
-                <Logo
-                  size="medium"
-                  color="url(#dDourado)"
-                  className="max-h-16"
-                />
-              )}
-            </Link>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              {location.pathname !== '/register' && (
-                <Link to="/register">
-                  <CadastrosJoia type="button" aria-label="Cadastrar nova joia">
-                    <PlusCircle className="h-5 w-5" />
-                    <NavButtonLabel>Cadastrar Nova Joia</NavButtonLabel>
-                  </CadastrosJoia>
-                </Link>
-              )}
-              {location.pathname !== '/calcular-joia' && (
-                <Link to="/calcular-joia">
-                  <CadastrosJoia type="button" aria-label="Calcular joia">
-                    <Gauge className="h-5 w-5" />
-                    <NavButtonLabel>Calcular Joia</NavButtonLabel>
-                  </CadastrosJoia>
-                </Link>
-              )}
-              {location.pathname !== '/cadastro-pedidos' && (
-                <Link to="/cadastro-pedidos">
-                  <CadastrosJoia type="button" aria-label="Novo pedido">
-                    <PlusCircle className="h-5 w-5" />
-                    <NavButtonLabel>Novo Pedido</NavButtonLabel>
-                  </CadastrosJoia>
-                </Link>
-              )}
-              {location.pathname !== '/lista-pedidos' && (
-                <Link to="/lista-pedidos">
-                  <CadastrosJoia type="button" aria-label="Lista de pedidos">
-                    <List className="h-5 w-5" />
-                    <NavButtonLabel>Lista Pedidos</NavButtonLabel>
-                  </CadastrosJoia>
-                </Link>
-              )}
-              {/* Botão de alternância do tema (ícone fixo no canto superior direito) */}
-              <button
-                onClick={toggleTheme}
-                style={{
-                  padding: '0.5rem',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                aria-label="Alternar Tema"
+        <HeaderInner>
+          <ThemeToggleButton onClick={toggleTheme} aria-label="Alternar tema">
+            {theme === 'light' ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
+          </ThemeToggleButton>
+
+          <MobileBar>
+            <MenuToggleButton
+              type="button"
+              aria-label="Abrir menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((prev) => !prev)}
+            >
+              <span />
+              <span />
+              <span />
+            </MenuToggleButton>
+            <BrandLink to="/search">CHLAIRE</BrandLink>
+          </MobileBar>
+
+          <DesktopBrand to="/search">CHLAIRE</DesktopBrand>
+
+          <NavMenu $open={menuOpen}>
+            {navItems.map((item) => (
+              <NavMenuLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setMenuOpen(false)}
               >
-                {theme === 'light' ? (
-                  <Moon className="h-6 w-6" />
-                ) : (
-                  <Sun className="h-6 w-6" />
-                )}
-              </button>
-            </div>
-          </NavContent>
-        </Container>
+                {item.label}
+              </NavMenuLink>
+            ))}
+          </NavMenu>
+        </HeaderInner>
       </Navbar>
 
-      {/* Conteúdo Principal */}
       <Main>
         <Container>
           <Outlet />
         </Container>
       </Main>
 
-      {/* Footer */}
       <Footer>
         <Container>
           <p>

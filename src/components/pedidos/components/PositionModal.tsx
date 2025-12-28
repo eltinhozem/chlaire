@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { PrimaryButton } from '../../buttons';
 
 interface PositionModalProps {
   isOpen: boolean;
@@ -42,12 +43,13 @@ const PositionModal: React.FC<PositionModalProps> = ({
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Alterar Posição na Fila</h3>
-          <button
+          <PrimaryButton
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="p-2"
+            style={{ minHeight: 'auto' }}
           >
             <X size={20} />
-          </button>
+          </PrimaryButton>
         </div>
         
         <div className="mb-4">
@@ -75,19 +77,19 @@ const PositionModal: React.FC<PositionModalProps> = ({
         </div>
         
         <div className="flex justify-end gap-2">
-          <button
+          <PrimaryButton
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="px-4 py-2"
           >
             Cancelar
-          </button>
-          <button
+          </PrimaryButton>
+          <PrimaryButton
             onClick={handleSave}
             disabled={newPosition < 1 || newPosition > totalPedidos}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-4 py-2"
           >
             Salvar
-          </button>
+          </PrimaryButton>
         </div>
       </div>
     </div>

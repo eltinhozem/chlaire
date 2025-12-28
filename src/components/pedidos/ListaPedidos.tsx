@@ -5,6 +5,7 @@ import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils
 import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
 import type { PedidoStone } from './types';
+import { PrimaryButton, DangerButton } from '../buttons';
 
 const ListaPedidos: React.FC = () => {
   const navigate = useNavigate();
@@ -152,24 +153,24 @@ const ListaPedidos: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Lista de Pedidos</h1>
-        <button
+        <PrimaryButton
           onClick={() => navigate('/cadastro-pedidos')}
-          className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          className="flex items-center gap-2"
         >
           <PlusCircle size={16} />
           Novo Pedido
-        </button>
+        </PrimaryButton>
       </div>
 
       {pedidos.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">Nenhum pedido encontrado</p>
-          <button
+          <PrimaryButton
             onClick={() => navigate('/cadastro-pedidos')}
-            className="mt-4 text-blue-500 hover:text-blue-600"
+            className="mt-4"
           >
             Criar seu primeiro pedido
-          </button>
+          </PrimaryButton>
         </div>
       ) : (
         <>
@@ -186,17 +187,14 @@ const ListaPedidos: React.FC = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex items-start gap-3 flex-1">
                     {/* Número da Posição Clicável */}
-                    <button
+                    <PrimaryButton
                       onClick={() => handlePositionClick(pedido.id, index + 1, pedido.nomeCliente)}
                       disabled={pedido.riscado}
-                      className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold ${
-                        pedido.riscado 
-                          ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                          : 'bg-blue-500 text-white hover:bg-blue-600 cursor-pointer'
-                      }`}
+                      style={{ width: '2.5rem', height: '2.5rem', borderRadius: '999px', padding: 0 }}
+                      className="text-sm font-bold"
                     >
                       {index + 1}
-                    </button>
+                    </PrimaryButton>
 
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
@@ -341,24 +339,29 @@ const ListaPedidos: React.FC = () => {
                   </div>
                   
                   <div className="flex flex-col gap-2">
-                    <button
-                      onClick={() => riscarPedido(pedido.id)}
-                      className={`px-3 py-2 rounded-md text-sm font-medium ${
-                        pedido.riscado
-                          ? 'bg-green-500 text-white hover:bg-green-600'
-                          : 'bg-red-500 text-white hover:bg-red-600'
-                      }`}
-                    >
-                      {pedido.riscado ? 'Restaurar' : 'Concluir'}
-                    </button>
+                    {pedido.riscado ? (
+                      <PrimaryButton
+                        onClick={() => riscarPedido(pedido.id)}
+                        className="px-3 py-2 text-sm font-medium"
+                      >
+                        Restaurar
+                      </PrimaryButton>
+                    ) : (
+                      <DangerButton
+                        onClick={() => riscarPedido(pedido.id)}
+                        className="px-3 py-2 text-sm font-medium"
+                      >
+                        Concluir
+                      </DangerButton>
+                    )}
                     
-                    <button
+                    <DangerButton
                       onClick={() => excluirPedido(pedido.id)}
-                      className="px-3 py-2 bg-gray-500 text-white rounded-md text-sm font-medium hover:bg-gray-600 flex items-center gap-1"
+                      className="px-3 py-2 text-sm font-medium flex items-center gap-1"
                     >
                       <Trash2 size={14} />
                       Excluir
-                    </button>
+                    </DangerButton>
                   </div>
                 </div>
               </div>

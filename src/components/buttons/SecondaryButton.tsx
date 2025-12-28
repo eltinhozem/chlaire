@@ -1,17 +1,5 @@
 
-import styled from 'styled-components';
-import { BaseButton } from './BaseButton';
+import { PrimaryButton } from './PrimaryButton';
 
-// Secondary button (gray) - for actions like "Cancel"
-export const SecondaryButton = styled(BaseButton)`
-  color: ${({ theme }) => theme.actionButtonText};
-  background: ${({ theme }) => theme.actionButtonBackground};
-
-  &:hover:not(:disabled) {
-    background: ${({ theme }) => theme.actionButtonHoverBackground};
-  }
-
-  &:focus {
-    box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.3);
-  }
-`;
+// Secondary actions share the same light-blue style to keep buttons consistent
+export const SecondaryButton = PrimaryButton;
