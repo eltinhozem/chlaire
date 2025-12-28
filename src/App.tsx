@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
@@ -13,6 +12,7 @@ import ListaPedidos from './components/pedidos/ListaPedidos'
 import { ThemeProvider } from 'styled-components'
 import { darkTheme, lightTheme } from './components/Styles'
 import CalculadoraJoia from './components/calculadora/CalculadoraJoia'
+import CadastroClientes from './components/clientes/CadastroClientes'
 
 // Rota privada: só permite acesso se houver sessão
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -111,6 +111,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <CalculadoraJoia />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="cadastro-clientes"
+              element={
+                <PrivateRoute>
+                  <CadastroClientes />
                 </PrivateRoute>
               }
             />
