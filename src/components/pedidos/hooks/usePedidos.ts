@@ -6,6 +6,29 @@ export const usePedidos = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const generateCodigo = () => String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+
+  const ensureUniqueCodigo = async (): Promise<string> => {
+    for (let i = 0; i < 5; i++) {
+      const codigo = generateCodigo();
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('id')
+        .eq('codigo', codigo)
+        .limit(1);
+
+      if (error) {
+        console.error('Erro ao verificar código do pedido:', error);
+        break;
+      }
+
+      if (!data || data.length === 0) {
+        return codigo;
+      }
+    }
+    throw new Error('Não foi possível gerar um ID único para o pedido.');
+  };
+
   const loadPedidos = async () => {
     try {
       setLoading(true);
@@ -18,6 +41,7 @@ export const usePedidos = () => {
 
       const pedidosFormatted = data?.map(pedido => ({
         id: pedido.id,
+        codigo: pedido.codigo,
         imagem: pedido.imagem,
         nomeCliente: pedido.nome_cliente,
         categoria: pedido.categoria,
@@ -49,6 +73,7 @@ export const usePedidos = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) throw new Error('Usuário não autenticado');
+      const codigo = await ensureUniqueCodigo();
 
       // Buscar a próxima prioridade
       const { data: maxPrioridade } = await supabase
@@ -67,6 +92,7 @@ export const usePedidos = () => {
           categoria: pedido.categoria,
           tamanho: pedido.tamanho,
           descricao: pedido.descricao,
+          codigo,
           aramado: pedido.aramado,
           galeria: pedido.galeria,
           para_render: pedido.paraRender,

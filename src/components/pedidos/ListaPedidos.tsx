@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon, Loader2, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon, Loader2, Edit, Copy } from 'lucide-react';
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
@@ -37,6 +37,60 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
   const statusText = getDeliveryStatusText(dataPrevistaEntrega);
   
   const cardBorderColor = riscado ? 'border-l-danger' : statusColor;
+  const copyToClipboard = async () => {
+    const formatBool = (v: boolean) => (v ? 'Sim' : 'Não');
+    const linhas = [
+      `ID: ${pedido.codigo || '----'}`,
+      `Cliente: ${pedido.nomeCliente}`,
+      `Categoria: ${pedido.categoria}`,
+      pedido.tamanho ? `Tamanho: ${pedido.tamanho}` : null,
+      pedido.descricao ? `Descrição: ${pedido.descricao}` : null,
+      `Aramado: ${formatBool(pedido.aramado)}`,
+      `Galeria: ${formatBool(pedido.galeria)}`,
+      `Para Render: ${formatBool(pedido.paraRender)}`,
+      // Prioridade e criado em removidos conforme solicitado
+      dataPrevistaEntrega ? `Entrega: ${new Date(dataPrevistaEntrega).toLocaleDateString('pt-BR')} (${getDeliveryStatusText(dataPrevistaEntrega)})` : null,
+      pedido.referenciaModelo?.rota ? `Ref. modelo: ${pedido.referenciaModelo.rota}` : null,
+      pedido.referenciaModelo?.cliente ? `Cliente ref.: ${pedido.referenciaModelo.cliente}` : null,
+      pedido.stones && pedido.stones.length
+        ? 'Pedras:'
+        : null,
+      ...(pedido.stones || []).map((s, idx) => {
+        const dims = [s.largura, s.comprimento, s.altura].filter(Boolean).join(' x ');
+        return [
+          ` ${idx + 1}) Onde: ${s.onde}`,
+          `    Tipo: ${s.tipo} | Lapidação: ${s.lapidacao}`,
+          `    Quantidade: ${s.quantidade} (${s.tipoQuantidade || 'exata'})`,
+          dims ? `    Dimensões: ${dims} mm` : null,
+          s.pts ? `    PTS: ${s.pts}` : null,
+          // Quilates removido conforme solicitado
+          s.tipoCravacao ? `    Cravação: ${s.tipoCravacao}` : null
+        ].filter(Boolean).join('\n');
+      })
+    ].filter(Boolean);
+    const texto = linhas.join('\n');
+    try {
+      await navigator.clipboard.writeText(texto);
+      const toast = document.createElement('div');
+      toast.textContent = 'Dados do pedido copiados.';
+      toast.style.position = 'fixed';
+      toast.style.bottom = '20px';
+      toast.style.right = '20px';
+      toast.style.background = '#111827';
+      toast.style.color = '#f9fafb';
+      toast.style.padding = '10px 14px';
+      toast.style.borderRadius = '8px';
+      toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.25)';
+      toast.style.zIndex = '9999';
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    } catch (err) {
+      console.error('Erro ao copiar:', err);
+      alert('Não foi possível copiar. Copie manualmente:\n\n' + texto);
+    }
+  };
 
   return (
     <div className={`bg-white dark:bg-neutral-800/50 shadow-sm rounded-lg border-l-4 ${cardBorderColor} transition-opacity duration-300 ${riscado ? 'opacity-60' : ''}`}>
@@ -74,6 +128,9 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
           <div className="flex flex-col items-end gap-2">
             <SecondaryButton size="sm" onClick={() => navigate(`/cadastro-pedidos/${pedido.id}`)}>
               <Edit size={14}/>
+            </SecondaryButton>
+            <SecondaryButton size="sm" onClick={copyToClipboard}>
+              <Copy size={14}/>
             </SecondaryButton>
             <DangerButton size="sm" onClick={() => onDelete(pedido.id)}>
               <Trash2 size={14}/>
@@ -130,10 +187,20 @@ const ListaPedidos: React.FC = () => {
   const navigate = useNavigate();
   const { pedidos, loading, updatePedido, deletePedido, updatePrioridades } = usePedidos();
   const [positionModal, setPositionModal] = useState({ isOpen: false, pedidoId: '', currentPosition: 0, pedidoName: '' });
+  const [search, setSearch] = useState('');
 
   const sortedPedidos = useMemo(() => {
     return [...pedidos].sort((a, b) => a.prioridade - b.prioridade);
   }, [pedidos]);
+
+  const filteredPedidos = useMemo(() => {
+    if (!search.trim()) return sortedPedidos;
+    const term = search.toLowerCase();
+    return sortedPedidos.filter((p) => 
+      p.nomeCliente.toLowerCase().includes(term) ||
+      (p.codigo || '').toLowerCase().includes(term)
+    );
+  }, [sortedPedidos, search]);
 
   const changePosition = async (pedidoId: string, newPosition: number) => {
     const pedidoIndex = sortedPedidos.findIndex(p => p.id === pedidoId);
@@ -183,15 +250,24 @@ const ListaPedidos: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100">Lista de Pedidos</h1>
-        <PrimaryButton onClick={() => navigate('/cadastro-pedidos')} className="flex items-center gap-2">
-          <PlusCircle size={16} />
-          Novo Pedido
-        </PrimaryButton>
+        <div className="flex items-center gap-3 flex-wrap">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nome ou ID"
+            className="border border-neutral-300 dark:border-neutral-600 rounded px-3 py-2 text-sm bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100"
+          />
+          <PrimaryButton onClick={() => navigate('/cadastro-pedidos')} className="flex items-center gap-2">
+            <PlusCircle size={16} />
+            Novo Pedido
+          </PrimaryButton>
+        </div>
       </header>
 
-      {sortedPedidos.length === 0 ? (
+      {filteredPedidos.length === 0 ? (
         <div className="text-center py-16 bg-white dark:bg-neutral-800/50 rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700">
           <p className="text-neutral-600 dark:text-neutral-300 font-semibold">Nenhum pedido na fila.</p>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-2">Que tal criar o primeiro?</p>
@@ -201,7 +277,7 @@ const ListaPedidos: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {sortedPedidos.map((pedido, index) => (
+          {filteredPedidos.map((pedido, index) => (
             <PedidoCard 
               key={pedido.id}
               pedido={pedido}
@@ -218,7 +294,7 @@ const ListaPedidos: React.FC = () => {
         isOpen={positionModal.isOpen}
         onClose={() => setPositionModal(prev => ({ ...prev, isOpen: false }))}
         currentPosition={positionModal.currentPosition}
-        totalPedidos={pedidos.length}
+        totalPedidos={filteredPedidos.length}
         onSave={handlePositionSave}
         pedidoName={positionModal.pedidoName}
       />

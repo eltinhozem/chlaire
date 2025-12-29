@@ -21,6 +21,7 @@ export interface ReferenciaModelo {
 
 export interface Pedido {
   id: string;
+  codigo?: string;
   imagem?: string;
   nomeCliente: string;
   categoria: string;
