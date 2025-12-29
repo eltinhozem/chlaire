@@ -1,9 +1,10 @@
 
 export const categoryOptions = [
-  { value: "", label: "Selecione" },
+ 
   { value: "ring", label: "Anel" },
   { value: "wedding_ring", label: "Aliança" },
   { value: "meia_alianca", label: "Meia Aliança" },
+  { value: "solitario", label: "Solitário" },
   { value: "pendant", label: "Pingente" },
   { value: "earring", label: "Brinco" },
   { value: "necklace", label: "Colar" },
@@ -46,4 +47,27 @@ export const finishOptions = [
   { value: "hammered", label: "Martelado" },
   { value: "brushed", label: "Escovado" },
   { value: "antique", label: "Envelhecido" }
+];
+
+export const categoriesWithAro = ["ring", "wedding_ring", "meia_alianca", "solitario"];
+
+export const aroTypeOptions = [
+  { value: "meia_cana", label: "Meia Cana" },
+  { value: "redondo", label: "Redondo" },
+  { value: "baulada_dupla", label: "Baulada Dupla" },
+  { value: "gota", label: "Gota" },
+  { value: "quadrado", label: "Quadrado" }
+];
+
+export const aroStructureOptions = [
+  { value: "macico", label: "Maciço" },
+  { value: "ocado", label: "Oco" }
+];
+
+export const aroCravacaoTypeOptions = [
+  { value: "garras", label: "Garras" },
+  { value: "pave", label: "Pavê" },
+  { value: "micro_pave", label: "Micro Pavê" },
+  { value: "canal", label: "Canal" },
+  { value: "invisivel", label: "Invisível" }
 ];

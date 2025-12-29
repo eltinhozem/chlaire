@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'react';
 import { FormContainer, FormTitle, InputLabel, Container, Campo } from './styles';
 import { useFormLogic } from './useFormLogic';
 import ImageUpload from './components/ImageUpload';
@@ -5,6 +6,7 @@ import FormSection from './components/FormSection';
 import FormField from './components/FormField';
 import StonesList from './components/StonesList';
 import FormActions from './components/FormActions';
+import ClienteAutocomplete from '../common/ClienteAutocomplete';
 import { 
   categoryOptions, 
   targetAudienceOptions, 
@@ -26,6 +28,13 @@ export default function JewelryForm() {
     handleStoneChange,
     isEditing
   } = useFormLogic();
+
+  const handleClientNameChange = (value: string) => {
+    // Reaproveita a função padrão de mudança de campo para manter formData sincronizado
+    handleChange({
+      target: { name: 'client_name', value }
+    } as ChangeEvent<HTMLInputElement>);
+  };
 
   return (
     <FormContainer>
@@ -80,13 +89,14 @@ export default function JewelryForm() {
             value={formData.designer}
             onChange={handleChange}
           />
-          <FormField
-            label="Nome do Cliente"
-            id="client_name"
-            name="client_name"
-            value={formData.client_name}
-            onChange={handleChange}
-          />
+          <div>
+            <InputLabel>Nome do Cliente</InputLabel>
+            <ClienteAutocomplete
+              value={formData.client_name}
+              onChange={handleClientNameChange}
+              required
+            />
+          </div>
         </FormSection>
 
         {/* Terceira linha: 4 campos */}

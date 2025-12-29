@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, useEffect } from 'react';
 import { Stone, PedraLogic } from './types';
-import { findDiamondDataBySize } from '../pedidos/utils/diamondConversionTable';
+import { findConversionByMm } from '../calculadora/stoneConversionTable';
 
 
 export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
@@ -52,14 +52,23 @@ export const usePedraLogic = (initialStone?: Stone): PedraLogic => {
     }
 
     // Autocompletar PTS e quilates para pedras redondas
-    if (lapidacao === 'Redonda' && novaLargura) {
+    if (lapidacao === 'Redonda') {
+      if (!novaLargura) {
+        setPts('');
+        setQuilates('');
+        return;
+      }
+
       const size = parseFloat(novaLargura);
       if (!isNaN(size) && size > 0) {
-        const diamondData = findDiamondDataBySize(size);
-        if (diamondData) {
-          setPts(diamondData.pts.toString());
-          setQuilates(diamondData.carats.toString());
+        const conversion = findConversionByMm(size);
+        if (conversion) {
+          setPts(conversion.points.toString());
+          setQuilates(conversion.ct.toString());
         }
+      } else {
+        setPts('');
+        setQuilates('');
       }
     }
     

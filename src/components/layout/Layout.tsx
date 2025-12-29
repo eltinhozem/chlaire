@@ -1,20 +1,19 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
-import { Moon, Sun } from 'lucide-react'
+
+import { Outlet, useLocation } from 'react-router-dom'
+import { Sun, Moon } from 'lucide-react'
 import {
   LayoutContainer,
   Navbar,
-  Footer,
-  HeaderInner,
-  BrandLink,
-  DesktopBrand,
-  MobileBar,
-  MenuToggleButton,
-  NavMenu,
-  NavMenuLink,
-  ThemeToggleButton,
   Container,
-  Main
+  Footer,
+  Main,
+  NavShell,
+  BrandRow,
+  Brand,
+  MenuBar,
+  MenuItem,
+  NavActions,
+  IconButton
 } from './styles'
 
 interface LayoutProps {
@@ -22,65 +21,56 @@ interface LayoutProps {
   theme: string
 }
 
-const navItems = [
-  { to: '/register', label: 'Cadastrar Nova Joia' },
-  { to: '/calcular-joia', label: 'Calcular Joia' },
-  { to: '/cadastro-pedidos', label: 'Novo Pedido' },
-  { to: '/lista-pedidos', label: 'Lista Pedidos' },
-  { to: '/cadastro-clientes', label: 'Clientes' }
-]
-
 export default function Layout({ toggleTheme, theme }: LayoutProps) {
-  const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+
+  const menuItems = [
+    { label: 'Início', to: '/search' },
+    { label: 'Cadastrar Nova Joia', to: '/register' },
+    { label: 'Calcular Joia', to: '/calcular-joia' },
+    { label: 'Pedidos', to: '/lista-pedidos', aliases: ['/cadastro-pedidos'] },
+    { label: 'Clientes', to: '/cadastro-clientes' }
+  ]
+
+  const isActive = (item: typeof menuItems[number]) =>
+    location.pathname === item.to || item.aliases?.includes(location.pathname)
 
   return (
     <LayoutContainer>
+      {/* Navbar */}
       <Navbar>
-        <HeaderInner>
-          <ThemeToggleButton onClick={toggleTheme} aria-label="Alternar tema">
-            {theme === 'light' ? (
-              <Moon className="h-4 w-4" />
-            ) : (
-              <Sun className="h-4 w-4" />
-            )}
-          </ThemeToggleButton>
+        <NavShell>
+          <BrandRow>
+            <Brand to="/search">CHLAIRE</Brand>
+            <NavActions>
+              <IconButton onClick={toggleTheme} aria-label="Alternar tema">
+                {theme === 'light' ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </IconButton>
+            </NavActions>
+          </BrandRow>
 
-          <MobileBar>
-            <MenuToggleButton
-              type="button"
-              aria-label="Abrir menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((prev) => !prev)}
-            >
-              <span />
-              <span />
-              <span />
-            </MenuToggleButton>
-            <BrandLink to="/search">CHLAIRE</BrandLink>
-          </MobileBar>
-
-          <DesktopBrand to="/search">CHLAIRE</DesktopBrand>
-
-          <NavMenu $open={menuOpen}>
-            {navItems.map((item) => (
-              <NavMenuLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setMenuOpen(false)}
-              >
+          <MenuBar aria-label="Navegação principal">
+            {menuItems.map((item) => (
+              <MenuItem key={item.label} to={item.to} $active={isActive(item)}>
                 {item.label}
-              </NavMenuLink>
+              </MenuItem>
             ))}
-          </NavMenu>
-        </HeaderInner>
+          </MenuBar>
+        </NavShell>
       </Navbar>
 
+      {/* Conteúdo Principal */}
       <Main>
         <Container>
           <Outlet />
         </Container>
       </Main>
 
+      {/* Footer */}
       <Footer>
         <Container>
           <p>

@@ -5,14 +5,7 @@ import { useStoneForm } from '../hooks/useStoneForm';
 import { isStoneFormValid } from '../utils/stoneValidation';
 import StonePreview from './StonePreview';
 import StoneFormFields from './StoneFormFields';
-import { lightTheme } from '../../Styles';
-import {
-  StoneContainer,
-  StoneHeader,
-  StoneTitle,
-  StoneActions,
-  StoneActionButton
-} from '../styles/StoneStyles';
+import { SecondaryButton, SuccessButton, DangerButton } from '../../buttons';
 
 interface PedidoStoneProps {
   index: number;
@@ -27,8 +20,6 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
   onRemove,
   onChange,
 }) => {
-  const currentTheme = lightTheme; // This could be dynamic based on your theme context
-
   const {
     savedStone,
     isEditing,
@@ -37,62 +28,59 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
     handleEditStone
   } = useStoneForm(stone, onChange, index);
 
-  // Inicia sempre no modo de edição
+  // Inicia sempre no modo de edição para novas pedras
   React.useEffect(() => {
     if (!savedStone) {
-      // Se é uma nova pedra e não foi salva ainda, manter em modo de edição
+      // Manter em modo de edição
     }
   }, [savedStone]);
 
   return (
-    <StoneContainer theme={currentTheme}>
-      <StoneHeader>
-        <StoneTitle theme={currentTheme}>Pedra {index + 1}</StoneTitle>
-        <StoneActions>
+    <div className="bg-white dark:bg-neutral-800/50 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700/50 mb-4 shadow-sm">
+      <div className="flex justify-between items-center mb-4">
+        <h4 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+          Pedra {index + 1}
+        </h4>
+        <div className="flex items-center gap-2">
           {!isEditing && (
-            <StoneActionButton
-              theme={currentTheme}
-              variant="edit"
+            <SecondaryButton
+              size="sm"
               type="button"
               onClick={handleEditStone}
+              className="flex items-center gap-2"
             >
               <Edit size={16} />
               Editar
-            </StoneActionButton>
+            </SecondaryButton>
           )}
           {isEditing && (
-            <StoneActionButton
-              theme={currentTheme}
-              variant="save"
+            <SuccessButton
+              size="sm"
               type="button"
               onClick={handleSaveStone}
               disabled={!isStoneFormValid(stone)}
+              className="flex items-center gap-2"
             >
               <Save size={16} />
-              Salvar Pedra
-            </StoneActionButton>
+              Salvar
+            </SuccessButton>
           )}
-          <StoneActionButton
-            theme={currentTheme}
-            variant="remove"
+          <DangerButton
+            size="icon"
             type="button"
             onClick={() => onRemove(index)}
           >
             <MinusCircle size={20} />
-          </StoneActionButton>
-        </StoneActions>
-      </StoneHeader>
+          </DangerButton>
+        </div>
+      </div>
 
-      {/* Preview da pedra salva */}
-      {!isEditing && savedStone && (
+      {!isEditing && savedStone ? (
         <StonePreview savedStone={savedStone} onEdit={handleEditStone} />
-      )}
-      
-      {/* Formulário de edição */}
-      {isEditing && (
+      ) : (
         <StoneFormFields stone={stone} index={index} onChange={handleChange} />
       )}
-    </StoneContainer>
+    </div>
   );
 };
 

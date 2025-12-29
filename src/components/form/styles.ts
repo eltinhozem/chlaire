@@ -1,6 +1,5 @@
 import styled from 'styled-components'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { PrimaryButton } from '../buttons'
 
 export const Container = styled.div`
   display: flex;
@@ -191,10 +190,125 @@ export const StoneSection = styled.div`
   gap: 1.5rem;
 `
 
-/* Botões padronizados */
-export const AddStoneButton = PrimaryButton
-export const ActionButton = PrimaryButton
-export const SubmitButton = PrimaryButton
+/* Botão de adicionar pedra */
+export const AddStoneButton = styled.button`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.addStoneButtonText || '#8b4513'};
+  background: ${({ theme }) =>
+    theme.addStoneButtonBackground ||
+    'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)'};
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 10px 30px
+   ${({ theme }) =>
+        theme.submitButtonFocusColor ||'rgba(250, 210, 164, 0.5)'};
+  z-index: 1;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: skewX(-45deg);
+    transition: left 0.5s ease;
+    z-index: -1;
+  }
+  &:hover {
+    transform: scale(1.05);
+     box-shadow: 0 0 0 1px
+      ${({ theme }) =>
+        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'};
+  }
+  &:hover::before {
+    left: 100%;
+  }
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px
+      ${({ theme }) =>
+        theme.addStoneButtonFocusColor || 'rgba(202, 150, 116, 0.5)'};
+  }
+`
+
+/* Botão de ação (Cancelar e Salvar) */
+export const ActionButton = styled.button`
+  padding: 0.5rem 1rem;
+  border: 1px solid ${({ theme }) => theme.actionButtonBorder || '#d1d5db'};
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.actionButtonText || '#374151'};
+  background-color: ${({ theme }) => theme.actionButtonBackground || 'white'};
+  cursor: pointer;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.actionButtonHoverBackground || '#f3f4f6'};
+  }
+`
+
+export const SubmitButton = styled(ActionButton)`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: ${({ theme }) => theme.submitButtonText || '#8b4513'};
+  background: ${({ theme }) =>
+    theme.submitButtonBackground ||
+    'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)'};
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 10px 30px
+   ${({ theme }) =>
+        theme.submitButtonFocusColor ||'rgba(250, 210, 164, 0.5)'};
+  z-index: 1;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: skewX(-45deg);
+    transition: left 0.5s ease;
+    z-index: -1;
+  }
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 1px
+      ${({ theme }) =>
+        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'};
+  }
+  &:hover::before {
+    left: 100%;
+  }
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px
+      ${({ theme }) =>
+        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'};
+  }
+`
 
 /* Container de upload de imagem */
 export const ImageUploadContainer = styled.div`
@@ -209,9 +323,22 @@ export const ImagePreview = styled.div`
     theme.imagePreviewBoxShadow || '0 4px 6px rgba(0, 0, 0, 0.1)'};
 `
 
-export const ImageUploadButton = styled(PrimaryButton).attrs({ as: 'label' })`
+export const ImageUploadButton = styled.label`
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: 1px solid ${({ theme }) => theme.uploadButtonBorder || '#d1d5db'};
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: ${({ theme }) => theme.uploadButtonText || '#374151'};
+  background-color: ${({ theme }) => theme.uploadButtonBackground || 'white'};
   cursor: pointer;
-
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: ${({ theme }) =>
+      theme.uploadButtonHoverBackground || '#f3f4f6'};
+  }
   input {
     display: none;
   }

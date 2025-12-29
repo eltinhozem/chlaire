@@ -123,3 +123,32 @@ export function getStoneTierName(ct: number): string {
   if (ct <= 0.725) return '0.08 a 0.725 ct'
   return 'Acima de 0.725 ct'
 }
+
+const findClosestByField = (
+  field: keyof StoneConversion,
+  value: number
+): StoneConversion | null => {
+  if (!value || Number.isNaN(value)) return null
+
+  let closest: StoneConversion | null = null
+  let minDiff = Number.POSITIVE_INFINITY
+
+  for (const entry of stoneConversionTable) {
+    const diff = Math.abs(entry[field] - value)
+    if (diff < minDiff) {
+      minDiff = diff
+      closest = entry
+    }
+  }
+
+  return closest
+}
+
+export const findConversionByMm = (mm: number): StoneConversion | null =>
+  findClosestByField('mm', mm)
+
+export const findConversionByPoints = (points: number): StoneConversion | null =>
+  findClosestByField('points', points)
+
+export const findConversionByCt = (ct: number): StoneConversion | null =>
+  findClosestByField('ct', ct)

@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { PrimaryButton, DangerButton } from '../buttons';
 
 export const StoneContainer = styled.div`
   background: ${({ theme }) => theme.formBackground};
@@ -22,8 +21,16 @@ export const StoneTitle = styled.h4`
   color: ${({ theme }) => theme.text};
 `;
 
-export const RemoveButton = styled(DangerButton)`
-  padding: 0.4rem 0.75rem;
+export const RemoveButton = styled.button`
+  color: ${({ theme }) => theme.buttonText};
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+
+  &:hover {
+    color: ${({ theme }) => theme.buttonHoverBackground};
+  }
 `;
 
 export const GridMain = styled.div`
@@ -91,5 +98,56 @@ export const ViewText = styled.p`
   color: ${({ theme }) => theme.text};
 `;
 
-export const EditButton = styled(PrimaryButton)``;
-export const SaveButton = styled(PrimaryButton)``;
+export const BaseButton = styled.button`
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 15px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.addStoneButtonText || '#8b4513'};
+  background: ${({ theme }) =>
+    theme.addStoneButtonBackground ||
+    'linear-gradient(to right, #fad2a4, #f6cda0, #ca9674)'};
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  box-shadow: 0 10px 30px
+    ${({ theme }) => theme.submitButtonFocusColor || 'rgba(250, 210, 164, 0.5)'};
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: skewX(-45deg);
+    transition: left 0.5s ease;
+    z-index: -1;
+  }
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px
+      ${({ theme }) => theme.submitButtonFocusColor || 'rgba(250, 210, 164, 0.5)'};
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5);
+  }
+`;
+
+export const EditButton = styled(BaseButton)``;
+export const SaveButton = styled(BaseButton)``;

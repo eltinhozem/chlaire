@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PedidoStone } from '../types';
-import { findDiamondDataBySize } from '../utils/diamondConversionTable';
+import { findConversionByMm, findConversionByPoints, findConversionByCt } from '../../calculadora/stoneConversionTable';
 
 
 export const useStoneForm = (
@@ -19,23 +19,55 @@ export const useStoneForm = (
       updatedStone.quantidade = 0;
     }
 
-    // Se a lapidação é redonda, sincronizar largura e comprimento
+    // Campos ligados por conversão na lapidação redonda
     if (updatedStone.lapidacao === 'Redonda') {
-      if (field === 'largura') {
-        updatedStone.comprimento = value.toString();
-      } else if (field === 'comprimento') {
-        updatedStone.largura = value.toString();
-      }
-
-      // Autocompletar PTS e quilates para pedras redondas baseado no tamanho
-      if ((field === 'largura' || field === 'comprimento') && value) {
-        const size = parseFloat(value.toString());
-        if (!isNaN(size) && size > 0) {
-          const diamondData = findDiamondDataBySize(size);
-          if (diamondData) {
-            updatedStone.pts = diamondData.pts.toString();
-            updatedStone.quilates = diamondData.carats.toString();
+      const applyConversion = (mm: number, pts?: number, ct?: number) => {
+        if (mm) {
+          const conversion = findConversionByMm(mm);
+          if (conversion) {
+            updatedStone.pts = conversion.points.toString();
+            updatedStone.quilates = conversion.ct.toString();
+            updatedStone.largura = conversion.mm.toString();
+            updatedStone.comprimento = conversion.mm.toString();
           }
+        } else if (pts) {
+          const conversion = findConversionByPoints(pts);
+          if (conversion) {
+            updatedStone.pts = conversion.points.toString();
+            updatedStone.quilates = conversion.ct.toString();
+            updatedStone.largura = conversion.mm.toString();
+            updatedStone.comprimento = conversion.mm.toString();
+          }
+        } else if (ct) {
+          const conversion = findConversionByCt(ct);
+          if (conversion) {
+            updatedStone.pts = conversion.points.toString();
+            updatedStone.quilates = conversion.ct.toString();
+            updatedStone.largura = conversion.mm.toString();
+            updatedStone.comprimento = conversion.mm.toString();
+          }
+        }
+      };
+
+      if (field === 'largura' || field === 'comprimento') {
+        const size = parseFloat(value.toString());
+        if (!value) {
+          updatedStone.pts = '';
+          updatedStone.quilates = '';
+          updatedStone.largura = '';
+          updatedStone.comprimento = '';
+        } else if (!isNaN(size) && size > 0) {
+          applyConversion(size);
+        }
+      } else if (field === 'pts') {
+        const ptsValue = parseFloat(value.toString());
+        if (!isNaN(ptsValue) && ptsValue > 0) {
+          applyConversion(0, ptsValue);
+        }
+      } else if (field === 'quilates') {
+        const ctValue = parseFloat(value.toString());
+        if (!isNaN(ctValue) && ctValue > 0) {
+          applyConversion(0, undefined, ctValue);
         }
       }
     }
