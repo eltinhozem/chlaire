@@ -1,4 +1,4 @@
-import { stoneConversionTable } from './stoneConversionTable'
+import { findConversionByCt, findConversionByMm, pointsToCt } from './stoneConversionTable'
 import { Stone } from './types'
 
 export const generateId = () => Math.random().toString(36).substring(2, 9)
@@ -116,33 +116,15 @@ export const fetchGoldQuoteInBrlPerGram = async (): Promise<number> => {
 // Converte ct -> mm (linear entre tabelas conhecidas)
 export const ctToMm = (ct: number): number => {
   if (!ct || ct <= 0) return 0
-  const sorted = [...stoneConversionTable].sort((a, b) => a.ct - b.ct)
-  if (ct <= sorted[0].ct) return sorted[0].mm
-  if (ct >= sorted[sorted.length - 1].ct) return sorted[sorted.length - 1].mm
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const current = sorted[i]
-    const next = sorted[i + 1]
-    if (ct >= current.ct && ct <= next.ct) {
-      const ratio = (ct - current.ct) / (next.ct - current.ct)
-      return current.mm + ratio * (next.mm - current.mm)
-    }
-  }
-  return sorted[sorted.length - 1].mm
+  const conversion = findConversionByCt(ct)
+  return conversion ? conversion.mm : 0
 }
 
 // Converte mm -> ct (linear entre tabelas conhecidas)
 export const mmToCt = (mm: number): number => {
   if (!mm || mm <= 0) return 0
-  const sorted = [...stoneConversionTable].sort((a, b) => a.mm - b.mm)
-  if (mm <= sorted[0].mm) return sorted[0].ct
-  if (mm >= sorted[sorted.length - 1].mm) return sorted[sorted.length - 1].ct
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const current = sorted[i]
-    const next = sorted[i + 1]
-    if (mm >= current.mm && mm <= next.mm) {
-      const ratio = (mm - current.mm) / (next.mm - current.mm)
-      return current.ct + ratio * (next.ct - current.ct)
-    }
-  }
-  return sorted[sorted.length - 1].ct
+  const conversion = findConversionByMm(mm)
+  return conversion ? conversion.ct : 0
 }
+
+export const ptsToCt = (points: number): number => pointsToCt(points)

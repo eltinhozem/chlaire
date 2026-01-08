@@ -14,20 +14,88 @@ import {
   ClienteActions,
   SearchInput,
   TabContainer,
-  Tab
+  Tab,
+  FingerToggle,
+  FingerToggleInput,
+  HandsGrid,
+  HandCard,
+  HandTitle,
+  HandImage,
+  FingerInputs,
+  FingerField,
+  FingerLabel,
+  FingerInput
 } from './styles';
 import { 
   Cliente, 
   generoOptions, 
   estadoCivilOptions, 
   tipoPessoaOptions, 
-  origemCadastroOptions 
+  origemCadastroOptions,
+  NumeracaoDedos,
+  FingerKey,
+  HandSide
 } from './types';
 import { useClientes } from './hooks/useClientes';
 import FormField from '../form/components/FormField';
 import { PrimaryButton, SecondaryButton, DangerButton } from '../buttons';
+import MaoDireita from '../ReferenciasVisuais/dedos/maodi.svg';
+import MaoEsquerda from '../ReferenciasVisuais/dedos/maoes.svg';
 
 type FormData = Omit<Cliente, 'id' | 'created_at' | 'updated_at'>;
+
+const fingerLabels: { key: FingerKey; label: string }[] = [
+  { key: 'polegar', label: 'Polegar' },
+  { key: 'indicador', label: 'Indicador' },
+  { key: 'medio', label: 'Médio' },
+  { key: 'anelar', label: 'Anelar' },
+  { key: 'minimo', label: 'Mindinho' }
+];
+
+const handOptions: { key: HandSide; label: string; image: string }[] = [
+  { key: 'direita', label: 'Mão direita', image: MaoDireita },
+  { key: 'esquerda', label: 'Mão esquerda', image: MaoEsquerda }
+];
+
+const createEmptyFingerSizes = (): NumeracaoDedos => ({
+  direita: {
+    polegar: '',
+    indicador: '',
+    medio: '',
+    anelar: '',
+    minimo: ''
+  },
+  esquerda: {
+    polegar: '',
+    indicador: '',
+    medio: '',
+    anelar: '',
+    minimo: ''
+  }
+});
+
+const normalizeFingerSizes = (value: unknown): NumeracaoDedos => {
+  if (!value) return createEmptyFingerSizes();
+  if (typeof value === 'string') {
+    try {
+      return normalizeFingerSizes(JSON.parse(value));
+    } catch {
+      return createEmptyFingerSizes();
+    }
+  }
+  if (typeof value === 'object') {
+    const record = value as Partial<NumeracaoDedos>;
+    const empty = createEmptyFingerSizes();
+    return {
+      direita: { ...empty.direita, ...(record.direita || {}) },
+      esquerda: { ...empty.esquerda, ...(record.esquerda || {}) }
+    };
+  }
+  return createEmptyFingerSizes();
+};
+
+const hasFingerSizing = (sizes: NumeracaoDedos) =>
+  Object.values(sizes).some((hand) => Object.values(hand).some((value) => String(value).trim().length > 0));
 
 const initialFormData: FormData = {
   nome: '',
@@ -37,13 +105,18 @@ const initialFormData: FormData = {
   data_nascimento: '',
   email: '',
   cpf: '',
+  instagram: '',
+  facebook: '',
+  site_empresa: '',
   genero: 'nao_informado',
   estado_civil: 'solteiro',
   profissao: '',
   nacionalidade: 'Brasileira',
   tipo_pessoa: 'fisica',
   origem_cadastro: 'loja_fisica',
-  indicado_por: ''
+  indicado_por: '',
+  observacao: '',
+  numeracao_dedos: null
 };
 
 export default function CadastroClientes() {
@@ -57,12 +130,16 @@ export default function CadastroClientes() {
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
+  const [showFingerSizing, setShowFingerSizing] = useState(false);
+  const [fingerSizes, setFingerSizes] = useState<NumeracaoDedos>(createEmptyFingerSizes());
 
   useEffect(() => {
     const clienteId = searchParams.get('edit');
     if (clienteId) {
       const cliente = clientes.find(c => c.id === clienteId);
       if (cliente) {
+        const normalizedFingerSizes = normalizeFingerSizes(cliente.numeracao_dedos);
+        const shouldShowFingerSizing = hasFingerSizing(normalizedFingerSizes);
         setFormData({
           nome: cliente.nome,
           endereco: cliente.endereco || '',
@@ -71,14 +148,21 @@ export default function CadastroClientes() {
           data_nascimento: cliente.data_nascimento || '',
           email: cliente.email || '',
           cpf: cliente.cpf || '',
+          instagram: cliente.instagram || '',
+          facebook: cliente.facebook || '',
+          site_empresa: cliente.site_empresa || '',
           genero: cliente.genero || 'nao_informado',
           estado_civil: cliente.estado_civil || 'solteiro',
           profissao: cliente.profissao || '',
           nacionalidade: cliente.nacionalidade || 'Brasileira',
           tipo_pessoa: cliente.tipo_pessoa || 'fisica',
           origem_cadastro: cliente.origem_cadastro || 'loja_fisica',
-          indicado_por: cliente.indicado_por || ''
+          indicado_por: cliente.indicado_por || '',
+          observacao: cliente.observacao || '',
+          numeracao_dedos: shouldShowFingerSizing ? normalizedFingerSizes : null
         });
+        setFingerSizes(shouldShowFingerSizing ? normalizedFingerSizes : createEmptyFingerSizes());
+        setShowFingerSizing(shouldShowFingerSizing);
         setEditingId(clienteId);
         setActiveTab('cadastro');
       }
@@ -109,12 +193,18 @@ export default function CadastroClientes() {
     setSubmitting(true);
 
     try {
+      const payload = {
+        ...formData,
+        numeracao_dedos: showFingerSizing ? fingerSizes : null
+      };
       if (editingId) {
-        await updateCliente(editingId, formData);
+        await updateCliente(editingId, payload);
       } else {
-        await saveCliente(formData);
+        await saveCliente(payload);
       }
       setFormData(initialFormData);
+      setFingerSizes(createEmptyFingerSizes());
+      setShowFingerSizing(false);
       setEditingId(null);
       setActiveTab('lista');
     } catch (error) {
@@ -136,6 +226,8 @@ export default function CadastroClientes() {
 
   const handleCancel = () => {
     setFormData(initialFormData);
+    setFingerSizes(createEmptyFingerSizes());
+    setShowFingerSizing(false);
     setEditingId(null);
     navigate('/cadastro-clientes');
   };
@@ -177,6 +269,31 @@ export default function CadastroClientes() {
     setFormData(prev => ({ ...prev, [field]: formatted }));
   };
 
+  const handleFingerToggle = (checked: boolean) => {
+    setShowFingerSizing(checked);
+    if (!checked) {
+      setFingerSizes(createEmptyFingerSizes());
+      setFormData(prev => ({ ...prev, numeracao_dedos: null }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, numeracao_dedos: fingerSizes }));
+  };
+
+  const handleFingerSizeChange = (hand: HandSide, finger: FingerKey) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFingerSizes((prev) => {
+      const updated = {
+        ...prev,
+        [hand]: {
+          ...prev[hand],
+          [finger]: value
+        }
+      };
+      setFormData(prevForm => ({ ...prevForm, numeracao_dedos: updated }));
+      return updated;
+    });
+  };
+
   return (
     <ClienteContainer>
       <ClienteTitle>{editingId ? 'Editar Cliente' : 'Cadastro de Clientes'}</ClienteTitle>
@@ -194,7 +311,7 @@ export default function CadastroClientes() {
         <form onSubmit={handleSubmit}>
           <FormSection>
             <SectionTitle>Dados Pessoais</SectionTitle>
-            <FormGrid>
+            <FormGrid style={{ gridTemplateColumns: '3fr 1fr', marginBottom: '1rem' }}>
               <FormField
                 label="Nome Completo"
                 id="nome"
@@ -205,15 +322,6 @@ export default function CadastroClientes() {
                 placeholder="Nome do cliente"
               />
               <FormField
-                label="CPF/CNPJ"
-                id="cpf"
-                name="cpf"
-                value={formData.cpf || ''}
-                onChange={handleCPFChange}
-                placeholder={formData.tipo_pessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
-                maxLength={formData.tipo_pessoa === 'fisica' ? 14 : 18}
-              />
-              <FormField
                 label="Data de Nascimento"
                 id="data_nascimento"
                 name="data_nascimento"
@@ -221,6 +329,8 @@ export default function CadastroClientes() {
                 value={formData.data_nascimento || ''}
                 onChange={handleChange}
               />
+            </FormGrid>
+            <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
               <FormField
                 label="Gênero"
                 id="genero"
@@ -245,6 +355,8 @@ export default function CadastroClientes() {
                 onChange={handleChange}
                 placeholder="Ex: Empresário"
               />
+            </FormGrid>
+            <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
               <FormField
                 label="Nacionalidade"
                 id="nacionalidade"
@@ -262,7 +374,54 @@ export default function CadastroClientes() {
                 options={tipoPessoaOptions}
                 required
               />
+              <FormField
+                label="CPF/CNPJ"
+                id="cpf"
+                name="cpf"
+                value={formData.cpf || ''}
+                onChange={handleCPFChange}
+                placeholder={formData.tipo_pessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
+                maxLength={formData.tipo_pessoa === 'fisica' ? 14 : 18}
+              />
             </FormGrid>
+            <div style={{ marginTop: '0.5rem' }}>
+              <FingerToggle>
+                <FingerToggleInput
+                  type="checkbox"
+                  checked={showFingerSizing}
+                  onChange={(e) => handleFingerToggle(e.target.checked)}
+                />
+                Numeração dos dedos
+              </FingerToggle>
+              {showFingerSizing && (
+                <HandsGrid>
+                  {handOptions.map((hand) => (
+                    <HandCard key={hand.key}>
+                      <HandTitle>{hand.label}</HandTitle>
+                      <HandImage src={hand.image} alt={hand.label} />
+                      <FingerInputs>
+                        {fingerLabels.map((finger) => {
+                          const fieldId = `dedos-${hand.key}-${finger.key}`;
+                          return (
+                            <FingerField key={fieldId}>
+                              <FingerLabel htmlFor={fieldId}>{finger.label}</FingerLabel>
+                              <FingerInput
+                                id={fieldId}
+                                type="text"
+                                inputMode="decimal"
+                                value={fingerSizes[hand.key][finger.key]}
+                                onChange={handleFingerSizeChange(hand.key, finger.key)}
+                                placeholder="--"
+                              />
+                            </FingerField>
+                          );
+                        })}
+                      </FingerInputs>
+                    </HandCard>
+                  ))}
+                </HandsGrid>
+              )}
+            </div>
           </FormSection>
 
           <FormSection>
@@ -303,12 +462,39 @@ export default function CadastroClientes() {
                 onChange={handleChange}
                 placeholder="Rua, número, bairro, cidade - UF"
               />
+              <FormField
+                label="Instagram"
+                id="instagram"
+                name="instagram"
+                type="url"
+                value={formData.instagram || ''}
+                onChange={handleChange}
+                placeholder="https://instagram.com/usuario"
+              />
+              <FormField
+                label="Facebook"
+                id="facebook"
+                name="facebook"
+                type="url"
+                value={formData.facebook || ''}
+                onChange={handleChange}
+                placeholder="https://facebook.com/usuario"
+              />
+              <FormField
+                label="Site da Empresa"
+                id="site_empresa"
+                name="site_empresa"
+                type="url"
+                value={formData.site_empresa || ''}
+                onChange={handleChange}
+                placeholder="https://www.empresa.com.br"
+              />
             </FormGrid>
           </FormSection>
 
           <FormSection>
             <SectionTitle>Origem do Cadastro</SectionTitle>
-            <FormGrid>
+            <FormGrid style={{ gridTemplateColumns: '1fr 3fr'}}>
               <FormField
                 label="Como conheceu?"
                 id="origem_cadastro"
@@ -325,6 +511,24 @@ export default function CadastroClientes() {
                 onChange={handleChange}
                 placeholder="Nome de quem indicou (se aplicável)"
               />
+            </FormGrid>
+          </FormSection>
+
+          <FormSection>
+            <SectionTitle>Observações</SectionTitle>
+            <FormGrid>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <FormField
+                  label="Obs."
+                  id="observacao"
+                  name="observacao"
+                  value={formData.observacao || ''}
+                  onChange={handleChange}
+                  isTextArea
+                  rows={4}
+                  placeholder="Observações adicionais sobre o cliente"
+                />
+              </div>
             </FormGrid>
           </FormSection>
 
@@ -379,4 +583,3 @@ export default function CadastroClientes() {
     </ClienteContainer>
   );
 }
-

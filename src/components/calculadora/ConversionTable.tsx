@@ -8,8 +8,8 @@ import {
   ConversionGrid,
   TableCol,
   TableHeader,
-  TableRow,
-  TitleRow
+  ConversionRows,
+  ConversionRow
 } from './styles'
 
 export function ConversionTable() {
@@ -33,18 +33,20 @@ export function ConversionTable() {
           <ConversionGrid>
             {[left, right].map((column, idx) => (
               <TableCol key={idx}>
-                <TitleRow>
-                  <TableHeader>mm</TableHeader>
-                  <TableHeader>ct</TableHeader>
-                  <TableHeader>pts</TableHeader>
-                </TitleRow>
-                {column.map((row, rowIndex) => (
-                  <TableRow key={rowIndex}>
-                    <span>{row.mm}</span>
-                    <span>{row.ct}</span>
-                    <span>{(row.ct * 100).toFixed(0)}</span>
-                  </TableRow>
-                ))}
+                <TableHeader>
+                  <span>mm</span>
+                  <span>pts</span>
+                  <span>ct</span>
+                </TableHeader>
+                <ConversionRows>
+                  {column.map((row, rowIndex) => (
+                    <ConversionRow key={rowIndex}>
+                      <span>{row.mm}</span>
+                      <span>{row.points}</span>
+                      <span>{row.ct}</span>
+                    </ConversionRow>
+                  ))}
+                </ConversionRows>
               </TableCol>
             ))}
           </ConversionGrid>

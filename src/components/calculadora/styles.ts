@@ -487,3 +487,16 @@ export const TableRow = styled.div`
     border-bottom: 1px solid ${({ theme }) => theme.inputBorderColor};
   }
 `
+
+export const ConversionRows = styled.div`
+  display: flex;
+  flex-direction: column;
+`
+
+export const ConversionRow = styled(TableRow)`
+  background: ${({ theme }) => theme.background};
+
+  &:nth-child(odd) {
+    background: ${({ theme }) => theme.formBackground};
+  }
+`

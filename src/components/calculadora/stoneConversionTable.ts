@@ -44,7 +44,7 @@ export const stoneConversionTable: StoneConversion[] = [
   { points: 50, mm: 5.0, ct: 0.5 },
   { points: 60, mm: 5.4, ct: 0.6 },
   { points: 63, mm: 5.5, ct: 0.63 },
-  { points: 65, mm: 5.6, ct: 0.64 },
+  { points: 65, mm: 5.6, ct: 0.65 },
   { points: 75, mm: 6.0, ct: 0.75 },
   { points: 95, mm: 6.4, ct: 0.95 },
   { points: 100, mm: 6.6, ct: 1.0 },
@@ -65,33 +65,15 @@ export const stoneConversionTable: StoneConversion[] = [
   { points: 400, mm: 10.4, ct: 4.0 },
   { points: 425, mm: 10.6, ct: 4.25 },
   { points: 450, mm: 10.8, ct: 4.5 },
+  { points: 475, mm: 11.0, ct: 4.75 },
   { points: 500, mm: 11.2, ct: 5.0 },
   { points: 650, mm: 12.0, ct: 6.5 }
 ]
 
-// Interpola para converter mm em ct com precisão de 3 casas decimais
 export function mmToCt(mm: number): number {
-  if (mm <= 0) return 0
-
-  const sorted = [...stoneConversionTable].sort((a, b) => a.mm - b.mm)
-
-  if (mm <= sorted[0].mm) {
-    return sorted[0].ct
-  }
-
-  if (mm >= sorted[sorted.length - 1].mm) {
-    return sorted[sorted.length - 1].ct
-  }
-
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (mm >= sorted[i].mm && mm <= sorted[i + 1].mm) {
-      const ratio = (mm - sorted[i].mm) / (sorted[i + 1].mm - sorted[i].mm)
-      const ct = sorted[i].ct + ratio * (sorted[i + 1].ct - sorted[i].ct)
-      return Math.round(ct * 1000) / 1000
-    }
-  }
-
-  return 0
+  if (!mm || mm <= 0) return 0
+  const conversion = findConversionByMm(mm)
+  return conversion ? conversion.ct : 0
 }
 
 // Retorna o valor mais próximo na tabela
@@ -152,3 +134,9 @@ export const findConversionByPoints = (points: number): StoneConversion | null =
 
 export const findConversionByCt = (ct: number): StoneConversion | null =>
   findClosestByField('ct', ct)
+
+export const pointsToCt = (points: number): number => {
+  if (!points || points <= 0) return 0
+  const conversion = findConversionByPoints(points)
+  return conversion ? conversion.ct : 0
+}

@@ -1,6 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Plus, Clock3, RefreshCw, Check, Edit2 } from 'lucide-react'
+import { Plus, Clock3, RefreshCw, Check, Edit2, Gem, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { PrimaryButton } from '../buttons/PrimaryButton'
 import { SecondaryButton } from '../buttons/SecondaryButton'
@@ -16,7 +16,8 @@ import {
   escapeHtml,
   fetchGoldQuoteInBrlPerGram,
   ctToMm,
-  mmToCt
+  mmToCt,
+  ptsToCt
 } from './utils'
 import {
   PageContainer,
@@ -596,7 +597,10 @@ export default function CalculadoraJoia() {
       const mapped = product.stones
         .map((stone) => {
           const quantity = Number(stone.quantity ?? 1)
-          const ct = Number(stone.quilates) || (stone.pts ? Number(stone.pts) / 100 : 0)
+          const quilates = Number(stone.quilates)
+          const ptsValue = Number(stone.pts)
+          const ctFromPts = Number.isFinite(ptsValue) && ptsValue > 0 ? ptsToCt(ptsValue) : 0
+          const ct = Number.isFinite(quilates) && quilates > 0 ? quilates : ctFromPts
           const sizeMm = ctToMm(ct)
           const basePrice = getStonePriceByMm(sizeMm, selectedSupplier.prices)
           const pricePerUnit = basePrice * (ct || 0) * dollarStone * margin
