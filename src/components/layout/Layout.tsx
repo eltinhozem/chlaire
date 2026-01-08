@@ -1,6 +1,6 @@
 
-import { Outlet, useLocation } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Sun, Moon, LogOut } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
@@ -16,7 +16,9 @@ import {
   MenuItem,
   NavActions,
   IconButton,
-  UserGreeting
+  UserGreeting,
+  LogoutButton,
+  LogoutLabel
 } from './styles'
 
 interface LayoutProps {
@@ -26,6 +28,7 @@ interface LayoutProps {
 
 export default function Layout({ toggleTheme, theme }: LayoutProps) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [displayName, setDisplayName] = useState<string>('')
   const [isAdmin, setIsAdmin] = useState(false)
 
@@ -47,6 +50,15 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
 
   const isActive = (item: typeof menuItems[number]) =>
     location.pathname === item.to || item.aliases?.includes(location.pathname)
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('Erro ao sair:', error)
+      return
+    }
+    navigate('/')
+  }
 
   useEffect(() => {
     const loadDisplayName = async () => {
@@ -88,6 +100,10 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
             <Brand to="/search">CHLAIRE</Brand>
             <NavActions>
               {displayName && <UserGreeting>Olá, {displayName}</UserGreeting>}
+              <LogoutButton type="button" onClick={handleLogout}>
+                <LogOut size={16} />
+                <LogoutLabel>Sair</LogoutLabel>
+              </LogoutButton>
               <IconButton onClick={toggleTheme} aria-label="Alternar tema">
                 {theme === 'light' ? (
                   <Moon className="h-5 w-5" />

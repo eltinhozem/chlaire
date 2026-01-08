@@ -12,6 +12,7 @@ import { suppliers, getStonePriceByMm, getSupplierById, SupplierPriceEntry, Supp
 import { Stone, ProductStoneInput, ProductData } from './types'
 import {
   createEmptyStone,
+  generateId,
   parseTxtData,
   escapeHtml,
   fetchGoldQuoteInBrlPerGram,

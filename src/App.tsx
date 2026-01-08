@@ -14,6 +14,7 @@ import { darkTheme, lightTheme } from './components/Styles'
 import CalculadoraJoia from './components/calculadora/CalculadoraJoia'
 import CadastroClientes from './components/clientes/CadastroClientes'
 import Usuarios from './components/usuarios/Usuarios'
+import ClienteInfo from './components/clientes/ClienteInfo'
 
 // Rota privada: só permite acesso se houver sessão
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -92,6 +93,15 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 function App() {
   const [theme, setTheme] = useState('light')
 
+  useEffect(() => {
+    const root = document.documentElement
+    if (theme === 'dark') {
+      root.classList.add('dark')
+    } else {
+      root.classList.remove('dark')
+    }
+  }, [theme])
+
   // Função para alternar entre o tema claro e o dark
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))
@@ -163,6 +173,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <CadastroClientes />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="clientes/:id"
+              element={
+                <PrivateRoute>
+                  <ClienteInfo />
                 </PrivateRoute>
               }
             />

@@ -11,7 +11,11 @@ import {
   ClienteInfo,
   ClienteNome,
   ClienteDetails,
-  ClienteActions,
+  ClientPhoneRow,
+  ClientPhoneLabel,
+  ClientPhoneValue,
+  ClientTagRow,
+  InstaButton,
   SearchInput,
   TabContainer,
   Tab,
@@ -38,7 +42,7 @@ import {
 } from './types';
 import { useClientes } from './hooks/useClientes';
 import FormField from '../form/components/FormField';
-import { PrimaryButton, SecondaryButton, DangerButton } from '../buttons';
+import { PrimaryButton, SecondaryButton } from '../buttons';
 import MaoDireita from '../ReferenciasVisuais/dedos/maodi.svg';
 import MaoEsquerda from '../ReferenciasVisuais/dedos/maoes.svg';
 
@@ -214,14 +218,8 @@ export default function CadastroClientes() {
     }
   };
 
-  const handleEdit = (cliente: Cliente) => {
-    navigate(`/cadastro-clientes?edit=${cliente.id}`);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Tem certeza que deseja excluir este cliente?')) {
-      await deleteCliente(id);
-    }
+  const handleOpenDetails = (cliente: Cliente) => {
+    navigate(`/clientes/${cliente.id}`);
   };
 
   const handleCancel = () => {
@@ -577,56 +575,38 @@ export default function CadastroClientes() {
           ) : (
             <ClientesList>
               {filteredClientes.map((cliente) => {
-                const phone = cliente.celular || cliente.telefone || '';
-                const birth = formatDate(cliente.data_nascimento || '');
-                const age = birth ? calculateAge(birth.date) : null;
+                const rawPhone = cliente.celular || cliente.telefone || '';
+                const phone = rawPhone || '-';
+                const instagram = (cliente.instagram || '').trim();
+                const instagramLink = instagram
+                  ? instagram.startsWith('http')
+                    ? instagram
+                    : `https://instagram.com/${instagram.replace('@', '')}`
+                  : '';
 
                 return (
-                  <ClienteCard key={cliente.id} onClick={() => handleEdit(cliente)}>
+                  <ClienteCard key={cliente.id} onClick={() => handleOpenDetails(cliente)}>
                     <ClienteInfo>
                       <ClienteNome>{cliente.nome}</ClienteNome>
                       <ClienteDetails>
-                        {phone && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                            <span style={{ fontWeight: 600 }}>Telefone:</span>
-                            <span>{phone}</span>
-                          </div>
-                        )}
-                        {cliente.email && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                            <span style={{ fontWeight: 600 }}>Email:</span>
-                            <span>{cliente.email}</span>
-                          </div>
-                        )}
-                        {birth && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
-                            <span style={{ fontWeight: 600 }}>Nascimento:</span>
-                            <span>
-                              {birth.label}
-                              {age !== null && <span style={{ color: '#2563eb', marginLeft: 6 }}>{age} anos</span>}
-                            </span>
-                          </div>
-                        )}
+                        <ClientPhoneRow>
+                          <ClientPhoneLabel>Telefone:</ClientPhoneLabel>
+                          <ClientPhoneValue>{phone}</ClientPhoneValue>
+                        </ClientPhoneRow>
                       </ClienteDetails>
+                      <ClientTagRow>
+                        {instagramLink && (
+                          <InstaButton
+                            href={instagramLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Instagram
+                          </InstaButton>
+                        )}
+                      </ClientTagRow>
                     </ClienteInfo>
-                    <ClienteActions>
-                      <SecondaryButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(cliente);
-                        }}
-                      >
-                        Editar
-                      </SecondaryButton>
-                      <DangerButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDelete(cliente.id);
-                        }}
-                      >
-                        Excluir
-                      </DangerButton>
-                    </ClienteActions>
                   </ClienteCard>
                 );
               })}

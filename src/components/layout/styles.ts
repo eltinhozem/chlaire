@@ -183,6 +183,39 @@ export const NavActions = styled.div`
   gap: 0.5rem;
 `
 
+export const LogoutButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(248, 239, 229, 0.45);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8efe5;
+  cursor: pointer;
+  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(248, 239, 229, 0.65);
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(248, 239, 229, 0.25);
+  }
+`
+
+export const LogoutLabel = styled.span`
+  @media (max-width: 640px) {
+    display: none;
+  }
+`
+
 export const UserGreeting = styled.div`
   display: flex;
   align-items: center;
