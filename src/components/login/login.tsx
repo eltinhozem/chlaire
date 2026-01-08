@@ -46,7 +46,7 @@ export default function Login() {
 
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
-      if (data.session) navigate('/search')
+      if (data.session) navigate('/cadastro-clientes')
     }
     
     checkSession()
@@ -104,7 +104,7 @@ export default function Login() {
       }
 
       resetLoginAttempts()
-      navigate('/search')
+      navigate('/cadastro-clientes')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login'
       console.error('Login error:', message)

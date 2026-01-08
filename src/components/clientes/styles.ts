@@ -38,9 +38,9 @@ export const SectionTitle = styled.h2`
 `;
 
 export const ClientesList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
   margin-top: 1rem;
 `;
 
@@ -50,9 +50,10 @@ export const ClienteCard = styled.div`
   border-radius: 8px;
   padding: 1rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.75rem;
   transition: all 0.2s ease;
+  cursor: pointer;
 
   &:hover {
     border-color: ${({ theme }) => theme.inputFocusBorderColor};
@@ -74,11 +75,15 @@ export const ClienteNome = styled.h3`
 export const ClienteDetails = styled.p`
   font-size: 0.875rem;
   color: ${({ theme }) => theme.labelColor};
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 `;
 
 export const ClienteActions = styled.div`
   display: flex;
   gap: 0.5rem;
+  justify-content: flex-end;
 `;
 
 export const SearchInput = styled.input`

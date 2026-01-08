@@ -124,7 +124,7 @@ export default function CadastroClientes() {
   const [searchParams] = useSearchParams();
   const { clientes, loading, saveCliente, updateCliente, deleteCliente, searchClientes } = useClientes();
   
-  const [activeTab, setActiveTab] = useState<'cadastro' | 'lista'>('cadastro');
+  const [activeTab, setActiveTab] = useState<'cadastro' | 'lista'>('lista');
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -267,6 +267,26 @@ export default function CadastroClientes() {
   const handlePhoneChange = (field: 'telefone' | 'celular') => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const formatted = formatPhone(e.target.value);
     setFormData(prev => ({ ...prev, [field]: formatted }));
+  };
+
+  const formatDate = (value?: string) => {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return { date, label: `${day}/${month}/${year}` };
+  };
+
+  const calculateAge = (date: Date) => {
+    const today = new Date();
+    let age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+      age -= 1;
+    }
+    return age;
   };
 
   const handleFingerToggle = (checked: boolean) => {
@@ -556,26 +576,60 @@ export default function CadastroClientes() {
             <p>Nenhum cliente encontrado.</p>
           ) : (
             <ClientesList>
-              {filteredClientes.map((cliente) => (
-                <ClienteCard key={cliente.id}>
-                  <ClienteInfo>
-                    <ClienteNome>{cliente.nome}</ClienteNome>
-                    <ClienteDetails>
-                      {cliente.email && `${cliente.email} • `}
-                      {cliente.celular || cliente.telefone}
-                      {cliente.cpf && ` • ${cliente.cpf}`}
-                    </ClienteDetails>
-                  </ClienteInfo>
-                  <ClienteActions>
-                    <SecondaryButton onClick={() => handleEdit(cliente)}>
-                      Editar
-                    </SecondaryButton>
-                    <DangerButton onClick={() => handleDelete(cliente.id)}>
-                      Excluir
-                    </DangerButton>
-                  </ClienteActions>
-                </ClienteCard>
-              ))}
+              {filteredClientes.map((cliente) => {
+                const phone = cliente.celular || cliente.telefone || '';
+                const birth = formatDate(cliente.data_nascimento || '');
+                const age = birth ? calculateAge(birth.date) : null;
+
+                return (
+                  <ClienteCard key={cliente.id} onClick={() => handleEdit(cliente)}>
+                    <ClienteInfo>
+                      <ClienteNome>{cliente.nome}</ClienteNome>
+                      <ClienteDetails>
+                        {phone && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                            <span style={{ fontWeight: 600 }}>Telefone:</span>
+                            <span>{phone}</span>
+                          </div>
+                        )}
+                        {cliente.email && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                            <span style={{ fontWeight: 600 }}>Email:</span>
+                            <span>{cliente.email}</span>
+                          </div>
+                        )}
+                        {birth && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem' }}>
+                            <span style={{ fontWeight: 600 }}>Nascimento:</span>
+                            <span>
+                              {birth.label}
+                              {age !== null && <span style={{ color: '#2563eb', marginLeft: 6 }}>{age} anos</span>}
+                            </span>
+                          </div>
+                        )}
+                      </ClienteDetails>
+                    </ClienteInfo>
+                    <ClienteActions>
+                      <SecondaryButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(cliente);
+                        }}
+                      >
+                        Editar
+                      </SecondaryButton>
+                      <DangerButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(cliente.id);
+                        }}
+                      >
+                        Excluir
+                      </DangerButton>
+                    </ClienteActions>
+                  </ClienteCard>
+                );
+              })}
             </ClientesList>
           )}
         </>

@@ -1,7 +1,7 @@
 
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sun, Moon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
   LayoutContainer,
@@ -27,15 +27,23 @@ interface LayoutProps {
 export default function Layout({ toggleTheme, theme }: LayoutProps) {
   const location = useLocation()
   const [displayName, setDisplayName] = useState<string>('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
-  const menuItems = [
-    { label: 'Início', to: '/search' },
-    { label: 'Cadastrar Nova Joia', to: '/register' },
-    { label: 'Calcular Joia', to: '/calcular-joia' },
-    { label: 'Pedidos', to: '/lista-pedidos', aliases: ['/cadastro-pedidos'] },
-    { label: 'Clientes', to: '/cadastro-clientes' },
-    { label: 'Usuários', to: '/usuarios' }
-  ]
+  const menuItems = useMemo(() => {
+    const items = [
+      { label: 'Lista Clientes', to: '/cadastro-clientes' },
+      { label: 'Pedidos', to: '/lista-pedidos', aliases: ['/cadastro-pedidos'] },
+      { label: 'Cadastrar Joias', to: '/register' },
+      { label: 'Calcular Joias', to: '/calcular-joia' },
+      { label: 'Lista Joias', to: '/search' }
+    ]
+
+    if (isAdmin) {
+      items.push({ label: 'Usuários', to: '/usuarios' })
+    }
+
+    return items
+  }, [isAdmin])
 
   const isActive = (item: typeof menuItems[number]) =>
     location.pathname === item.to || item.aliases?.includes(location.pathname)
@@ -56,7 +64,9 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
         .maybeSingle()
 
       const fallback = email.split('@')[0] || ''
-      setDisplayName(profile?.display_name || fallback)
+      const resolvedName = profile?.display_name || fallback
+      setDisplayName(resolvedName)
+      setIsAdmin(resolvedName === 'Elton')
     }
 
     loadDisplayName()

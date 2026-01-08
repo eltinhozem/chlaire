@@ -46,6 +46,49 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const [status, setStatus] = useState<'loading' | 'allowed' | 'denied'>('loading')
+
+  useEffect(() => {
+    let active = true
+
+    const checkAdmin = async () => {
+      const { data } = await supabase.auth.getUser()
+      const email = data.user?.email?.trim().toLowerCase()
+      if (!email) {
+        if (active) setStatus('denied')
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('display_name')
+        .eq('email', email)
+        .maybeSingle()
+
+      if (active) {
+        setStatus(profile?.display_name === 'Elton' ? 'allowed' : 'denied')
+      }
+    }
+
+    checkAdmin()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  if (status === 'loading') {
+    return <div>Loading...</div>
+  }
+
+  if (status === 'denied') {
+    return <Navigate to="/cadastro-clientes" replace />
+  }
+
+  return <>{children}</>
+}
+
 function App() {
   const [theme, setTheme] = useState('light')
 
@@ -127,7 +170,9 @@ function App() {
               path="usuarios"
               element={
                 <PrivateRoute>
-                  <Usuarios />
+                  <AdminRoute>
+                    <Usuarios />
+                  </AdminRoute>
                 </PrivateRoute>
               }
             />
