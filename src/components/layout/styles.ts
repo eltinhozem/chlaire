@@ -183,6 +183,21 @@ export const NavActions = styled.div`
   gap: 0.5rem;
 `
 
+export const UserGreeting = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f8efe5;
+  white-space: nowrap;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+`
+
 export const IconButton = styled.button`
   display: inline-flex;
   align-items: center;

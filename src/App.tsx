@@ -13,6 +13,7 @@ import { ThemeProvider } from 'styled-components'
 import { darkTheme, lightTheme } from './components/Styles'
 import CalculadoraJoia from './components/calculadora/CalculadoraJoia'
 import CadastroClientes from './components/clientes/CadastroClientes'
+import Usuarios from './components/usuarios/Usuarios'
 
 // Rota privada: só permite acesso se houver sessão
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -119,6 +120,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <CadastroClientes />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="usuarios"
+              element={
+                <PrivateRoute>
+                  <Usuarios />
                 </PrivateRoute>
               }
             />
