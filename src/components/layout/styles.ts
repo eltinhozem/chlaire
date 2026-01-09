@@ -88,13 +88,18 @@ export const Sidebar = styled.aside<{ $collapsed?: boolean }>`
   }
 `
 
-export const SidebarLogo = styled.div<{ $collapsed?: boolean }>`
+export const SidebarLogo = styled.button<{ $collapsed?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   margin-bottom: ${({ $collapsed }) => ($collapsed ? '20px' : '40px')};
   padding: ${({ $collapsed }) => ($collapsed ? '0' : '0 20px')};
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
 
   @media (max-width: 768px) {
     justify-content: flex-start;
@@ -115,13 +120,12 @@ export const SidebarLogoIcon = styled.span`
   color: var(--light-gold);
 `
 
-export const SidebarBrand = styled(Link)<{ $collapsed?: boolean }>`
+export const SidebarBrand = styled.span<{ $collapsed?: boolean }>`
   font-family: 'Playfair Display', 'Times New Roman', serif;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 4px;
   color: var(--light-gold);
-  text-decoration: none;
   display: ${({ $collapsed }) => ($collapsed ? 'none' : 'inline-flex')};
 
   @media (max-width: 768px) {
@@ -155,12 +159,12 @@ export const SidebarNav = styled.nav<{ $collapsed?: boolean }>`
 
   @media (max-width: 768px) {
     display: ${({ $collapsed }) => ($collapsed ? 'none' : 'flex')};
-    flex-direction: ${({ $collapsed }) => ($collapsed ? 'row' : 'column')};
-    flex-wrap: ${({ $collapsed }) => ($collapsed ? 'wrap' : 'nowrap')};
-    justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
-    gap: ${({ $collapsed }) => ($collapsed ? '8px' : '0')};
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
     overflow: hidden;
-    padding: ${({ $collapsed }) => ($collapsed ? '0 8px' : '0')};
+    padding: 0 8px;
   }
 `
 
@@ -207,17 +211,18 @@ export const SidebarItem = styled(Link)<{ $active?: boolean; $collapsed?: boolea
   }
 
   @media (max-width: 768px) {
-    padding: ${({ $collapsed }) => ($collapsed ? '10px' : '12px 18px')};
-    width: ${({ $collapsed }) => ($collapsed ? '52px' : '100%')};
-    border-left: ${({ $collapsed, $active }) =>
-      $collapsed ? 'none' : `4px solid ${$active ? 'var(--muted-gold)' : 'transparent'}`};
-    border-radius: ${({ $collapsed }) => ($collapsed ? '10px' : '0')};
+    padding: 10px;
+    gap: 0;
+    width: 52px;
+    justify-content: center;
+    border-left: none;
+    border-radius: 10px;
   }
 
   @media (max-width: 480px) {
-    padding: ${({ $collapsed }) => ($collapsed ? '9px' : '10px 14px')};
-    gap: ${({ $collapsed }) => ($collapsed ? '0' : '10px')};
-    width: ${({ $collapsed }) => ($collapsed ? '46px' : '100%')};
+    padding: 9px;
+    gap: 0;
+    width: 46px;
   }
 `
 
@@ -237,6 +242,7 @@ export const SidebarItemLabel = styled.span<{ $collapsed?: boolean }>`
   }
 
   @media (max-width: 768px) {
+    display: none;
     font-size: 0.9rem;
   }
 
@@ -279,6 +285,7 @@ export const SidebarFooterRow = styled.div<{ $collapsed?: boolean }>`
   @media (max-width: 768px) {
     justify-content: flex-end;
     flex-wrap: nowrap;
+    flex-direction: row;
   }
 `
 
@@ -354,12 +361,18 @@ export const LogoutLabel = styled.span<{ $collapsed?: boolean }>`
   }
 `
 
-export const SidebarToggle = styled.button<{ $collapsed?: boolean }>`
+export const SidebarToggle = styled.button<{
+  $collapsed?: boolean
+  $width?: string
+  $height?: string
+}>`
   display: flex;
   align-items: center;
   gap: ${({ $collapsed }) => ($collapsed ? '0' : '12px')};
   justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
-  width: 100%;
+  width: ${({ $width }) => $width ?? '100%'};
+  height: ${({ $height }) => $height ?? 'auto'};
+  min-height: ${({ $height }) => $height ?? 'auto'};
   padding: ${({ $collapsed }) => ($collapsed ? '12px' : '12px 20px')};
   border: none;
   background-color: transparent;
@@ -387,9 +400,9 @@ export const SidebarToggle = styled.button<{ $collapsed?: boolean }>`
   }
 `
 
-export const SidebarToggleIcon = styled.span`
-  width: 36px;
-  height: 36px;
+export const SidebarToggleIcon = styled.span<{ $size?: string }>`
+  width: ${({ $size }) => $size ?? '36px'};
+  height: ${({ $size }) => $size ?? '36px'};
   border-radius: 8px;
   border: 1px solid rgba(226, 194, 142, 0.5);
   background: rgba(19, 19, 19, 0.2);
@@ -398,8 +411,8 @@ export const SidebarToggleIcon = styled.span`
   justify-content: center;
 
   @media (max-width: 480px) {
-    width: 32px;
-    height: 32px;
+    width: ${({ $size }) => $size ?? '32px'};
+    height: ${({ $size }) => $size ?? '32px'};
   }
 `
 

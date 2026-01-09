@@ -3,8 +3,6 @@ import {
   Sun,
   Moon,
   LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
   Gem,
   Users,
   ShoppingBag,
@@ -24,15 +22,12 @@ import {
   SidebarNav,
   SidebarItem,
   SidebarItemLabel,
-  SidebarToggleRow,
   SidebarFooter,
   SidebarFooterRow,
   MainContent,
   UserGreeting,
   LogoutButton,
   LogoutLabel,
-  SidebarToggle,
-  SidebarToggleIcon,
   IconButton
 } from './styles'
 
@@ -128,11 +123,17 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
   return (
     <LayoutContainer>
       <Sidebar $collapsed={isSidebarCollapsed}>
-        <SidebarLogo $collapsed={isSidebarCollapsed}>
+        <SidebarLogo
+          type="button"
+          onClick={handleToggleCollapse}
+          aria-label={isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+          title={isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+          $collapsed={isSidebarCollapsed}
+        >
           <SidebarLogoIcon>
             <Gem size={22} />
           </SidebarLogoIcon>
-          <SidebarBrand to="/cadastro-clientes" $collapsed={isSidebarCollapsed}>
+          <SidebarBrand $collapsed={isSidebarCollapsed}>
             CHLAIRE
           </SidebarBrand>
         </SidebarLogo>
@@ -156,26 +157,6 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
               )
             })}
           </SidebarNav>
-          <SidebarToggleRow $collapsed={isSidebarCollapsed}>
-            <SidebarToggle
-              type="button"
-              onClick={handleToggleCollapse}
-              aria-label={isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
-              title={isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
-              $collapsed={isSidebarCollapsed}
-            >
-              <SidebarToggleIcon>
-                {isSidebarCollapsed ? (
-                  <PanelLeftOpen size={16} />
-                ) : (
-                  <PanelLeftClose size={16} />
-                )}
-              </SidebarToggleIcon>
-              <SidebarItemLabel $collapsed={isSidebarCollapsed}>
-                {isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
-              </SidebarItemLabel>
-            </SidebarToggle>
-          </SidebarToggleRow>
         </SidebarNavSection>
 
         <SidebarFooter $collapsed={isSidebarCollapsed}>
