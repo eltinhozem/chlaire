@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Search, Phone, Instagram } from 'lucide-react';
 import { 
-  ClienteContainer, 
-  ClienteTitle, 
-  FormGrid, 
-  FormSection, 
+  ClienteContainer,
+  ClienteTitle,
+  PageHeader,
+  PageActions,
+  HeaderButtonPrimary,
+  HeaderButtonSecondary,
+  FormGrid,
+  FormSection,
   SectionTitle,
   ClientesList,
   ClienteCard,
+  ClienteHeader,
+  ClienteAvatar,
   ClienteInfo,
+  ClienteInfoHeader,
   ClienteNome,
+  ClienteEmail,
   ClienteDetails,
-  ClientPhoneRow,
-  ClientPhoneLabel,
-  ClientPhoneValue,
-  ClientTagRow,
+  ClienteDetailItem,
+  ClienteDetailLabel,
+  ClienteDetailValue,
   InstaButton,
+  SearchContainer,
   SearchInput,
-  TabContainer,
-  Tab,
+  SearchIcon,
   FingerToggle,
   FingerToggleInput,
   HandsGrid,
@@ -227,6 +235,7 @@ export default function CadastroClientes() {
     setFingerSizes(createEmptyFingerSizes());
     setShowFingerSizing(false);
     setEditingId(null);
+    setActiveTab('lista');
     navigate('/cadastro-clientes');
   };
 
@@ -312,18 +321,46 @@ export default function CadastroClientes() {
     });
   };
 
+  const handleNewCliente = () => {
+    setFormData(initialFormData);
+    setFingerSizes(createEmptyFingerSizes());
+    setShowFingerSizing(false);
+    setEditingId(null);
+    setActiveTab('cadastro');
+    navigate('/cadastro-clientes');
+  };
+
+  const getInitials = (name: string) => {
+    const parts = name.split(' ').filter(Boolean);
+    const initials = parts.slice(0, 2).map((part) => part[0]).join('');
+    return initials.toUpperCase() || '-';
+  };
+
   return (
     <ClienteContainer>
-      <ClienteTitle>{editingId ? 'Editar Cliente' : 'Cadastro de Clientes'}</ClienteTitle>
-
-      <TabContainer>
-        <Tab $active={activeTab === 'cadastro'} onClick={() => setActiveTab('cadastro')}>
-          {editingId ? 'Editar' : 'Novo Cliente'}
-        </Tab>
-        <Tab $active={activeTab === 'lista'} onClick={() => setActiveTab('lista')}>
-          Lista de Clientes
-        </Tab>
-      </TabContainer>
+      <PageHeader>
+        <ClienteTitle>
+          {activeTab === 'cadastro'
+            ? editingId
+              ? 'Editar Cliente'
+              : 'Cadastro de Clientes'
+            : 'Gestão de Clientes'}
+        </ClienteTitle>
+        <PageActions>
+          {activeTab === 'lista' ? (
+            <>
+              <HeaderButtonSecondary type="button">Filtrar</HeaderButtonSecondary>
+              <HeaderButtonPrimary type="button" onClick={handleNewCliente}>
+                + Adicionar Cliente
+              </HeaderButtonPrimary>
+            </>
+          ) : (
+            <HeaderButtonSecondary type="button" onClick={() => setActiveTab('lista')}>
+              Lista de Clientes
+            </HeaderButtonSecondary>
+          )}
+        </PageActions>
+      </PageHeader>
 
       {activeTab === 'cadastro' ? (
         <form onSubmit={handleSubmit}>
@@ -561,12 +598,17 @@ export default function CadastroClientes() {
         </form>
       ) : (
         <>
-          <SearchInput
-            type="text"
-            placeholder="Buscar por nome, email ou CPF..."
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
+          <SearchContainer>
+            <SearchInput
+              type="text"
+              placeholder="Pesquisar clientes..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+            <SearchIcon>
+              <Search size={16} />
+            </SearchIcon>
+          </SearchContainer>
 
           {loading ? (
             <p>Carregando...</p>
@@ -583,29 +625,41 @@ export default function CadastroClientes() {
                     ? instagram
                     : `https://instagram.com/${instagram.replace('@', '')}`
                   : '';
+                const email = (cliente.email || '').trim();
+                const initials = getInitials(cliente.nome);
 
                 return (
                   <ClienteCard key={cliente.id} onClick={() => handleOpenDetails(cliente)}>
+                    <ClienteHeader>
+                      <ClienteAvatar>{initials}</ClienteAvatar>
+                      <ClienteInfoHeader>
+                        <ClienteNome>{cliente.nome}</ClienteNome>
+                        {email && <ClienteEmail>{email}</ClienteEmail>}
+                      </ClienteInfoHeader>
+                    </ClienteHeader>
                     <ClienteInfo>
-                      <ClienteNome>{cliente.nome}</ClienteNome>
                       <ClienteDetails>
-                        <ClientPhoneRow>
-                          <ClientPhoneLabel>Telefone:</ClientPhoneLabel>
-                          <ClientPhoneValue>{phone}</ClientPhoneValue>
-                        </ClientPhoneRow>
-                      </ClienteDetails>
-                      <ClientTagRow>
+                        <ClienteDetailItem>
+                          <Phone size={16} />
+                          <span>
+                            <ClienteDetailLabel>Telefone:</ClienteDetailLabel>
+                            <ClienteDetailValue>{phone}</ClienteDetailValue>
+                          </span>
+                        </ClienteDetailItem>
                         {instagramLink && (
-                          <InstaButton
-                            href={instagramLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Instagram
-                          </InstaButton>
+                          <ClienteDetailItem>
+                            <Instagram size={16} />
+                            <InstaButton
+                              href={instagramLink}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Instagram
+                            </InstaButton>
+                          </ClienteDetailItem>
                         )}
-                      </ClientTagRow>
+                      </ClienteDetails>
                     </ClienteInfo>
                   </ClienteCard>
                 );

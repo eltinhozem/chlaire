@@ -1,233 +1,405 @@
 import styled from 'styled-components'
 import { Link } from 'react-router-dom'
 
-export const CadastrosJoia = styled.button`
-  /* Define a posição relativa do botão, permitindo que elementos internos (como ::before) sejam posicionados em relação a ele */
-  position: relative;
+export const LayoutContainer = styled.div`
+  --deep-charcoal: #12131aff;
+  --hover-dark: #1d222b;
+  --muted-gold: #c29b62;
+  --light-gold: #d8b47a;
+  --cream-bg: #f8f5f0;
+  --white-card: #ffffff;
+  --primary-text: #2d2d2d;
+  --secondary-text: #8a9099;
+  --card-shadow: rgba(0, 0, 0, 0.05);
+  --card-border: #e0e0e0;
+  --detail-border: #f0f0f0;
+  --gold-gradient: linear-gradient(
+    to bottom,
+    #eadbb4 8%,
+    #c7a068 50%,
+    #8f6a37 92%
+  );
 
-  /* Centraliza os itens horizontalmente e verticalmente dentro do botão */
+  min-height: 100vh;
+  display: flex;
+  background-color: var(--cream-bg);
+  color: var(--primary-text);
+  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+`
+
+export const Sidebar = styled.aside<{ $collapsed?: boolean }>`
+  width: ${({ $collapsed }) => ($collapsed ? '90px' : '280px')};
+  background-color: var(--deep-charcoal);
+  padding: 30px 0;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.15;
+    pointer-events: none;
+    background-image: repeating-radial-gradient(
+        #ffffff 0.0001%,
+        transparent 0.0005%,
+        transparent 0.005%
+      ),
+      repeating-radial-gradient(
+        #000000 0.0001%,
+        transparent 0.0005%,
+        transparent 0.005%
+      );
+    background-size: 77px 77px;
+    background-blend-mode: overlay;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 1024px) {
+    width: ${({ $collapsed }) => ($collapsed ? '84px' : '240px')};
+  }
+
+  @media (max-width: 768px) {
+    position: relative;
+    width: 100%;
+    height: auto;
+    padding: 16px 0 12px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'logo actions'
+      'nav nav';
+    row-gap: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+`
+
+export const SidebarLogo = styled.div<{ $collapsed?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: ${({ $collapsed }) => ($collapsed ? '20px' : '40px')};
+  padding: ${({ $collapsed }) => ($collapsed ? '0' : '0 20px')};
+
+  @media (max-width: 768px) {
+    justify-content: flex-start;
+    grid-area: logo;
+    padding: 0 16px;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0 12px;
+  }
+`
+
+export const SidebarLogoIcon = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  /* Padding interno: controla o espaço entre o conteúdo (texto/ícone) e as bordas do botão */
-  padding: 7px 15px; // Altere aqui para diminuir/aumentar o tamanho do botão
-
-  /* Tamanho da fonte do texto dentro do botão */
-  font-size: 14px; // Altere aqui para mudar o tamanho do texto
-
-  /* Cor do texto */
-  color: brown;
-
-  /* Gradiente de fundo do botão */
-  background: linear-gradient(to right, #fad2a4, #f6cda0, #ca9674);
-
-  /* Remove a borda padrão do botão */
-  border: none;
-
-  /* Define o raio das bordas (quanto maior, mais arredondado será o botão) */
-  border-radius: 07px; // Altere aqui para ajustar o quão arredondado é o botão
-
-  /* Define o cursor como "pointer" quando o usuário passa o mouse sobre o botão */
-  cursor: pointer;
-
-  /* Garante que o pseudo-elemento ::before não "vaze" para fora do botão */
-  overflow: hidden;
-
-  /* Adiciona transições suaves para transformações (ex.: escala) e sombra */
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-
-  /* Sombra inicial do botão */
-   box-shadow: 0 10px 30px
-   ${({ theme }) =>
-        theme.submitButtonFocusColor ||'rgba(250, 210, 164, 0.5)'}; // Altere aqui para ajustar a intensidade da sombra
-
-  /* Z-index garante que o botão fique acima de outros elementos */
-  z-index: 1;
-
-  /* Efeito de luz em movimento */
-  &::before {
-    content: ''; // Cria um pseudo-elemento vazio
-    position: absolute; // Posiciona o pseudo-elemento em relação ao botão
-    top: 0; // Alinha o topo do pseudo-elemento com o topo do botão
-    left: -100%; // Inicia o pseudo-elemento fora da área visível do botão
-    width: 100%; // Largura igual à do botão
-    height: 100%; // Altura igual à do botão
-    background: rgba(255, 255, 255, 0.3); // Cor do efeito de luz (brilho)
-    transform: skewX(-45deg); // Distorce o brilho para criar um efeito dinâmico
-    transition: left 0.5s ease; // Animação suave do movimento do brilho
-    z-index: -1; // Coloca o brilho atrás do conteúdo do botão
-  }
-
-  /* Efeito ao passar o mouse sobre o botão */
-  &:hover {
-    transform: scale(1.05); // Aumenta ligeiramente o tamanho do botão
-     box-shadow: 0 0 0 1px
-      ${({ theme }) =>
-        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'}; // Intensifica a sombra
-  }
-
-  /* Movimento do efeito de luz ao passar o mouse */
-  &:hover::before {
-    left: 100%; // Move o brilho para fora da área visível do botão
-  }
-
-  /* Estilo para quando o botão está em foco (ex.: navegando com o teclado) */
-  &:focus {
-    outline: none; // Remove o contorno padrão do foco
-     box-shadow: 0 0 0 1px
-      ${({ theme }) =>
-        theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.5)'}; // Adiciona uma borda destacada para acessibilidade
-  }
-
-  @media (max-width: 640px) {
-    padding: 8px 10px;
-    border-radius: 10px;
-    gap: 0.25rem;
-    min-width: 44px;
-    min-height: 44px;
-    font-size: 0; /* texto escondido, mas acessível via label separado */
-    box-shadow: none;
-
-    &:hover {
-      transform: none;
-      box-shadow: 0 0 0 1px
-        ${({ theme }) =>
-          theme.submitButtonFocusColor || 'rgba(202, 150, 116, 0.3)'};
-    }
-  }
+  color: var(--light-gold);
 `
 
-export const NavButtonLabel = styled.span`
-  font-size: 14px;
-  @media (max-width: 640px) {
-    display: none;
-  }
-`
-// Styled components para o layout
-export const LayoutContainer = styled.div`
-  min-height: 100vh;
-  background-color: ${({ theme }) => theme.background};
-  display: flex;
-  flex-direction: column;
-`
-
-export const Navbar = styled.nav`
-  background-color: #c2aa84;
-  color: #f8efe5;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-`
-
-export const Container = styled.div`
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  background: transparent;
-  color: ${({ theme }) => theme.text};
-`
-
-export const NavContent = styled.div`
-  display: flex;
-  flex-direction: column;
-`
-
-export const NavShell = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 1.5rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.25rem;
-  color: #f8efe5;
-
-  @media (max-width: 640px) {
-    padding: 1.25rem 1rem 1rem;
-    gap: 1rem;
-  }
-`
-
-export const BrandRow = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-`
-
-export const Brand = styled(Link)`
+export const SidebarBrand = styled(Link)<{ $collapsed?: boolean }>`
   font-family: 'Playfair Display', 'Times New Roman', serif;
-  font-size: 2.5rem;
-  letter-spacing: 0.3rem;
-  color: #f8efe5;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: var(--light-gold);
   text-decoration: none;
-  text-transform: uppercase;
-  text-align: center;
+  display: ${({ $collapsed }) => ($collapsed ? 'none' : 'inline-flex')};
 
-  @media (max-width: 640px) {
-    font-size: 2rem;
-    letter-spacing: 0.22rem;
+  @media (max-width: 768px) {
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 16px;
+    letter-spacing: 2px;
   }
 `
 
-export const NavActions = styled.div`
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+export const SidebarNavSection = styled.div<{ $collapsed?: boolean }>`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+
+  @media (max-width: 768px) {
+    grid-area: nav;
+  }
+`
+
+export const SidebarNav = styled.nav<{ $collapsed?: boolean }>`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: ${({ $collapsed }) => ($collapsed ? 'center' : 'stretch')};
+
+  @media (max-width: 768px) {
+    display: ${({ $collapsed }) => ($collapsed ? 'none' : 'flex')};
+    flex-direction: ${({ $collapsed }) => ($collapsed ? 'row' : 'column')};
+    flex-wrap: ${({ $collapsed }) => ($collapsed ? 'wrap' : 'nowrap')};
+    justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
+    gap: ${({ $collapsed }) => ($collapsed ? '8px' : '0')};
+    overflow: hidden;
+    padding: ${({ $collapsed }) => ($collapsed ? '0 8px' : '0')};
+  }
+`
+
+export const SidebarToggleRow = styled.div<{ $collapsed?: boolean }>`
+  display: flex;
+  width: 100%;
+  padding: ${({ $collapsed }) => ($collapsed ? '0 12px' : '0')};
+  margin-top: 6px;
+`
+
+export const SidebarItem = styled(Link)<{ $active?: boolean; $collapsed?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: ${({ $collapsed }) => ($collapsed ? '0' : '14px')};
+  justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
+  padding: ${({ $collapsed }) => ($collapsed ? '14px 12px' : '15px 20px')};
+  color: var(--muted-gold);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  width: ${({ $collapsed }) => ($collapsed ? '100%' : 'auto')};
+  border-left: 4px solid
+    ${({ $active }) => ($active ? 'var(--muted-gold)' : 'transparent')};
+  background-color: ${({ $active }) =>
+    $active ? 'var(--hover-dark)' : 'transparent'};
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(0, 0, 0, 0.18)
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+
+  &:hover {
+    background-color: var(--hover-dark);
+  }
+
+  svg {
+    flex-shrink: 0;
+    color: ${({ $active }) =>
+      $active ? 'var(--light-gold)' : 'var(--muted-gold)'};
+  }
+
+  @media (max-width: 768px) {
+    padding: ${({ $collapsed }) => ($collapsed ? '10px' : '12px 18px')};
+    width: ${({ $collapsed }) => ($collapsed ? '52px' : '100%')};
+    border-left: ${({ $collapsed, $active }) =>
+      $collapsed ? 'none' : `4px solid ${$active ? 'var(--muted-gold)' : 'transparent'}`};
+    border-radius: ${({ $collapsed }) => ($collapsed ? '10px' : '0')};
+  }
+
+  @media (max-width: 480px) {
+    padding: ${({ $collapsed }) => ($collapsed ? '9px' : '10px 14px')};
+    gap: ${({ $collapsed }) => ($collapsed ? '0' : '10px')};
+    width: ${({ $collapsed }) => ($collapsed ? '46px' : '100%')};
+  }
+`
+
+export const SidebarItemLabel = styled.span<{ $collapsed?: boolean }>`
+  display: ${({ $collapsed }) => ($collapsed ? 'none' : 'inline-flex')};
+  align-items: center;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--light-gold);
+
+  @supports (-webkit-background-clip: text) or (background-clip: text) {
+    background-image: var(--gold-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.5));
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.85rem;
+  }
+`
+
+export const SidebarFooter = styled.div<{ $collapsed?: boolean }>`
+  margin-top: auto;
+  padding: ${({ $collapsed }) => ($collapsed ? '16px 12px' : '20px')};
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    border-top: none;
+    padding: 0 16px;
+    margin-top: 0;
+    grid-area: actions;
+    align-items: flex-end;
+    justify-self: end;
+    align-self: center;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0 12px;
+  }
+`
+
+export const SidebarFooterRow = styled.div<{ $collapsed?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
+  flex-direction: ${({ $collapsed }) => ($collapsed ? 'column' : 'row')};
+
+  @media (max-width: 768px) {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+`
+
+export const MainContent = styled.main<{ $collapsed?: boolean }>`
+  flex: 1;
+  margin-left: ${({ $collapsed }) => ($collapsed ? '90px' : '280px')};
+  padding: 40px;
+  min-height: 100vh;
+
+  @media (max-width: 1024px) {
+    margin-left: ${({ $collapsed }) => ($collapsed ? '84px' : '240px')};
+    padding: 30px;
+  }
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+    padding: 20px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 15px;
+  }
+`
+
+export const UserGreeting = styled.div<{ $collapsed?: boolean }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--light-gold);
+  white-space: nowrap;
+
+  ${({ $collapsed }) => $collapsed && 'display: none;'}
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 `
 
 export const LogoutButton = styled.button`
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.45rem 0.7rem;
+  padding: 0.45rem 0.75rem;
   border-radius: 9999px;
-  border: 1px solid rgba(248, 239, 229, 0.45);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f8efe5;
+  border: 1px solid rgba(226, 194, 142, 0.5);
+  background: transparent;
+  color: var(--light-gold);
   cursor: pointer;
-  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(248, 239, 229, 0.65);
+    background: rgba(226, 194, 142, 0.12);
+    border-color: rgba(226, 194, 142, 0.8);
     transform: translateY(-1px);
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(248, 239, 229, 0.25);
+    box-shadow: 0 0 0 2px rgba(226, 194, 142, 0.35);
   }
 `
 
-export const LogoutLabel = styled.span`
+export const LogoutLabel = styled.span<{ $collapsed?: boolean }>`
+  ${({ $collapsed }) => $collapsed && 'display: none;'}
+
   @media (max-width: 640px) {
     display: none;
   }
 `
 
-export const UserGreeting = styled.div`
+export const SidebarToggle = styled.button<{ $collapsed?: boolean }>`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: #f8efe5;
-  white-space: nowrap;
+  gap: ${({ $collapsed }) => ($collapsed ? '0' : '12px')};
+  justify-content: ${({ $collapsed }) => ($collapsed ? 'center' : 'flex-start')};
+  width: 100%;
+  padding: ${({ $collapsed }) => ($collapsed ? '12px' : '12px 20px')};
+  border: none;
+  background-color: transparent;
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(10, 10, 10, 0.73)
+  );
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+  color: var(--muted-gold);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
 
-  @media (max-width: 640px) {
-    display: none;
+  &:hover {
+    background: rgba(226, 194, 142, 0.12);
+    transform: translateY(-1px);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(226, 194, 142, 0.35);
+  }
+`
+
+export const SidebarToggleIcon = styled.span`
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(226, 194, 142, 0.5);
+  background: rgba(19, 19, 19, 0.2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
   }
 `
 
@@ -237,76 +409,21 @@ export const IconButton = styled.button`
   justify-content: center;
   padding: 0.45rem;
   border-radius: 9999px;
-  border: 1px solid rgba(248, 239, 229, 0.45);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f8efe5;
+  border: 1px solid rgba(226, 194, 142, 0.5);
+  background: transparent;
+  color: var(--light-gold);
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(248, 239, 229, 0.65);
+    background: rgba(226, 194, 142, 0.12);
+    border-color: rgba(226, 194, 142, 0.8);
     transform: translateY(-1px);
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(248, 239, 229, 0.25);
+    box-shadow: 0 0 0 2px rgba(226, 194, 142, 0.35);
   }
-`
-
-export const MenuBar = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  width: 100%;
-  font-family: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-
-  @media (max-width: 640px) {
-    gap: 1rem;
-    font-size: 0.85rem;
-  }
-`
-
-export const MenuItem = styled(Link)<{ $active?: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.25rem;
-  color: #f8efe5;
-  text-decoration: none;
-  border-bottom: 2px solid ${({ $active }) => ($active ? '#f8efe5' : 'transparent')};
-  transition: border-color 0.2s ease, opacity 0.2s ease;
-  text-transform: uppercase;
-
-  &:hover {
-    border-color: #f8efe5;
-    opacity: 0.9;
-  }
-`
-
-export const MenuChevron = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  line-height: 1;
-`
-
-export const Main = styled.main`
-  flex-grow: 1;
-  padding: 1.5rem 0;
-`
-
-export const Footer = styled.footer`
-  background-color: ${({ theme }) => theme.footerBackground || '#ffffff'};
-  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
-  padding: 1rem 0;
-  text-align: center;
-  color: ${({ theme }) => theme.text};
 `

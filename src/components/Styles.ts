@@ -30,11 +30,11 @@ export const lightTheme = {
   inputFocusBackground: '#ffffff',
   placeholderColor: '#9ca3af',
 
-  /* Botões padrão (azul suave) */
-  buttonBackground: 'linear-gradient(to right, #dbeafe, #bfdbfe, #93c5fd)',
-  buttonText: '#1e40af',
-  buttonHoverBackground: 'linear-gradient(to right, #bfdbfe, #93c5fd, #60a5fa)',
-  buttonFocusShadow: '0 0 0 3px rgba(147, 197, 253, 0.3)',
+  /* Botões padrão (dourado) */
+  buttonBackground: '#c29b62',
+  buttonText: '#ffffff',
+  buttonHoverBackground: '#b39549',
+  buttonFocusShadow: '0 0 0 3px rgba(194, 155, 98, 0.35)',
 
   /* Botões de excluir (vermelho suave) */
   buttonBackgroundRed: 'linear-gradient(to right, #fecaca, #fca5a5, #f87171)',
@@ -42,28 +42,28 @@ export const lightTheme = {
   buttonHoverBackgroundRed: 'linear-gradient(to right, #fca5a5, #f87171, #ef4444)',
   buttonFocusShadowRed: '0 0 0 3px rgba(248, 113, 113, 0.3)',
 
-  /* Botão de adicionar pedra (verde suave) */
-  addStoneButtonText: '#047857',
-  addStoneButtonBackground: 'linear-gradient(to right, #d1fae5, #a7f3d0, #6ee7b7)',
-  addStoneButtonHoverBackground: 'linear-gradient(to right, #a7f3d0, #6ee7b7, #34d399)',
-  addStoneButtonFocusShadow: '0 0 0 3px rgba(110, 231, 183, 0.3)',
-  addStoneButtonFocusColor: '#047857',
+  /* Botão de adicionar pedra (dourado) */
+  addStoneButtonText: '#ffffff',
+  addStoneButtonBackground: '#c29b62',
+  addStoneButtonHoverBackground: '#b39549',
+  addStoneButtonFocusShadow: '0 0 0 3px rgba(194, 155, 98, 0.35)',
+  addStoneButtonFocusColor: 'rgba(194, 155, 98, 0.45)',
 
-  /* Botões de ação (Cancelar - cinza suave) */
-  actionButtonBorder: 'none',
-  actionButtonText: '#4b5563',
-  actionButtonBackground: 'linear-gradient(to right, #f3f4f6, #e5e7eb, #d1d5db)',
-  actionButtonHoverBackground: 'linear-gradient(to right, #e5e7eb, #d1d5db, #9ca3af)',
+  /* Botões de ação (dourado) */
+  actionButtonBorder: '#c29b62',
+  actionButtonText: '#ffffff',
+  actionButtonBackground: '#c29b62',
+  actionButtonHoverBackground: '#b39549',
 
   /* Card e outros containers */
   cardBackground: '#ffffff',
   cardShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
 
   /* Upload de imagem */
-  uploadButtonBorder: 'none',
-  uploadButtonText: '#4b5563',
-  uploadButtonBackground: 'linear-gradient(to right, #f3f4f6, #e5e7eb, #d1d5db)',
-  uploadButtonHoverBackground: 'linear-gradient(to right, #e5e7eb, #d1d5db, #9ca3af)',
+  uploadButtonBorder: '#c29b62',
+  uploadButtonText: '#ffffff',
+  uploadButtonBackground: '#c29b62',
+  uploadButtonHoverBackground: '#b39549',
   imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
 
   /* Cor do título */
@@ -71,8 +71,8 @@ export const lightTheme = {
 
   /* Submit button */
   submitButtonText: '#ffffff',
-  submitButtonBackground: 'linear-gradient(to right, #b3b6bbff, #a5acbdff)',
-  submitButtonFocusColor: '#9fa2aaff'
+  submitButtonBackground: '#c29b62',
+  submitButtonFocusColor: 'rgba(194, 155, 98, 0.45)'
 }
 
 export const darkTheme = {
@@ -101,11 +101,11 @@ export const darkTheme = {
   inputFocusBackground: '#374151',
   placeholderColor: '#9ca3af',
 
-  /* Botões padrão (azul suave) */
-  buttonBackground: 'linear-gradient(to right, #1e3a8a, #1d4ed8, #2563eb)',
-  buttonText: '#dbeafe',
-  buttonHoverBackground: 'linear-gradient(to right, #1d4ed8, #2563eb, #3b82f6)',
-  buttonFocusShadow: '0 0 0 3px rgba(59, 130, 246, 0.3)',
+  /* Botões padrão (dourado) */
+  buttonBackground: '#c29b62',
+  buttonText: '#ffffff',
+  buttonHoverBackground: '#b39549',
+  buttonFocusShadow: '0 0 0 3px rgba(194, 155, 98, 0.35)',
 
   /* Botões de excluir (vermelho suave) */
   buttonBackgroundRed: 'linear-gradient(to right, #991b1b, #dc2626, #ef4444)',
@@ -113,28 +113,28 @@ export const darkTheme = {
   buttonHoverBackgroundRed: 'linear-gradient(to right, #dc2626, #ef4444, #f87171)',
   buttonFocusShadowRed: '0 0 0 3px rgba(239, 68, 68, 0.3)',
 
-  /* Botão de adicionar pedra (verde suave) */
-  addStoneButtonText: '#d1fae5',
-  addStoneButtonBackground: 'linear-gradient(to right, #047857, #059669, #10b981)',
-  addStoneButtonHoverBackground: 'linear-gradient(to right, #059669, #10b981, #34d399)',
-  addStoneButtonFocusShadow: '0 0 0 3px rgba(16, 185, 129, 0.3)',
-  addStoneButtonFocusColor: '#10b981',
+  /* Botão de adicionar pedra (dourado) */
+  addStoneButtonText: '#ffffff',
+  addStoneButtonBackground: '#c29b62',
+  addStoneButtonHoverBackground: '#b39549',
+  addStoneButtonFocusShadow: '0 0 0 3px rgba(194, 155, 98, 0.35)',
+  addStoneButtonFocusColor: 'rgba(194, 155, 98, 0.45)',
 
-  /* Botões de ação (Cancelar - cinza suave) */
-  actionButtonBorder: 'none',
-  actionButtonText: '#f9fafb',
-  actionButtonBackground: 'linear-gradient(to right, #374151, #4b5563, #6b7280)',
-  actionButtonHoverBackground: 'linear-gradient(to right, #4b5563, #6b7280, #9ca3af)',
+  /* Botões de ação (dourado) */
+  actionButtonBorder: '#c29b62',
+  actionButtonText: '#ffffff',
+  actionButtonBackground: '#c29b62',
+  actionButtonHoverBackground: '#b39549',
 
   /* Card e outros containers */
   cardBackground: '#1f2937',
   cardShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
 
   /* Upload de imagem */
-  uploadButtonBorder: 'none',
-  uploadButtonText: '#f9fafb',
-  uploadButtonBackground: 'linear-gradient(to right, #374151, #4b5563, #6b7280)',
-  uploadButtonHoverBackground: 'linear-gradient(to right, #4b5563, #6b7280, #9ca3af)',
+  uploadButtonBorder: '#c29b62',
+  uploadButtonText: '#ffffff',
+  uploadButtonBackground: '#c29b62',
+  uploadButtonHoverBackground: '#b39549',
   imagePreviewBoxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
 
   /* Cor do título */
@@ -142,8 +142,8 @@ export const darkTheme = {
 
   /* Submit button */
   submitButtonText: '#ffffff',
-  submitButtonBackground: 'linear-gradient(to right, #2563eb, #1d4ed8)',
-  submitButtonFocusColor: '#3b82f6'
+  submitButtonBackground: '#c29b62',
+  submitButtonFocusColor: 'rgba(194, 155, 98, 0.45)'
 };
 
 // Defina a interface para o objeto de tradução

@@ -9,14 +9,14 @@ export const LoginButton = styled.button`
   justify-content: center;
   padding: 7px 15px;
   font-size: 14px;
-  color: brown;
-  background: linear-gradient(to right, #fad2a4, #f6cda0, #ca9674);
+  color: #ffffff;
+  background: #c29b62;
   border: none;
   border-radius: 7px;
   cursor: pointer;
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 10px 30px rgba(250, 210, 164, 0.5);
+  box-shadow: 0 10px 30px rgba(194, 155, 98, 0.35);
   z-index: 1;
 
   &::before {
@@ -34,7 +34,8 @@ export const LoginButton = styled.button`
 
   &:hover {
     transform: scale(1.05);
-    box-shadow: 0 15px 40px rgba(250, 210, 164, 0.7);
+    background: #b39549;
+    box-shadow: 0 15px 40px rgba(194, 155, 98, 0.45);
   }
 
   &:hover::before {
@@ -43,6 +44,6 @@ export const LoginButton = styled.button`
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(202, 150, 116, 0.5);
+    box-shadow: 0 0 0 3px rgba(194, 155, 98, 0.45);
   }
 `;

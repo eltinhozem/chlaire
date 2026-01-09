@@ -1,24 +1,39 @@
-
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Sun, Moon, LogOut } from 'lucide-react'
+import {
+  Sun,
+  Moon,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Gem,
+  Users,
+  ShoppingBag,
+  Calculator,
+  ClipboardList,
+  UserCog
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import {
   LayoutContainer,
-  Navbar,
-  Container,
-  Footer,
-  Main,
-  NavShell,
-  BrandRow,
-  Brand,
-  MenuBar,
-  MenuItem,
-  NavActions,
-  IconButton,
+  Sidebar,
+  SidebarLogo,
+  SidebarLogoIcon,
+  SidebarBrand,
+  SidebarNavSection,
+  SidebarNav,
+  SidebarItem,
+  SidebarItemLabel,
+  SidebarToggleRow,
+  SidebarFooter,
+  SidebarFooterRow,
+  MainContent,
   UserGreeting,
   LogoutButton,
-  LogoutLabel
+  LogoutLabel,
+  SidebarToggle,
+  SidebarToggleIcon,
+  IconButton
 } from './styles'
 
 interface LayoutProps {
@@ -26,29 +41,42 @@ interface LayoutProps {
   theme: string
 }
 
+type MenuItem = {
+  label: string
+  to: string
+  aliases?: string[]
+  icon: typeof Users
+}
+
 export default function Layout({ toggleTheme, theme }: LayoutProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const [displayName, setDisplayName] = useState<string>('')
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const menuItems = useMemo(() => {
-    const items = [
-      { label: 'Lista Clientes', to: '/cadastro-clientes' },
-      { label: 'Pedidos', to: '/lista-pedidos', aliases: ['/cadastro-pedidos'] },
-      { label: 'Cadastrar Joias', to: '/register' },
-      { label: 'Calcular Joias', to: '/calcular-joia' },
-      { label: 'Lista Joias', to: '/search' }
+  const menuItems = useMemo<MenuItem[]>(() => {
+    const items: MenuItem[] = [
+      { label: 'Lista Clientes', to: '/cadastro-clientes', icon: Users },
+      {
+        label: 'Pedidos',
+        to: '/lista-pedidos',
+        aliases: ['/cadastro-pedidos'],
+        icon: ShoppingBag
+      },
+      { label: 'Cadastrar Joias', to: '/register', icon: Gem },
+      { label: 'Calcular Joias', to: '/calcular-joia', icon: Calculator },
+      { label: 'Lista Joias', to: '/search', icon: ClipboardList }
     ]
 
     if (isAdmin) {
-      items.push({ label: 'Usuários', to: '/usuarios' })
+      items.push({ label: 'Usuários', to: '/usuarios', icon: UserCog })
     }
 
     return items
   }, [isAdmin])
 
-  const isActive = (item: typeof menuItems[number]) =>
+  const isActive = (item: MenuItem) =>
     location.pathname === item.to || item.aliases?.includes(location.pathname)
 
   const handleLogout = async () => {
@@ -58,6 +86,10 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
       return
     }
     navigate('/')
+  }
+
+  const handleToggleCollapse = () => {
+    setIsCollapsed((prev) => !prev)
   }
 
   useEffect(() => {
@@ -91,55 +123,82 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
     return () => subscription.unsubscribe()
   }, [])
 
+  const isSidebarCollapsed = isCollapsed
+
   return (
     <LayoutContainer>
-      {/* Navbar */}
-      <Navbar>
-        <NavShell>
-          <BrandRow>
-            <Brand to="/search">CHLAIRE</Brand>
-            <NavActions>
-              {displayName && <UserGreeting>Olá, {displayName}</UserGreeting>}
-              <LogoutButton type="button" onClick={handleLogout}>
-                <LogOut size={16} />
-                <LogoutLabel>Sair</LogoutLabel>
-              </LogoutButton>
-              <IconButton onClick={toggleTheme} aria-label="Alternar tema">
-                {theme === 'light' ? (
-                  <Moon className="h-5 w-5" />
+      <Sidebar $collapsed={isSidebarCollapsed}>
+        <SidebarLogo $collapsed={isSidebarCollapsed}>
+          <SidebarLogoIcon>
+            <Gem size={22} />
+          </SidebarLogoIcon>
+          <SidebarBrand to="/cadastro-clientes" $collapsed={isSidebarCollapsed}>
+            CHLAIRE
+          </SidebarBrand>
+        </SidebarLogo>
+
+        <SidebarNavSection $collapsed={isSidebarCollapsed}>
+          <SidebarNav aria-label="Navegação principal" $collapsed={isSidebarCollapsed}>
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              return (
+                <SidebarItem
+                  key={item.label}
+                  to={item.to}
+                  $active={isActive(item)}
+                  $collapsed={isSidebarCollapsed}
+                >
+                  <Icon size={18} />
+                  <SidebarItemLabel $collapsed={isSidebarCollapsed}>
+                    {item.label}
+                  </SidebarItemLabel>
+                </SidebarItem>
+              )
+            })}
+          </SidebarNav>
+          <SidebarToggleRow $collapsed={isSidebarCollapsed}>
+            <SidebarToggle
+              type="button"
+              onClick={handleToggleCollapse}
+              aria-label={isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+              title={isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+              $collapsed={isSidebarCollapsed}
+            >
+              <SidebarToggleIcon>
+                {isSidebarCollapsed ? (
+                  <PanelLeftOpen size={16} />
                 ) : (
-                  <Sun className="h-5 w-5" />
+                  <PanelLeftClose size={16} />
                 )}
-              </IconButton>
-            </NavActions>
-          </BrandRow>
+              </SidebarToggleIcon>
+              <SidebarItemLabel $collapsed={isSidebarCollapsed}>
+                {isSidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+              </SidebarItemLabel>
+            </SidebarToggle>
+          </SidebarToggleRow>
+        </SidebarNavSection>
 
-          <MenuBar aria-label="Navegação principal">
-            {menuItems.map((item) => (
-              <MenuItem key={item.label} to={item.to} $active={isActive(item)}>
-                {item.label}
-              </MenuItem>
-            ))}
-          </MenuBar>
-        </NavShell>
-      </Navbar>
+        <SidebarFooter $collapsed={isSidebarCollapsed}>
+          {displayName && (
+            <UserGreeting $collapsed={isSidebarCollapsed}>
+              Olá, {displayName}
+            </UserGreeting>
+          )}
+          <SidebarFooterRow $collapsed={isSidebarCollapsed}>
+            <LogoutButton type="button" onClick={handleLogout}>
+              <LogOut size={16} />
+              <LogoutLabel $collapsed={isSidebarCollapsed}>Sair</LogoutLabel>
+            </LogoutButton>
+            <IconButton onClick={toggleTheme} aria-label="Alternar tema">
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+            </IconButton>
+          </SidebarFooterRow>
+        </SidebarFooter>
+      </Sidebar>
 
-      {/* Conteúdo Principal */}
-      <Main>
-        <Container>
-          <Outlet />
-        </Container>
-      </Main>
-
-      {/* Footer */}
-      <Footer>
-        <Container>
-          <p>
-            &copy; {new Date().getFullYear()} Joalheria. Todos os direitos
-            reservados.
-          </p>
-        </Container>
-      </Footer>
+      <MainContent $collapsed={isSidebarCollapsed}>
+        <Outlet />
+      </MainContent>
     </LayoutContainer>
   )
 }
