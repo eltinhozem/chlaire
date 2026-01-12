@@ -21,6 +21,8 @@ import {
   ClienteEmail,
   ClienteDetails,
   ClienteDetailItem,
+  ClienteDetailLabel,
+  ClienteDetailValue,
   InstaButton,
   SearchContainer,
   SearchInput,
@@ -822,6 +824,7 @@ export default function CadastroClientes() {
                   : '';
                 const whatsappLink = buildWhatsAppLink(rawPhone);
                 const initials = getInitials(cliente.nome);
+                const birthInfo = formatDate(cliente.data_nascimento);
 
                 return (
                   <ClienteCard key={cliente.id} onClick={() => handleOpenDetails(cliente)}>
@@ -834,6 +837,14 @@ export default function CadastroClientes() {
                     </ClienteHeader>
                     <ClienteInfo>
                       <ClienteDetails>
+                        {birthInfo?.label && (
+                          <ClienteDetailItem>
+                            <span>
+                              <ClienteDetailLabel>Aniversário:</ClienteDetailLabel>
+                              <ClienteDetailValue>{birthInfo.label}</ClienteDetailValue>
+                            </span>
+                          </ClienteDetailItem>
+                        )}
                         {(instagramLink || facebookLink || siteLink || whatsappLink) && (
                           <ClienteDetailItem>
                             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
