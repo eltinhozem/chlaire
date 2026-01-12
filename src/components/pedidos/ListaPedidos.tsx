@@ -6,6 +6,7 @@ import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
 import type { Pedido, PedidoStone } from './types';
 import { PrimaryButton, DangerButton, SecondaryButton } from '../buttons';
+import { categoryOptions } from '../form/formOptions';
 
 const getLapidacaoIcon = (lapidacao: string) => {
   const props = { size: 20, className: "text-neutral-500" };
@@ -22,6 +23,17 @@ const getLapidacaoIcon = (lapidacao: string) => {
   }
 };
 
+const categoryLabelMap = categoryOptions.reduce<Record<string, string>>((acc, curr) => {
+  acc[curr.value] = curr.label;
+  return acc;
+}, {});
+
+const ouroLabels: Record<string, string> = {
+  branco: 'Branco',
+  rose: 'Rosé',
+  amarelo: 'Amarelo'
+};
+
 const Tag: React.FC<{ children: React.ReactNode, color: string }> = ({ children, color }) => (
   <span className={`text-xs font-medium px-2 py-1 rounded-full ${color}`}>
     {children}
@@ -35,6 +47,7 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
   const { dataPrevistaEntrega, riscado } = pedido;
   const statusColor = getDeliveryStatusColor(dataPrevistaEntrega);
   const statusText = getDeliveryStatusText(dataPrevistaEntrega);
+  const categoriaLabel = categoryLabelMap[pedido.categoria] || pedido.categoria;
   
   const cardBorderColor = riscado ? 'border-l-danger' : statusColor;
   const copyToClipboard = async () => {
@@ -42,12 +55,13 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
     const linhas = [
       `ID: ${pedido.codigo || '----'}`,
       `Cliente: ${pedido.nomeCliente}`,
-      `Categoria: ${pedido.categoria}`,
+      `Categoria: ${categoriaLabel}`,
       pedido.tamanho ? `Tamanho: ${pedido.tamanho}` : null,
+      pedido.peso ? `Peso: ${pedido.peso} g` : null,
       pedido.descricao ? `Descrição: ${pedido.descricao}` : null,
       `Aramado: ${formatBool(pedido.aramado)}`,
       `Galeria: ${formatBool(pedido.galeria)}`,
-      `Para Render: ${formatBool(pedido.paraRender)}`,
+      `Para Render: ${formatBool(pedido.paraRender)}${pedido.paraRender && pedido.tipoOuroRender ? ` (${ouroLabels[pedido.tipoOuroRender] || pedido.tipoOuroRender})` : ''}`,
       // Prioridade e criado em removidos conforme solicitado
       dataPrevistaEntrega ? `Entrega: ${new Date(dataPrevistaEntrega).toLocaleDateString('pt-BR')} (${getDeliveryStatusText(dataPrevistaEntrega)})` : null,
       pedido.referenciaModelo?.rota ? `Ref. modelo: ${pedido.referenciaModelo.rota}` : null,
@@ -144,11 +158,16 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
             {pedido.descricao}
           </p>
           <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <Tag color="bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary-light">{pedido.categoria}</Tag>
+            <Tag color="bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary-light">{categoriaLabel}</Tag>
             {pedido.tamanho && <Tag color="bg-secondary/10 text-secondary-dark dark:bg-secondary/20 dark:text-secondary-light">Tamanho: {pedido.tamanho}</Tag>}
+            {pedido.peso ? <Tag color="bg-secondary/10 text-secondary-dark dark:bg-secondary/20 dark:text-secondary-light">Peso: {pedido.peso}g</Tag> : null}
             {pedido.aramado && <Tag color="bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">Aramado</Tag>}
             {pedido.galeria && <Tag color="bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">Galeria</Tag>}
-            {pedido.paraRender && <Tag color="bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">Para Render</Tag>}
+            {pedido.paraRender && (
+              <Tag color="bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">
+                Para Render{pedido.tipoOuroRender ? ` (${ouroLabels[pedido.tipoOuroRender] || pedido.tipoOuroRender})` : ''}
+              </Tag>
+            )}
           </div>
         </div>
         

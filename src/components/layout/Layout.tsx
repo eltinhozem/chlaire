@@ -72,7 +72,11 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
   }, [isAdmin])
 
   const isActive = (item: MenuItem) =>
-    location.pathname === item.to || item.aliases?.includes(location.pathname)
+    location.pathname === item.to ||
+    item.aliases?.some(
+      (alias) =>
+        location.pathname === alias || location.pathname.startsWith(`${alias}/`)
+    )
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut()

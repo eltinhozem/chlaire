@@ -1,10 +1,11 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import { 
   aroTypeOptions, 
   aroStructureOptions, 
   aroCravacaoTypeOptions 
 } from '../../form/formOptions';
+import type { AroConfig } from '../types';
 
 // Import SVG images
 import MeiaCana from '../../ReferenciasVisuais/aros/Meia cana.svg';
@@ -179,49 +180,42 @@ const CravacaoSection = styled.div<ThemeProps>`
   border-top: 1px solid ${props => props.theme.inputBorderColor};
 `;
 
-export interface AroConfig {
-  tipoAro: string;
-  alturaAro: string;
-  comprimentoAro: string;
-  proporcional: boolean;
-  estrutura: 'ocado' | 'macico';
-  comPedra: boolean;
-  tipoCravacao: string;
-  quantidadeFileiras: number;
-}
-
 interface AroConfigSectionProps {
   config: AroConfig;
   onChange: (config: AroConfig) => void;
-  theme: ThemeProps['theme'];
+  theme?: ThemeProps['theme'];
+  className?: string;
 }
 
 const AroConfigSection: React.FC<AroConfigSectionProps> = ({
   config,
   onChange,
-  theme
+  theme,
+  className
 }) => {
+  const themeFromContext = useTheme() as ThemeProps['theme'];
+  const appliedTheme = theme ?? themeFromContext;
   const handleChange = <K extends keyof AroConfig>(field: K, value: AroConfig[K]) => {
     onChange({ ...config, [field]: value });
   };
 
   return (
-    <SectionContainer theme={theme}>
-      <SectionTitle theme={theme}>Configuração do Aro</SectionTitle>
+    <SectionContainer theme={appliedTheme} className={className}>
+      <SectionTitle theme={appliedTheme}>Configuração do Aro</SectionTitle>
 
       {/* Tipos de Aro */}
-      <Label theme={theme}>Tipo de Aro</Label>
+      <Label theme={appliedTheme}>Tipo de Aro</Label>
       <AroTypesGrid>
         {aroTypeOptions.map((tipo) => (
           <AroTypeCard
             key={tipo.value}
             type="button"
-            theme={theme}
+            theme={appliedTheme}
             isSelected={config.tipoAro === tipo.value}
             onClick={() => handleChange('tipoAro', tipo.value)}
           >
             <AroImage src={aroImages[tipo.value]} alt={tipo.label} />
-            <AroLabel theme={theme}>{tipo.label}</AroLabel>
+            <AroLabel theme={appliedTheme}>{tipo.label}</AroLabel>
           </AroTypeCard>
         ))}
       </AroTypesGrid>
@@ -229,9 +223,9 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
       {/* Dimensões do Aro */}
       <FieldsGrid>
         <FieldContainer>
-          <Label theme={theme}>Altura do Aro (mm)</Label>
+          <Label theme={appliedTheme}>Altura do Aro (mm)</Label>
           <Input
-            theme={theme}
+            theme={appliedTheme}
             type="number"
             step="0.1"
             value={config.alturaAro}
@@ -242,9 +236,9 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
         </FieldContainer>
 
         <FieldContainer>
-          <Label theme={theme}>Largura do Aro (mm)</Label>
+          <Label theme={appliedTheme}>Largura do Aro (mm)</Label>
           <Input
-            theme={theme}
+            theme={appliedTheme}
             type="number"
             step="0.1"
             value={config.comprimentoAro}
@@ -256,7 +250,7 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
 
         <FieldContainer>
           <CheckboxContainer style={{ height: '100%', alignItems: 'flex-end', paddingBottom: '0.75rem' }}>
-            <CheckboxLabel theme={theme}>
+            <CheckboxLabel theme={appliedTheme}>
               <input
                 type="checkbox"
                 checked={config.proporcional}
@@ -268,10 +262,10 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
         </FieldContainer>
 
         <FieldContainer>
-          <Label theme={theme}>Estrutura</Label>
+          <Label theme={appliedTheme}>Estrutura</Label>
           <RadioGroup>
             {aroStructureOptions.map((opt) => (
-              <RadioLabel key={opt.value} theme={theme}>
+              <RadioLabel key={opt.value} theme={appliedTheme}>
                 <input
                   type="radio"
                   name="estrutura"
@@ -288,9 +282,9 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
       {/* Cravado ou Sem Pedra */}
       <FieldsGrid>
         <FieldContainer>
-          <Label theme={theme}>Pedras no Aro</Label>
+          <Label theme={appliedTheme}>Pedras no Aro</Label>
           <RadioGroup>
-            <RadioLabel theme={theme}>
+            <RadioLabel theme={appliedTheme}>
               <input
                 type="radio"
                 name="comPedra"
@@ -299,7 +293,7 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
               />
               Cravado
             </RadioLabel>
-            <RadioLabel theme={theme}>
+            <RadioLabel theme={appliedTheme}>
               <input
                 type="radio"
                 name="comPedra"
@@ -314,13 +308,13 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
 
       {/* Configuração de Cravação */}
       {config.comPedra && (
-        <CravacaoSection theme={theme}>
-          <SectionTitle theme={theme}>Configuração da Cravação</SectionTitle>
+        <CravacaoSection theme={appliedTheme}>
+          <SectionTitle theme={appliedTheme}>Configuração da Cravação</SectionTitle>
           <FieldsGrid>
             <FieldContainer>
-              <Label theme={theme}>Quantidade de Fileiras</Label>
+              <Label theme={appliedTheme}>Quantidade de Fileiras</Label>
               <Input
-                theme={theme}
+                theme={appliedTheme}
                 type="number"
                 min="1"
                 value={config.quantidadeFileiras}
@@ -329,9 +323,9 @@ const AroConfigSection: React.FC<AroConfigSectionProps> = ({
             </FieldContainer>
 
             <FieldContainer>
-              <Label theme={theme}>Tipo de Cravação</Label>
+              <Label theme={appliedTheme}>Tipo de Cravação</Label>
               <Select
-                theme={theme}
+                theme={appliedTheme}
                 value={config.tipoCravacao}
                 onChange={(e) => handleChange('tipoCravacao', e.target.value)}
               >

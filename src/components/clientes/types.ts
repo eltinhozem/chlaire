@@ -19,8 +19,15 @@ export interface Cliente {
   indicado_por?: string;
   observacao?: string;
   numeracao_dedos?: NumeracaoDedos | null;
+  conjuge_id?: string | null;
+  datas_especiais?: SpecialDate[] | null;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface SpecialDate {
+  data: string;
+  descricao: string;
 }
 
 export type FingerKey = 'polegar' | 'indicador' | 'medio' | 'anelar' | 'minimo';

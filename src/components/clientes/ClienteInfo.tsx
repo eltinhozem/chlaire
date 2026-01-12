@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { PrimaryButton, SecondaryButton, DangerButton } from '../buttons'
-import type { Cliente, FingerKey, HandSide, NumeracaoDedos } from './types'
+import type { Cliente, FingerKey, HandSide, NumeracaoDedos, SpecialDate } from './types'
 import {
   ClienteContainer,
   FormSection,
@@ -112,10 +112,31 @@ const formatJewelryDate = (value?: string) => {
   return `${day}/${month}/${year}`
 }
 
+const normalizeSpecialDates = (value: unknown): SpecialDate[] => {
+  if (!value) return []
+  if (typeof value === 'string') {
+    try {
+      return normalizeSpecialDates(JSON.parse(value))
+    } catch {
+      return []
+    }
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => ({
+        data: item?.data || '',
+        descricao: item?.descricao || ''
+      }))
+      .filter((item) => item.data || item.descricao)
+  }
+  return []
+}
+
 export default function ClienteInfo() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [cliente, setCliente] = useState<Cliente | null>(null)
+  const [conjuge, setConjuge] = useState<Cliente | null>(null)
   const [joias, setJoias] = useState<Jewelry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
@@ -124,12 +145,14 @@ export default function ClienteInfo() {
   const hasFingerData = hasFingerSizing(fingerSizes)
   const birth = formatDate(cliente?.data_nascimento)
   const age = birth ? calculateAge(birth.date) : null
+  const specialDates = useMemo(() => normalizeSpecialDates(cliente?.datas_especiais), [cliente])
 
   useEffect(() => {
     const load = async () => {
       if (!id) return
       setLoading(true)
       setError('')
+      setConjuge(null)
       try {
         const { data: clienteData, error: clienteError } = await supabase
           .from('clientes')
@@ -139,6 +162,16 @@ export default function ClienteInfo() {
 
         if (clienteError) throw clienteError
         setCliente(clienteData as Cliente)
+        if (clienteData?.conjuge_id) {
+          const { data: conjugeData } = await supabase
+            .from('clientes')
+            .select('id,nome,conjuge_id')
+            .eq('id', clienteData.conjuge_id)
+            .maybeSingle()
+          if (conjugeData) {
+            setConjuge(conjugeData as Cliente)
+          }
+        }
 
         const name = clienteData?.nome?.trim()
         if (!name) {
@@ -242,6 +275,22 @@ export default function ClienteInfo() {
             <DetailValue>{cliente.estado_civil || '-'}</DetailValue>
           </DetailItem>
           <DetailItem>
+            <DetailLabel>Cônjuge</DetailLabel>
+            <DetailValue>
+              {cliente.conjuge_id && conjuge ? (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/clientes/${conjuge.id}`)}
+                  style={{ color: '#2563eb', textDecoration: 'underline' }}
+                >
+                  {conjuge.nome}
+                </button>
+              ) : (
+                '-'
+              )}
+            </DetailValue>
+          </DetailItem>
+          <DetailItem>
             <DetailLabel>Profissão</DetailLabel>
             <DetailValue>{cliente.profissao || '-'}</DetailValue>
           </DetailItem>
@@ -341,6 +390,25 @@ export default function ClienteInfo() {
           </DetailGrid>
         ) : (
           <EmptyState>Sem numeração registrada.</EmptyState>
+        )}
+      </FormSection>
+
+      <FormSection>
+        <SectionTitle>Datas Especiais</SectionTitle>
+        {specialDates.length === 0 ? (
+          <EmptyState>Sem datas registradas.</EmptyState>
+        ) : (
+          <DetailGrid>
+            {specialDates.map((item, idx) => {
+              const formatted = formatDate(item.data)?.label || item.data
+              return (
+                <DetailItem key={`${item.data}-${idx}`}>
+                  <DetailLabel>{formatted || 'Data'}</DetailLabel>
+                  <DetailValue>{item.descricao || '-'}</DetailValue>
+                </DetailItem>
+              )
+            })}
+          </DetailGrid>
         )}
       </FormSection>
 

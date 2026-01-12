@@ -6,6 +6,23 @@ export function useClientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const syncConjuge = async (clienteId: string, conjugeId?: string | null) => {
+    try {
+      if (conjugeId) {
+        await supabase.from('clientes').update({ conjuge_id: clienteId }).eq('id', conjugeId);
+        await supabase
+          .from('clientes')
+          .update({ conjuge_id: null })
+          .eq('conjuge_id', clienteId)
+          .neq('id', conjugeId);
+      } else {
+        await supabase.from('clientes').update({ conjuge_id: null }).eq('conjuge_id', clienteId);
+      }
+    } catch (error) {
+      console.error('Erro ao sincronizar cônjuge:', error);
+    }
+  };
+
   const loadClientes = useCallback(async () => {
     setLoading(true);
     try {
@@ -32,6 +49,9 @@ export function useClientes() {
         .single();
 
       if (error) throw error;
+      if (data?.id) {
+        await syncConjuge(data.id, cliente.conjuge_id);
+      }
       await loadClientes();
       return { data, error: null };
     } catch (error) {
@@ -48,6 +68,7 @@ export function useClientes() {
         .eq('id', id);
 
       if (error) throw error;
+      await syncConjuge(id, updates.conjuge_id);
       await loadClientes();
       return { error: null };
     } catch (error) {

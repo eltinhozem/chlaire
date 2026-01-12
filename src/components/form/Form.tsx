@@ -149,7 +149,6 @@ export default function JewelryForm() {
             onChange={handleChange}
             type="number"
             step="0.01"
-            readOnly
           />
           <FormField
             label="Público-Alvo"

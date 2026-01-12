@@ -1,14 +1,40 @@
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 
 // Base button with shine effect used across all pages
-export const BaseButton = styled.button`
+type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
+
+interface BaseButtonProps {
+  size?: ButtonSize;
+}
+
+const sizeStyles = {
+  sm: css`
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  `,
+  md: css`
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  `,
+  lg: css`
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+  `,
+  icon: css`
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  `,
+};
+
+export const BaseButton = styled.button<BaseButtonProps>`
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
+  ${({ size = 'md' }) => sizeStyles[size]}
   font-weight: 500;
   border: none;
   border-radius: 0.375rem;

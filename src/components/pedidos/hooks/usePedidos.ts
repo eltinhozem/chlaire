@@ -6,6 +6,59 @@ export const usePedidos = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const mapFromDb = (pedido: any): Pedido => ({
+    id: pedido.id,
+    codigo: pedido.codigo,
+    imagem: pedido.imagem,
+    nomeCliente: pedido.nome_cliente,
+    categoria: pedido.categoria,
+    tamanho: pedido.tamanho,
+    descricao: pedido.descricao,
+    aramado: pedido.aramado,
+    galeria: pedido.galeria,
+    paraRender: pedido.para_render,
+    tipoOuroRender: pedido.tipo_ouro_render ?? null,
+    peso: pedido.peso !== undefined && pedido.peso !== null ? Number(pedido.peso) : null,
+    dataCreated: pedido.data_created ? new Date(pedido.data_created) : new Date(),
+    dataPrevistaEntrega: pedido.data_prevista_entrega ? new Date(pedido.data_prevista_entrega) : undefined,
+    stones: pedido.stones || [],
+    referenciaModelo: pedido.referencia_modelo || { rota: '', cliente: '' },
+    aroConfig: pedido.aro_config || undefined,
+    riscado: pedido.riscado,
+    prioridade: pedido.prioridade
+  });
+
+  const buildDbPayload = (
+    pedido: Omit<Pedido, 'id'>,
+    extras?: { codigo?: string; prioridade?: number; userId?: string }
+  ) => {
+    const payload: Record<string, unknown> = {
+      imagem: pedido.imagem,
+      nome_cliente: pedido.nomeCliente,
+      categoria: pedido.categoria,
+      tamanho: pedido.tamanho,
+      descricao: pedido.descricao,
+      aramado: pedido.aramado,
+      galeria: pedido.galeria,
+      para_render: pedido.paraRender,
+      tipo_ouro_render: pedido.paraRender ? pedido.tipoOuroRender || null : null,
+      peso: pedido.peso ?? null,
+      data_created: pedido.dataCreated.toISOString(),
+      data_prevista_entrega: pedido.dataPrevistaEntrega ? pedido.dataPrevistaEntrega.toISOString() : null,
+      stones: pedido.stones,
+      referencia_modelo: pedido.referenciaModelo,
+      aro_config: pedido.aroConfig ?? null,
+      riscado: pedido.riscado,
+      prioridade: extras?.prioridade ?? pedido.prioridade
+    };
+
+    if (extras?.codigo !== undefined) payload.codigo = extras.codigo;
+    if (extras?.prioridade !== undefined) payload.prioridade = extras.prioridade;
+    if (extras?.userId) payload.user_id = extras.userId;
+
+    return payload;
+  };
+
   const generateCodigo = () => String(Math.floor(Math.random() * 10000)).padStart(4, '0');
 
   const ensureUniqueCodigo = async (): Promise<string> => {
@@ -29,6 +82,25 @@ export const usePedidos = () => {
     throw new Error('Não foi possível gerar um ID único para o pedido.');
   };
 
+  const getPedidoById = async (id: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data ? mapFromDb(data) : null;
+    } catch (error) {
+      console.error('Erro ao buscar pedido:', error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadPedidos = async () => {
     try {
       setLoading(true);
@@ -39,24 +111,7 @@ export const usePedidos = () => {
 
       if (error) throw error;
 
-      const pedidosFormatted = data?.map(pedido => ({
-        id: pedido.id,
-        codigo: pedido.codigo,
-        imagem: pedido.imagem,
-        nomeCliente: pedido.nome_cliente,
-        categoria: pedido.categoria,
-        tamanho: pedido.tamanho,
-        descricao: pedido.descricao,
-        aramado: pedido.aramado,
-        galeria: pedido.galeria,
-        paraRender: pedido.para_render,
-        dataCreated: new Date(pedido.data_created),
-        dataPrevistaEntrega: pedido.data_prevista_entrega ? new Date(pedido.data_prevista_entrega) : undefined,
-        stones: pedido.stones || [],
-        referenciaModelo: pedido.referencia_modelo || { rota: '', cliente: '' },
-        riscado: pedido.riscado,
-        prioridade: pedido.prioridade
-      })) || [];
+      const pedidosFormatted = data?.map(mapFromDb) || [];
 
       setPedidos(pedidosFormatted);
     } catch (error) {
@@ -84,24 +139,11 @@ export const usePedidos = () => {
 
       const proximaPrioridade = (maxPrioridade?.[0]?.prioridade || 0) + 1;
 
+      const payload = buildDbPayload(pedido, { codigo, prioridade: proximaPrioridade, userId: user.id });
+
       const { data, error } = await supabase
         .from('pedidos')
-        .insert([{
-          imagem: pedido.imagem,
-          nome_cliente: pedido.nomeCliente,
-          categoria: pedido.categoria,
-          tamanho: pedido.tamanho,
-          descricao: pedido.descricao,
-          codigo,
-          aramado: pedido.aramado,
-          galeria: pedido.galeria,
-          para_render: pedido.paraRender,
-          data_prevista_entrega: pedido.dataPrevistaEntrega?.toISOString() || null,
-          stones: pedido.stones,
-          referencia_modelo: pedido.referenciaModelo,
-          prioridade: proximaPrioridade,
-          user_id: user.id
-        }])
+        .insert([payload])
         .select()
         .single();
 
@@ -111,6 +153,25 @@ export const usePedidos = () => {
       return data;
     } catch (error) {
       console.error('Erro ao salvar pedido:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updatePedidoData = async (id: string, pedido: Omit<Pedido, 'id'>) => {
+    try {
+      setLoading(true);
+      const payload = buildDbPayload(pedido);
+      const { error } = await supabase
+        .from('pedidos')
+        .update(payload)
+        .eq('id', id);
+
+      if (error) throw error;
+      await loadPedidos();
+    } catch (error) {
+      console.error('Erro ao atualizar pedido:', error);
       throw error;
     } finally {
       setLoading(false);
@@ -151,6 +212,7 @@ export const usePedidos = () => {
 
       if (error) throw error;
 
+      setPedidos(prev => prev.filter(p => p.id !== id));
       await loadPedidos();
     } catch (error) {
       console.error('Erro ao excluir pedido:', error);
@@ -193,6 +255,8 @@ export const usePedidos = () => {
     pedidos,
     loading,
     savePedido,
+    getPedidoById,
+    updatePedidoData,
     updatePedido,
     deletePedido,
     updatePrioridades,

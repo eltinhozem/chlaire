@@ -153,6 +153,14 @@ function App() {
               }
             />
             <Route
+              path="cadastro-pedidos/:id"
+              element={
+                <PrivateRoute>
+                  <CadastroPedidos />
+                </PrivateRoute>
+              }
+            />
+            <Route
               path="lista-pedidos"
               element={
                 <PrivateRoute>

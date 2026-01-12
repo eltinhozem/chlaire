@@ -46,7 +46,8 @@ import {
   origemCadastroOptions,
   NumeracaoDedos,
   FingerKey,
-  HandSide
+  HandSide,
+  SpecialDate
 } from './types';
 import { useClientes } from './hooks/useClientes';
 import FormField from '../form/components/FormField';
@@ -109,6 +110,26 @@ const normalizeFingerSizes = (value: unknown): NumeracaoDedos => {
 const hasFingerSizing = (sizes: NumeracaoDedos) =>
   Object.values(sizes).some((hand) => Object.values(hand).some((value) => String(value).trim().length > 0));
 
+const normalizeSpecialDates = (value: unknown): SpecialDate[] => {
+  if (!value) return [];
+  if (typeof value === 'string') {
+    try {
+      return normalizeSpecialDates(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => ({
+        data: item?.data || '',
+        descricao: item?.descricao || ''
+      }))
+      .filter((item) => item.data || item.descricao);
+  }
+  return [];
+};
+
 const initialFormData: FormData = {
   nome: '',
   endereco: '',
@@ -128,7 +149,9 @@ const initialFormData: FormData = {
   origem_cadastro: 'loja_fisica',
   indicado_por: '',
   observacao: '',
-  numeracao_dedos: null
+  numeracao_dedos: null,
+  conjuge_id: null,
+  datas_especiais: []
 };
 
 export default function CadastroClientes() {
@@ -144,6 +167,7 @@ export default function CadastroClientes() {
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
   const [showFingerSizing, setShowFingerSizing] = useState(false);
   const [fingerSizes, setFingerSizes] = useState<NumeracaoDedos>(createEmptyFingerSizes());
+  const [specialDates, setSpecialDates] = useState<SpecialDate[]>([]);
 
   useEffect(() => {
     const clienteId = searchParams.get('edit');
@@ -171,10 +195,13 @@ export default function CadastroClientes() {
           origem_cadastro: cliente.origem_cadastro || 'loja_fisica',
           indicado_por: cliente.indicado_por || '',
           observacao: cliente.observacao || '',
-          numeracao_dedos: shouldShowFingerSizing ? normalizedFingerSizes : null
+          numeracao_dedos: shouldShowFingerSizing ? normalizedFingerSizes : null,
+          conjuge_id: cliente.conjuge_id || null,
+          datas_especiais: normalizeSpecialDates(cliente.datas_especiais)
         });
         setFingerSizes(shouldShowFingerSizing ? normalizedFingerSizes : createEmptyFingerSizes());
         setShowFingerSizing(shouldShowFingerSizing);
+        setSpecialDates(normalizeSpecialDates(cliente.datas_especiais));
         setEditingId(clienteId);
         setActiveTab('cadastro');
       }
@@ -188,6 +215,26 @@ export default function CadastroClientes() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  const isCasado = formData.estado_civil === 'casado' || formData.estado_civil === 'uniao_estavel';
+  const spouseOptions = clientes
+    .filter((c) => !editingId || c.id !== editingId)
+    .map((c) => ({ value: c.id, label: c.nome }));
+
+  const addSpecialDate = () => {
+    setSpecialDates((prev) => [...prev, { data: '', descricao: '' }]);
+  };
+
+  const updateSpecialDate = (index: number, field: keyof SpecialDate, value: string) => {
+    setSpecialDates((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const removeSpecialDate = (index: number) => {
+    setSpecialDates((prev) => prev.filter((_, idx) => idx !== index));
   };
 
   const handleSearch = async (query: string) => {
@@ -207,7 +254,8 @@ export default function CadastroClientes() {
     try {
       const payload = {
         ...formData,
-        numeracao_dedos: showFingerSizing ? fingerSizes : null
+        numeracao_dedos: showFingerSizing ? fingerSizes : null,
+        datas_especiais: specialDates.length ? specialDates : null
       };
       if (editingId) {
         await updateCliente(editingId, payload);
@@ -217,6 +265,7 @@ export default function CadastroClientes() {
       setFormData(initialFormData);
       setFingerSizes(createEmptyFingerSizes());
       setShowFingerSizing(false);
+      setSpecialDates([]);
       setEditingId(null);
       setActiveTab('lista');
     } catch (error) {
@@ -376,20 +425,68 @@ export default function CadastroClientes() {
                 required
                 placeholder="Nome do cliente"
               />
-              <FormField
-                label="Data de Nascimento"
-                id="data_nascimento"
-                name="data_nascimento"
-                type="date"
-                value={formData.data_nascimento || ''}
-                onChange={handleChange}
-              />
-            </FormGrid>
-            <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
-              <FormField
-                label="Gênero"
-                id="genero"
-                name="genero"
+            <FormField
+              label="Data de Nascimento"
+              id="data_nascimento"
+              name="data_nascimento"
+              type="date"
+              value={formData.data_nascimento || ''}
+              onChange={handleChange}
+            />
+          </FormGrid>
+          <div style={{ gridColumn: '1 / -1', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={addSpecialDate}
+                style={{ padding: '0.35rem 0.75rem', borderRadius: 6, border: '1px solid #d1d5db', background: '#f9fafb', cursor: 'pointer' }}
+              >
+                + Datas Especiais
+              </button>
+              <span style={{ color: '#6b7280', fontSize: 14 }}>Cadastre datas importantes e o motivo</span>
+            </div>
+            {specialDates.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {specialDates.map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '160px 1fr 36px',
+                      gap: '0.5rem',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <input
+                      type="date"
+                      value={item.data}
+                      onChange={(e) => updateSpecialDate(idx, 'data', e.target.value)}
+                      style={{ padding: '0.55rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db' }}
+                    />
+                    <input
+                      type="text"
+                      value={item.descricao}
+                      placeholder="Ex: Aniversário de casamento"
+                      onChange={(e) => updateSpecialDate(idx, 'descricao', e.target.value)}
+                      style={{ padding: '0.55rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSpecialDate(idx)}
+                      style={{ border: '1px solid #ef4444', color: '#ef4444', background: 'white', borderRadius: 8, height: '100%' }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
+            <FormField
+              label="Gênero"
+              id="genero"
+              name="genero"
                 value={formData.genero || ''}
                 onChange={handleChange}
                 options={generoOptions}
@@ -402,15 +499,34 @@ export default function CadastroClientes() {
                 onChange={handleChange}
                 options={estadoCivilOptions}
               />
-              <FormField
-                label="Profissão/Ocupação"
-                id="profissao"
-                name="profissao"
-                value={formData.profissao || ''}
-                onChange={handleChange}
-                placeholder="Ex: Empresário"
-              />
-            </FormGrid>
+            <FormField
+              label="Profissão/Ocupação"
+              id="profissao"
+              name="profissao"
+              value={formData.profissao || ''}
+              onChange={handleChange}
+              placeholder="Ex: Empresário"
+            />
+          </FormGrid>
+            {isCasado && (
+              <div style={{ marginBottom: '1rem' }}>
+                <FormField
+                  label="Cônjuge"
+                  id="conjuge_id"
+                  name="conjuge_id"
+                  value={formData.conjuge_id || ''}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, conjuge_id: e.target.value || null }))}
+                  options={spouseOptions}
+                />
+                {formData.conjuge_id && (
+                  <div style={{ marginTop: '0.5rem' }}>
+                    <SecondaryButton type="button" onClick={() => navigate(`/clientes/${formData.conjuge_id}`)}>
+                      Ver informações do cônjuge
+                    </SecondaryButton>
+                  </div>
+                )}
+              </div>
+            )}
             <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
               <FormField
                 label="Nacionalidade"
