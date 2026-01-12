@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, Phone, Instagram } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { 
   ClienteContainer,
   ClienteTitle,
@@ -21,8 +21,6 @@ import {
   ClienteEmail,
   ClienteDetails,
   ClienteDetailItem,
-  ClienteDetailLabel,
-  ClienteDetailValue,
   InstaButton,
   SearchContainer,
   SearchInput,
@@ -68,6 +66,21 @@ const fingerLabels: { key: FingerKey; label: string }[] = [
 const handOptions: { key: HandSide; label: string; image: string }[] = [
   { key: 'direita', label: 'Mão direita', image: MaoDireita },
   { key: 'esquerda', label: 'Mão esquerda', image: MaoEsquerda }
+];
+
+const birthMonthOptions = [
+  { value: '01', label: 'Janeiro' },
+  { value: '02', label: 'Fevereiro' },
+  { value: '03', label: 'Março' },
+  { value: '04', label: 'Abril' },
+  { value: '05', label: 'Maio' },
+  { value: '06', label: 'Junho' },
+  { value: '07', label: 'Julho' },
+  { value: '08', label: 'Agosto' },
+  { value: '09', label: 'Setembro' },
+  { value: '10', label: 'Outubro' },
+  { value: '11', label: 'Novembro' },
+  { value: '12', label: 'Dezembro' }
 ];
 
 const createEmptyFingerSizes = (): NumeracaoDedos => ({
@@ -165,6 +178,9 @@ export default function CadastroClientes() {
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
+  const [birthMonthFilter, setBirthMonthFilter] = useState('');
+  const [estadoCivilFilter, setEstadoCivilFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [showFingerSizing, setShowFingerSizing] = useState(false);
   const [fingerSizes, setFingerSizes] = useState<NumeracaoDedos>(createEmptyFingerSizes());
   const [specialDates, setSpecialDates] = useState<SpecialDate[]>([]);
@@ -385,6 +401,35 @@ export default function CadastroClientes() {
     return initials.toUpperCase() || '-';
   };
 
+  const getBirthMonth = (value?: string | null) => {
+    if (!value) return null;
+    const parts = value.split('-');
+    if (parts.length >= 2 && parts[1]) {
+      return parts[1].padStart(2, '0');
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return String(date.getMonth() + 1).padStart(2, '0');
+  };
+
+  const buildWhatsAppLink = (rawPhone: string) => {
+    const digits = rawPhone.replace(/\D/g, '');
+    if (!digits) return '';
+    const shouldAddCountry = (digits.length === 10 || digits.length === 11) && !digits.startsWith('55');
+    return `https://wa.me/${shouldAddCountry ? `55${digits}` : digits}`;
+  };
+
+  const filteredByCriteria = filteredClientes.filter((cliente) => {
+    if (birthMonthFilter) {
+      const birthMonth = getBirthMonth(cliente.data_nascimento);
+      if (birthMonth !== birthMonthFilter) return false;
+    }
+    if (estadoCivilFilter) {
+      if ((cliente.estado_civil || '') !== estadoCivilFilter) return false;
+    }
+    return true;
+  });
+
   return (
     <ClienteContainer>
       <PageHeader>
@@ -398,7 +443,9 @@ export default function CadastroClientes() {
         <PageActions>
           {activeTab === 'lista' ? (
             <>
-              <HeaderButtonSecondary type="button">Filtrar</HeaderButtonSecondary>
+              <HeaderButtonSecondary type="button" onClick={() => setShowFilters((prev) => !prev)}>
+                {showFilters ? 'Ocultar filtros' : 'Filtrar'}
+              </HeaderButtonSecondary>
               <HeaderButtonPrimary type="button" onClick={handleNewCliente}>
                 + Adicionar Cliente
               </HeaderButtonPrimary>
@@ -725,14 +772,34 @@ export default function CadastroClientes() {
               <Search size={16} />
             </SearchIcon>
           </SearchContainer>
+          {showFilters && (
+            <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1.5rem' }}>
+              <FormField
+                label="Aniversário (mês)"
+                id="filtro-mes-aniversario"
+                name="filtro-mes-aniversario"
+                value={birthMonthFilter}
+                onChange={(e) => setBirthMonthFilter(e.target.value)}
+                options={birthMonthOptions}
+              />
+              <FormField
+                label="Estado civil"
+                id="filtro-estado-civil"
+                name="filtro-estado-civil"
+                value={estadoCivilFilter}
+                onChange={(e) => setEstadoCivilFilter(e.target.value)}
+                options={estadoCivilOptions}
+              />
+            </FormGrid>
+          )}
 
           {loading ? (
             <p>Carregando...</p>
-          ) : filteredClientes.length === 0 ? (
+          ) : filteredByCriteria.length === 0 ? (
             <p>Nenhum cliente encontrado.</p>
           ) : (
             <ClientesList>
-              {filteredClientes.map((cliente) => {
+              {filteredByCriteria.map((cliente) => {
                 const rawPhone = cliente.celular || cliente.telefone || '';
                 const phone = rawPhone || '-';
                 const instagram = (cliente.instagram || '').trim();
@@ -741,7 +808,19 @@ export default function CadastroClientes() {
                     ? instagram
                     : `https://instagram.com/${instagram.replace('@', '')}`
                   : '';
-                const email = (cliente.email || '').trim();
+                const facebook = (cliente.facebook || '').trim();
+                const facebookLink = facebook
+                  ? facebook.startsWith('http')
+                    ? facebook
+                    : `https://facebook.com/${facebook.replace('@', '')}`
+                  : '';
+                const site = (cliente.site_empresa || '').trim();
+                const siteLink = site
+                  ? site.startsWith('http')
+                    ? site
+                    : `https://${site}`
+                  : '';
+                const whatsappLink = buildWhatsAppLink(rawPhone);
                 const initials = getInitials(cliente.nome);
 
                 return (
@@ -750,29 +829,55 @@ export default function CadastroClientes() {
                       <ClienteAvatar>{initials}</ClienteAvatar>
                       <ClienteInfoHeader>
                         <ClienteNome>{cliente.nome}</ClienteNome>
-                        {email && <ClienteEmail>{email}</ClienteEmail>}
+                        <ClienteEmail>{phone}</ClienteEmail>
                       </ClienteInfoHeader>
                     </ClienteHeader>
                     <ClienteInfo>
                       <ClienteDetails>
-                        <ClienteDetailItem>
-                          <Phone size={16} />
-                          <span>
-                            <ClienteDetailLabel>Telefone:</ClienteDetailLabel>
-                            <ClienteDetailValue>{phone}</ClienteDetailValue>
-                          </span>
-                        </ClienteDetailItem>
-                        {instagramLink && (
+                        {(instagramLink || facebookLink || siteLink || whatsappLink) && (
                           <ClienteDetailItem>
-                            <Instagram size={16} />
-                            <InstaButton
-                              href={instagramLink}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              Instagram
-                            </InstaButton>
+                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                              {instagramLink && (
+                                <InstaButton
+                                  href={instagramLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Instagram
+                                </InstaButton>
+                              )}
+                              {facebookLink && (
+                                <InstaButton
+                                  href={facebookLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Facebook
+                                </InstaButton>
+                              )}
+                              {siteLink && (
+                                <InstaButton
+                                  href={siteLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Site
+                                </InstaButton>
+                              )}
+                              {whatsappLink && (
+                                <InstaButton
+                                  href={whatsappLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  WhatsApp
+                                </InstaButton>
+                              )}
+                            </div>
                           </ClienteDetailItem>
                         )}
                       </ClienteDetails>

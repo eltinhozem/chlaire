@@ -34,6 +34,7 @@ export interface Pedido {
   id: string;
   codigo?: string;
   imagem?: string;
+  imagens?: string[];
   nomeCliente: string;
   categoria: string;
   tamanho: string;
@@ -42,7 +43,6 @@ export interface Pedido {
   galeria: boolean;
   paraRender: boolean;
   tipoOuroRender?: 'branco' | 'rose' | 'amarelo' | null;
-  peso?: number | null;
   dataCreated: Date;
   dataPrevistaEntrega?: Date;
   stones: PedidoStone[];

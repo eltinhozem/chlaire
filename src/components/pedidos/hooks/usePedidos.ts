@@ -6,10 +6,24 @@ export const usePedidos = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const normalizeImagens = (value: unknown, fallback?: string): string[] => {
+    if (Array.isArray(value)) {
+      return value.map((item) => String(item)).filter((item) => item.trim().length > 0);
+    }
+    if (typeof value === 'string' && value.trim().length > 0) {
+      return [value.trim()];
+    }
+    if (fallback && fallback.trim().length > 0) {
+      return [fallback.trim()];
+    }
+    return [];
+  };
+
   const mapFromDb = (pedido: any): Pedido => ({
     id: pedido.id,
     codigo: pedido.codigo,
     imagem: pedido.imagem,
+    imagens: normalizeImagens(pedido.imagens, pedido.imagem),
     nomeCliente: pedido.nome_cliente,
     categoria: pedido.categoria,
     tamanho: pedido.tamanho,
@@ -18,7 +32,6 @@ export const usePedidos = () => {
     galeria: pedido.galeria,
     paraRender: pedido.para_render,
     tipoOuroRender: pedido.tipo_ouro_render ?? null,
-    peso: pedido.peso !== undefined && pedido.peso !== null ? Number(pedido.peso) : null,
     dataCreated: pedido.data_created ? new Date(pedido.data_created) : new Date(),
     dataPrevistaEntrega: pedido.data_prevista_entrega ? new Date(pedido.data_prevista_entrega) : undefined,
     stones: pedido.stones || [],
@@ -32,8 +45,14 @@ export const usePedidos = () => {
     pedido: Omit<Pedido, 'id'>,
     extras?: { codigo?: string; prioridade?: number; userId?: string }
   ) => {
+    const imagens = Array.isArray(pedido.imagens)
+      ? pedido.imagens
+      : pedido.imagem
+        ? [pedido.imagem]
+        : [];
     const payload: Record<string, unknown> = {
-      imagem: pedido.imagem,
+      imagem: imagens[0] ?? pedido.imagem ?? null,
+      imagens,
       nome_cliente: pedido.nomeCliente,
       categoria: pedido.categoria,
       tamanho: pedido.tamanho,
@@ -42,7 +61,6 @@ export const usePedidos = () => {
       galeria: pedido.galeria,
       para_render: pedido.paraRender,
       tipo_ouro_render: pedido.paraRender ? pedido.tipoOuroRender || null : null,
-      peso: pedido.peso ?? null,
       data_created: pedido.dataCreated.toISOString(),
       data_prevista_entrega: pedido.dataPrevistaEntrega ? pedido.dataPrevistaEntrega.toISOString() : null,
       stones: pedido.stones,
@@ -186,12 +204,16 @@ export const usePedidos = () => {
       if (updates.riscado !== undefined) dbUpdates.riscado = updates.riscado;
       if (updates.prioridade !== undefined) dbUpdates.prioridade = updates.prioridade;
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('pedidos')
         .update(dbUpdates)
-        .eq('id', id);
+        .eq('id', id)
+        .select('id');
 
       if (error) throw error;
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error('Não foi possível atualizar este pedido (sem permissão ou não encontrado).');
+      }
 
       await loadPedidos();
     } catch (error) {
@@ -205,12 +227,16 @@ export const usePedidos = () => {
   const deletePedido = async (id: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('pedidos')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select('id');
 
       if (error) throw error;
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error('Não foi possível excluir este pedido (sem permissão ou já foi excluído).');
+      }
 
       setPedidos(prev => prev.filter(p => p.id !== id));
       await loadPedidos();

@@ -10,6 +10,8 @@ import { categoryOptions, categoriesWithAro } from '../form/formOptions';
 import { SecondaryButton, PrimaryButton, SuccessButton } from '../buttons';
 import { usePedidos } from './hooks/usePedidos';
 import FormField from '../form/components/FormField';
+import { compressImage } from '../../lib/imageUtils';
+import { supabase } from '../../lib/supabase';
 
 const defaultAroConfig: AroConfig = {
   tipoAro: '',
@@ -20,6 +22,12 @@ const defaultAroConfig: AroConfig = {
   comPedra: false,
   tipoCravacao: '',
   quantidadeFileiras: 1
+};
+
+type ImageItem = {
+  id: string;
+  url: string;
+  file?: File;
 };
 
 const CadastroPedidos: React.FC = () => {
@@ -36,7 +44,6 @@ const CadastroPedidos: React.FC = () => {
   const [galeria, setGaleria] = useState(false);
   const [paraRender, setParaRender] = useState(false);
   const [tipoOuroRender, setTipoOuroRender] = useState<'branco' | 'rose' | 'amarelo' | ''>('');
-  const [peso, setPeso] = useState<number | ''>('');
   const [dataPrevistaEntrega, setDataPrevistaEntrega] = useState('');
   const [semDataEntrega, setSemDataEntrega] = useState(false);
   const [stones, setStones] = useState<PedidoStone[]>([]);
@@ -49,6 +56,8 @@ const CadastroPedidos: React.FC = () => {
   });
   const [aroConfig, setAroConfig] = useState<AroConfig>({ ...defaultAroConfig });
   const [prefillLoading, setPrefillLoading] = useState(false);
+  const [imageItems, setImageItems] = useState<ImageItem[]>([]);
+  const [autoSaveStoneSignal, setAutoSaveStoneSignal] = useState(0);
 
   const showAroConfig = categoriesWithAro.includes(categoria);
 
@@ -72,7 +81,6 @@ const CadastroPedidos: React.FC = () => {
         setGaleria(pedido.galeria);
         setParaRender(pedido.paraRender);
         setTipoOuroRender(pedido.tipoOuroRender ?? '');
-        setPeso(pedido.peso ?? '');
         setDataPrevistaEntrega(pedido.dataPrevistaEntrega ? pedido.dataPrevistaEntrega.toISOString().split('T')[0] : '');
         setSemDataEntrega(!pedido.dataPrevistaEntrega);
         setStones(pedido.stones || []);
@@ -81,6 +89,13 @@ const CadastroPedidos: React.FC = () => {
         setDataCreated(pedido.dataCreated || new Date());
         setRiscado(pedido.riscado);
         setPrioridade(pedido.prioridade);
+        const imagens = Array.isArray(pedido.imagens) && pedido.imagens.length > 0
+          ? pedido.imagens
+          : (pedido.imagem ? [pedido.imagem] : []);
+        setImageItems(imagens.map((url, index) => ({
+          id: `existing-${index}-${url}`,
+          url
+        })));
       } finally {
         setPrefillLoading(false);
       }
@@ -92,13 +107,14 @@ const CadastroPedidos: React.FC = () => {
   }, [id, navigate]);
 
   const addStone = () => {
+    setAutoSaveStoneSignal((prev) => prev + 1);
     const newStone: PedidoStone = {
       onde: '', tipo: 'Diamante', lapidacao: 'Redonda', quantidade: 0,
       largura: '', altura: '', comprimento: '', pts: '',
       quantidadeMaxima: undefined, quantidadeMinima: undefined,
       tipoQuantidade: 'exata', tipoCravacao: ''
     };
-    setStones([...stones, newStone]);
+    setStones((prev) => [...prev, newStone]);
   };
 
   const removeStone = (index: number) => {
@@ -111,6 +127,70 @@ const CadastroPedidos: React.FC = () => {
     setStones(newStones);
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { files } = e.target;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files);
+    const newItems = await Promise.all(
+      fileList.map(async (file) => {
+        try {
+          const compressedFile = await compressImage(file, {
+            maxWidth: 800,
+            maxHeight: 600,
+            quality: 0.8,
+            format: 'jpeg'
+          });
+          return {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            url: URL.createObjectURL(compressedFile),
+            file: compressedFile
+          };
+        } catch (error) {
+          console.error('Erro ao comprimir imagem:', error);
+          return {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+            url: URL.createObjectURL(file),
+            file
+          };
+        }
+      })
+    );
+
+    setImageItems((prev) => [...prev, ...newItems]);
+    e.target.value = '';
+  };
+
+  const removeImage = (idToRemove: string) => {
+    setImageItems((prev) => {
+      const item = prev.find((entry) => entry.id === idToRemove);
+      if (item?.file) {
+        URL.revokeObjectURL(item.url);
+      }
+      return prev.filter((entry) => entry.id !== idToRemove);
+    });
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop() || 'jpg';
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `pedidos/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('jewelry-images')
+      .upload(filePath, file);
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage
+      .from('jewelry-images')
+      .getPublicUrl(filePath);
+
+    return data.publicUrl;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nomeCliente || !categoria || !descricao) {
@@ -119,7 +199,21 @@ const CadastroPedidos: React.FC = () => {
     }
     
     try {
+      const existingUrls = imageItems
+        .filter((item) => !item.file)
+        .map((item) => item.url)
+        .filter((url) => url);
+      const newFiles = imageItems
+        .filter((item) => item.file)
+        .map((item) => item.file as File);
+      const uploadedUrls = newFiles.length > 0
+        ? await Promise.all(newFiles.map((file) => uploadImage(file)))
+        : [];
+      const imagens = [...existingUrls, ...uploadedUrls];
+
       const payload = {
+        imagem: imagens[0] || undefined,
+        imagens,
         nomeCliente,
         categoria,
         tamanho,
@@ -128,7 +222,6 @@ const CadastroPedidos: React.FC = () => {
         galeria,
         paraRender,
         tipoOuroRender: paraRender ? (tipoOuroRender || null) : null,
-        peso: peso === '' ? null : peso,
         dataCreated: dataCreated || new Date(),
         dataPrevistaEntrega: semDataEntrega ? undefined : (dataPrevistaEntrega ? new Date(dataPrevistaEntrega) : undefined),
         stones,
@@ -151,6 +244,8 @@ const CadastroPedidos: React.FC = () => {
       alert('Erro ao cadastrar pedido. Tente novamente.');
     }
   };
+
+  const stonesInDisplayOrder = stones.map((stone, index) => ({ stone, index })).reverse();
 
   if (prefillLoading) {
     return (
@@ -177,6 +272,43 @@ const CadastroPedidos: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="sm:col-span-2">
                 <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+                  Imagens do Pedido
+                </label>
+                <div className="flex flex-col gap-3">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageChange}
+                    className="block w-full text-sm text-neutral-700 dark:text-neutral-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary-dark hover:file:bg-primary/20"
+                  />
+                  {imageItems.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {imageItems.map((item) => (
+                        <div key={item.id} className="relative">
+                          <img
+                            src={item.url}
+                            alt="Prévia do pedido"
+                            className="h-24 w-full object-cover rounded border border-neutral-200 dark:border-neutral-700"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(item.id)}
+                            className="absolute top-1 right-1 h-6 w-6 rounded-full bg-neutral-900/70 text-white text-xs"
+                            aria-label="Remover imagem"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-neutral-500">Nenhuma imagem adicionada.</p>
+                  )}
+                </div>
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
                   Nome Cliente <span className="text-danger-light">*</span>
                 </label>
                 <ClienteAutocomplete value={nomeCliente} onChange={setNomeCliente} required />
@@ -192,16 +324,7 @@ const CadastroPedidos: React.FC = () => {
                   />
                 </div>
               )}
-              <FormField label="Tamanho" id="tamanho" name="tamanho" type="text" value={tamanho} onChange={(e) => setTamanho(e.target.value)} />
-              <FormField
-                label="Peso (g)"
-                id="peso"
-                name="peso"
-                type="number"
-                step="0.01"
-                value={peso}
-                onChange={(e) => setPeso(e.target.value ? parseFloat(e.target.value) : '')}
-              />
+              <FormField label="Numero Dedo" id="tamanho" name="tamanho" type="text" value={tamanho} onChange={(e) => setTamanho(e.target.value)} />
               
               <div className="sm:col-span-2">
                 <FormField label="Data Prevista de Entrega" id="dataPrevistaEntrega" name="dataPrevistaEntrega" type="date" value={dataPrevistaEntrega} onChange={(e) => setDataPrevistaEntrega(e.target.value)} readOnly={semDataEntrega} />
@@ -258,8 +381,15 @@ const CadastroPedidos: React.FC = () => {
             </SuccessButton>
           </div>
           <div className="p-4 sm:p-6 space-y-4">
-            {stones.length > 0 ? stones.map((stone, index) => (
-              <PedidoStoneComponent key={index} index={index} stone={stone} onRemove={removeStone} onChange={updateStone} />
+            {stonesInDisplayOrder.length > 0 ? stonesInDisplayOrder.map(({ stone, index }) => (
+              <PedidoStoneComponent
+                key={index}
+                index={index}
+                stone={stone}
+                onRemove={removeStone}
+                onChange={updateStone}
+                autoSaveSignal={autoSaveStoneSignal}
+              />
             )) : <p className="text-sm text-center text-neutral-500 py-4">Nenhuma pedra adicionada.</p>}
           </div>
         </div>

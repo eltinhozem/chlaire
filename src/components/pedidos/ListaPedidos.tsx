@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon, Loader2, Edit, Copy } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon, Loader2, Edit, Copy, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
-import type { Pedido, PedidoStone } from './types';
+import type { Pedido } from './types';
 import { PrimaryButton, DangerButton, SecondaryButton } from '../buttons';
 import { categoryOptions } from '../form/formOptions';
 
@@ -34,6 +35,120 @@ const ouroLabels: Record<string, string> = {
   amarelo: 'Amarelo'
 };
 
+const formatBool = (v: boolean) => (v ? 'Sim' : 'Não');
+
+const getPedidoImages = (pedido: Pedido) => {
+  if (pedido.imagens && pedido.imagens.length > 0) return pedido.imagens;
+  if (pedido.imagem) return [pedido.imagem];
+  return [];
+};
+
+const fetchImageDataUrl = async (url: string) => {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const format = blob.type === 'image/png' ? 'PNG' : 'JPEG';
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error('Falha ao ler imagem'));
+      reader.readAsDataURL(blob);
+    });
+    return { dataUrl, format };
+  } catch (error) {
+    console.error('Erro ao carregar imagem:', error);
+    return null;
+  }
+};
+
+const buildPedidoPdf = async (pedido: Pedido) => {
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const marginX = 40;
+  const lineHeight = 16;
+  const maxWidth = 515;
+  let y = 40;
+
+  const addText = (text: string, size = 12, spacing = 8) => {
+    doc.setFontSize(size);
+    const lines = doc.splitTextToSize(text, maxWidth);
+    doc.text(lines, marginX, y);
+    y += lines.length * lineHeight + spacing;
+  };
+
+  const categoriaLabel = categoryLabelMap[pedido.categoria] || pedido.categoria;
+  addText(`Pedido ${pedido.codigo || ''}`.trim(), 16, 10);
+  addText(`Cliente: ${pedido.nomeCliente}`, 12, 4);
+  addText(`Categoria: ${categoriaLabel}`, 12, 4);
+  if (pedido.tamanho) addText(`Tamanho: ${pedido.tamanho}`, 12, 4);
+  if (pedido.descricao) addText(`Descrição: ${pedido.descricao}`, 12, 6);
+  addText(`Aramado: ${formatBool(pedido.aramado)} | Galeria: ${formatBool(pedido.galeria)} | Para Render: ${formatBool(pedido.paraRender)}${pedido.paraRender && pedido.tipoOuroRender ? ` (${ouroLabels[pedido.tipoOuroRender] || pedido.tipoOuroRender})` : ''}`, 11, 8);
+
+  if (pedido.dataPrevistaEntrega) {
+    addText(`Entrega: ${new Date(pedido.dataPrevistaEntrega).toLocaleDateString('pt-BR')} (${getDeliveryStatusText(pedido.dataPrevistaEntrega)})`, 11, 8);
+  }
+
+  if (pedido.referenciaModelo?.rota || pedido.referenciaModelo?.cliente) {
+    addText(`Ref. modelo: ${pedido.referenciaModelo?.rota || '-'} | Cliente ref.: ${pedido.referenciaModelo?.cliente || '-'}`, 11, 8);
+  }
+
+  if (pedido.stones && pedido.stones.length > 0) {
+    addText('Pedras:', 13, 6);
+    pedido.stones.forEach((stone, index) => {
+      const dims = [stone.largura, stone.comprimento, stone.altura].filter(Boolean).join(' x ');
+      addText(
+        `${index + 1}) ${stone.tipo} - ${stone.lapidacao} | Qtd: ${stone.quantidade || 'Livre'}${stone.tipoQuantidade ? ` (${stone.tipoQuantidade})` : ''} | Onde: ${stone.onde}${dims ? ` | Dimensões: ${dims} mm` : ''}${stone.pts ? ` | PTS: ${stone.pts}` : ''}${stone.tipoCravacao ? ` | Cravação: ${stone.tipoCravacao}` : ''}`,
+        10,
+        4
+      );
+    });
+    y += 6;
+  }
+
+  const images = getPedidoImages(pedido);
+  if (images.length > 0) {
+    addText('Imagens:', 13, 6);
+    const maxImageWidth = 160;
+    const maxImageHeight = 120;
+    let x = marginX;
+    let rowHeight = 0;
+
+    for (const url of images) {
+      const imageData = await fetchImageDataUrl(url);
+      if (!imageData) continue;
+      if (y + maxImageHeight > 780) {
+        doc.addPage();
+        y = 40;
+        x = marginX;
+        rowHeight = 0;
+      }
+      doc.addImage(imageData.dataUrl, imageData.format, x, y, maxImageWidth, maxImageHeight);
+      rowHeight = Math.max(rowHeight, maxImageHeight);
+      x += maxImageWidth + 10;
+      if (x + maxImageWidth > 555) {
+        x = marginX;
+        y += rowHeight + 10;
+        rowHeight = 0;
+      }
+    }
+  }
+
+  return doc.output('blob');
+};
+
+const savePedidoPdf = async (pedido: Pedido) => {
+  const blob = await buildPedidoPdf(pedido);
+  const fileName = `pedido-${pedido.codigo || pedido.id}.pdf`;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
 const Tag: React.FC<{ children: React.ReactNode, color: string }> = ({ children, color }) => (
   <span className={`text-xs font-medium px-2 py-1 rounded-full ${color}`}>
     {children}
@@ -48,16 +163,15 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
   const statusColor = getDeliveryStatusColor(dataPrevistaEntrega);
   const statusText = getDeliveryStatusText(dataPrevistaEntrega);
   const categoriaLabel = categoryLabelMap[pedido.categoria] || pedido.categoria;
+  const imageUrls = getPedidoImages(pedido);
   
   const cardBorderColor = riscado ? 'border-l-danger' : statusColor;
   const copyToClipboard = async () => {
-    const formatBool = (v: boolean) => (v ? 'Sim' : 'Não');
     const linhas = [
       `ID: ${pedido.codigo || '----'}`,
       `Cliente: ${pedido.nomeCliente}`,
       `Categoria: ${categoriaLabel}`,
       pedido.tamanho ? `Tamanho: ${pedido.tamanho}` : null,
-      pedido.peso ? `Peso: ${pedido.peso} g` : null,
       pedido.descricao ? `Descrição: ${pedido.descricao}` : null,
       `Aramado: ${formatBool(pedido.aramado)}`,
       `Galeria: ${formatBool(pedido.galeria)}`,
@@ -80,7 +194,8 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
           // Quilates removido conforme solicitado
           s.tipoCravacao ? `    Cravação: ${s.tipoCravacao}` : null
         ].filter(Boolean).join('\n');
-      })
+      }),
+      ...getPedidoImages(pedido).map((url, idx) => `Imagem ${idx + 1}: ${url}`)
     ].filter(Boolean);
     const texto = linhas.join('\n');
     try {
@@ -103,6 +218,15 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
     } catch (err) {
       console.error('Erro ao copiar:', err);
       alert('Não foi possível copiar. Copie manualmente:\n\n' + texto);
+    }
+  };
+
+  const handleSavePdf = async () => {
+    try {
+      await savePedidoPdf(pedido);
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      alert('Não foi possível gerar o PDF do pedido.');
     }
   };
 
@@ -140,17 +264,37 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <SecondaryButton size="sm" onClick={() => navigate(`/cadastro-pedidos/${pedido.id}`)}>
+            <SecondaryButton size="sm" onClick={() => navigate(`/cadastro-pedidos/${pedido.id}`)} className="w-28 justify-center gap-2">
               <Edit size={14}/>
+              Editar
             </SecondaryButton>
-            <SecondaryButton size="sm" onClick={copyToClipboard}>
+            <SecondaryButton size="sm" onClick={copyToClipboard} className="w-28 justify-center gap-2">
               <Copy size={14}/>
+              Copiar
             </SecondaryButton>
-            <DangerButton size="sm" onClick={() => onDelete(pedido.id)}>
+            <SecondaryButton size="sm" onClick={handleSavePdf} className="w-28 justify-center gap-2">
+              <Download size={14}/>
+              PDF
+            </SecondaryButton>
+            <DangerButton size="sm" onClick={() => onDelete(pedido.id)} className="w-28 justify-center gap-2">
               <Trash2 size={14}/>
+              Excluir
             </DangerButton>
           </div>
         </div>
+
+        {imageUrls.length > 0 && (
+          <div className="mt-3 pl-14 flex flex-wrap gap-2">
+            {imageUrls.slice(0, 4).map((url, idx) => (
+              <img
+                key={`${url}-${idx}`}
+                src={url}
+                alt={`Imagem do pedido ${idx + 1}`}
+                className="h-16 w-16 rounded border border-neutral-200 dark:border-neutral-700 object-cover"
+              />
+            ))}
+          </div>
+        )}
 
         {/* Corpo do Card */}
         <div className="mt-4 pl-14">
@@ -160,7 +304,6 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <Tag color="bg-primary/10 text-primary-dark dark:bg-primary/20 dark:text-primary-light">{categoriaLabel}</Tag>
             {pedido.tamanho && <Tag color="bg-secondary/10 text-secondary-dark dark:bg-secondary/20 dark:text-secondary-light">Tamanho: {pedido.tamanho}</Tag>}
-            {pedido.peso ? <Tag color="bg-secondary/10 text-secondary-dark dark:bg-secondary/20 dark:text-secondary-light">Peso: {pedido.peso}g</Tag> : null}
             {pedido.aramado && <Tag color="bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">Aramado</Tag>}
             {pedido.galeria && <Tag color="bg-neutral-200 text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200">Galeria</Tag>}
             {pedido.paraRender && (
@@ -237,6 +380,8 @@ const ListaPedidos: React.FC = () => {
       await updatePedido(id, { riscado: !currentlyRiscado });
     } catch (error) {
       console.error('Erro ao atualizar status do pedido:', error);
+      const message = error instanceof Error ? error.message : 'Não foi possível atualizar o status do pedido.';
+      alert(message);
     }
   };
 
@@ -246,6 +391,8 @@ const ListaPedidos: React.FC = () => {
         await deletePedido(id);
       } catch (error) {
         console.error('Erro ao excluir pedido:', error);
+        const message = error instanceof Error ? error.message : 'Não foi possível excluir o pedido.';
+        alert(message);
       }
     }
   };

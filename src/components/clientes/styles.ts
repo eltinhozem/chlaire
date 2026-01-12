@@ -139,8 +139,10 @@ export const SectionTitle = styled.h2`
 
 export const ClientesList = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
   gap: 25px;
+  align-items: start;
+  justify-content: start;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -154,6 +156,8 @@ export const ClienteCard = styled.div`
   box-shadow: 0 2px 8px var(--card-shadow);
   transition: all 0.3s ease;
   cursor: pointer;
+  height: fit-content;
+  align-self: start;
 
   &:hover {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);

@@ -12,6 +12,7 @@ interface PedidoStoneProps {
   stone: PedidoStone;
   onRemove: (index: number) => void;
   onChange: (index: number, stone: PedidoStone) => void;
+  autoSaveSignal?: number;
 }
 
 const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
@@ -19,6 +20,7 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
   stone,
   onRemove,
   onChange,
+  autoSaveSignal
 }) => {
   const {
     savedStone,
@@ -27,6 +29,7 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
     handleSaveStone,
     handleEditStone
   } = useStoneForm(stone, onChange, index);
+  const lastAutoSaveRef = React.useRef<number | null>(null);
 
   // Inicia sempre no modo de edição para novas pedras
   React.useEffect(() => {
@@ -34,6 +37,16 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
       // Manter em modo de edição
     }
   }, [savedStone]);
+
+  React.useEffect(() => {
+    if (!autoSaveSignal) return;
+    if (autoSaveSignal === lastAutoSaveRef.current) return;
+    lastAutoSaveRef.current = autoSaveSignal;
+
+    if (isEditing && isStoneFormValid(stone)) {
+      handleSaveStone();
+    }
+  }, [autoSaveSignal, handleSaveStone, isEditing, stone]);
 
   return (
     <div className="bg-white dark:bg-neutral-800/50 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700/50 mb-4 shadow-sm">
