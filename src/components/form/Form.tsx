@@ -7,6 +7,7 @@ import FormField from './components/FormField';
 import StonesList from './components/StonesList';
 import FormActions from './components/FormActions';
 import ClienteAutocomplete from '../common/ClienteAutocomplete';
+import { PrimaryButton, SecondaryButton } from '../buttons';
 import { 
   categoryOptions, 
   targetAudienceOptions, 
@@ -26,7 +27,15 @@ export default function JewelryForm() {
     addStone,
     removeStone,
     handleStoneChange,
-    isEditing
+    stoneSaveSignal,
+    isEditing,
+    collections,
+    collectionLoading,
+    showNewCollection,
+    setShowNewCollection,
+    newCollectionName,
+    setNewCollectionName,
+    createCollection
   } = useFormLogic();
 
   const handleClientNameChange = (value: string) => {
@@ -49,15 +58,67 @@ export default function JewelryForm() {
               onImageChange={handleImageChange} 
             />
           </div>
-          <FormField
-            label="Data"
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            type="date"
-            required
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+              <div style={{ flex: 1 }}>
+                <FormField
+                  label="Data"
+                  id="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  type="date"
+                  required
+                />
+              </div>
+              <SecondaryButton
+                type="button"
+                size="sm"
+                onClick={() => setShowNewCollection((prev) => !prev)}
+                disabled={collectionLoading}
+              >
+                Nova coleção
+              </SecondaryButton>
+            </div>
+            {showNewCollection && (
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1 }}>
+                  <FormField
+                    label="Nome da coleção"
+                    id="collection_name"
+                    name="collection_name"
+                    value={newCollectionName}
+                    onChange={(e) => setNewCollectionName(e.target.value)}
+                    placeholder="Ex: Coleção Primavera"
+                  />
+                </div>
+                <PrimaryButton
+                  type="button"
+                  size="sm"
+                  onClick={createCollection}
+                  disabled={collectionLoading || !newCollectionName.trim()}
+                >
+                  Salvar
+                </PrimaryButton>
+              </div>
+            )}
+          </div>
+        </FormSection>
+
+        <FormSection>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <FormField
+              label="Coleção (opcional)"
+              id="collection_id"
+              name="collection_id"
+              value={formData.collection_id || ''}
+              onChange={handleChange}
+              options={collections.map((collection) => ({
+                value: collection.id,
+                label: collection.name
+              }))}
+            />
+          </div>
         </FormSection>
 
         {/* Segunda linha: 4 campos */}
@@ -68,10 +129,10 @@ export default function JewelryForm() {
             name="reference_name"
             value={formData.reference_name}
             onChange={handleChange}
-            placeholder="Automatico"
+            placeholder={formData.collection_id ? 'Digite a referência' : 'Automatico'}
             required
-            readOnly
-            title="Gerado automaticamente ao selecionar a categoria"
+            readOnly={!formData.collection_id}
+            title={formData.collection_id ? 'Editável para joias em coleção' : 'Gerado automaticamente ao selecionar a categoria'}
           />
           <FormField
             label="Categoria"
@@ -208,6 +269,7 @@ export default function JewelryForm() {
           onAddStone={addStone}
           onRemoveStone={removeStone}
           onStoneChange={handleStoneChange}
+          saveSignal={stoneSaveSignal}
         />
 
         {/* Botões de Ação */}

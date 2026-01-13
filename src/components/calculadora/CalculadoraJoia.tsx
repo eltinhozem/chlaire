@@ -1,6 +1,6 @@
 import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Plus, Clock3, RefreshCw, Check, Edit2, Gem, ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
+import { Plus, Clock3, RefreshCw, Check, Edit2, Gem, ChevronUp, ChevronDown, Trash2, FileText } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { PrimaryButton } from '../buttons/PrimaryButton'
 import { SecondaryButton } from '../buttons/SecondaryButton'
@@ -18,7 +18,8 @@ import {
   fetchGoldQuoteInBrlPerGram,
   ctToMm,
   mmToCt,
-  ptsToCt
+  ptsToCt,
+  findConversionByMm
 } from './utils'
 import {
   PageContainer,
@@ -289,6 +290,9 @@ export default function CalculadoraJoia() {
 
   // Pedras
   const [stones, setStones] = useState<Stone[]>([createEmptyStone()])
+  const [txtFolderCode, setTxtFolderCode] = useState<string>('')
+  const [parsedWidth, setParsedWidth] = useState<number | null>(null)
+  const [parsedHeight, setParsedHeight] = useState<number | null>(null)
 
   // Controles de edição
   const [pricingLoading, setPricingLoading] = useState(true)
@@ -531,8 +535,25 @@ export default function CalculadoraJoia() {
         const content = await file.text()
         const parsed = parseTxtData(content)
 
+        const pathParts = (file.webkitRelativePath || file.name).split(/[/\\]/).filter(Boolean)
+        const folderFromPath = pathParts.length > 1 ? pathParts[pathParts.length - 2] : ''
+        const fileBase = file.name.replace(/\.[^.]+$/, '')
+        setTxtFolderCode(folderFromPath || fileBase)
+
         if (parsed.weight && parsed.weight > 0) {
           setGoldWeight(parsed.weight)
+        }
+
+        if (parsed.width && parsed.width > 0) {
+          setParsedWidth(parsed.width)
+        } else {
+          setParsedWidth(null)
+        }
+
+        if (parsed.height && parsed.height > 0) {
+          setParsedHeight(parsed.height)
+        } else {
+          setParsedHeight(null)
         }
 
         if (parsed.stones.length > 0) {
@@ -769,6 +790,78 @@ export default function CalculadoraJoia() {
     totalValue
   ])
 
+  const handleExportDescriptionPdf = useCallback(async () => {
+    let jsPDFLib: any;
+    try {
+      ({ jsPDF: jsPDFLib } = await import('jspdf'));
+    } catch (error) {
+      console.error('Erro ao carregar jsPDF:', error);
+      alert('Não foi possível carregar o gerador de PDF.');
+      return;
+    }
+
+    const pdf = new jsPDFLib({ unit: 'pt', format: 'a4' })
+    const left = 48
+    let y = 60
+    const line = (text: string, size = 12, gap = 12) => {
+      pdf.setFontSize(size)
+      const lines = pdf.splitTextToSize(text, 520)
+      pdf.text(lines, left, y)
+      y += lines.length * (size + 2) + gap - 2
+    }
+    const bullet = (text: string) => line(`• ${text}`, 12, 6)
+
+    const codigo = txtFolderCode || '-'
+    const pesoMedio = `${goldWeight.toFixed(2)} g`
+    const largura = parsedWidth ? `${parsedWidth.toFixed(2)} mm` : '-'
+    const altura = parsedHeight ? `${parsedHeight.toFixed(2)} mm` : '-'
+
+    const stoneSummary = stones.length
+      ? stones.map((s) => `${s.quantity} de ${s.sizeMm.toFixed(1)}mm`).join(' / ')
+      : 'Sem pedras'
+
+    const totalPoints = stones.reduce((sum, s) => {
+      const conv = findConversionByMm(s.sizeMm)
+      return sum + (conv?.points || 0) * s.quantity
+    }, 0)
+    const totalCt = stones.reduce((sum, s) => sum + (s.ct || 0) * s.quantity, 0)
+
+    const pontosDiamante = `Total de ${totalPoints.toFixed(2)} pontos`
+    const pesoMedioDiamantes = `Média de ${totalCt.toFixed(3)} ct`
+
+    pdf.setFontSize(18)
+    pdf.text('Descrição e Composição', left, y)
+    y += 28
+
+    pdf.setFontSize(13)
+    pdf.text('Gravação personalizada gratuita', left, y)
+    y += 18
+    pdf.text('Frete grátis para todo o Brasil', left, y)
+    y += 28
+
+    pdf.setFontSize(16)
+    pdf.text('Ficha Técnica – Anel Solitário Ouro 18k', left, y)
+    y += 22
+
+    bullet('Produto: Anel Solitário')
+    bullet('Garantia: 12 meses')
+    bullet('Sugestão: Para Ela')
+    bullet('Ouro: Amarelo 18K 750')
+    bullet('Personalize: A escolha do comprador: Ouro Branco / Ouro Amarelo / Ouro Rose, todos em 18K 750')
+    bullet(`Cód.: ${codigo}`)
+    bullet('Pedras: Diamantes')
+    bullet(`Peso Médio: ${pesoMedio}`)
+    bullet(`Largura: ${largura}`)
+    bullet(`Altura: ${altura}`)
+    bullet(`Número de Pedras: ${stoneSummary}`)
+    bullet(`Pontuação do Diamante: ${pontosDiamante}`)
+    bullet(`Peso Médio Diamantes: ${pesoMedioDiamantes}, de acordo com a numeração feminina`)
+    bullet('Observação: Valor referente ao par de alianças. Imagens meramente ilustrativas. Todas as medidas são aproximadas e podem variar de acordo com a produção.')
+
+    const fileName = `descricao-${codigo || 'joia'}.pdf`
+    pdf.save(fileName)
+  }, [txtFolderCode, goldWeight, parsedWidth, parsedHeight, stones])
+
   const gold18kFromQuote = goldQuote1000 > 0 ? (goldQuote1000 * 0.75 ).toFixed(2) : '0.00'
 
   return (
@@ -792,6 +885,10 @@ export default function CalculadoraJoia() {
           </SecondaryButton>
           <SecondaryButton type="button" onClick={() => setShowBaseCalc((prev) => !prev)}>
             {showBaseCalc ? 'Ocultar cálculo base' : 'Calculo base'}
+          </SecondaryButton>
+          <SecondaryButton type="button" onClick={handleExportDescriptionPdf} disabled={pricingLoading}>
+            <FileText size={16} style={{ marginRight: 6 }} />
+            PDF Descrição
           </SecondaryButton>
           <input
             ref={importInputRef}

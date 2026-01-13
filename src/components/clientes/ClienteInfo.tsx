@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { PrimaryButton, SecondaryButton, DangerButton } from '../buttons'
 import type { Cliente, FingerKey, HandSide, NumeracaoDedos, SpecialDate } from './types'
+import { categoryOptions } from '../form/formOptions'
+import { Stone as JewelryStone } from '../pedra/types'
 import {
   ClienteContainer,
   FormSection,
@@ -20,6 +22,11 @@ import {
   EmptyState
 } from './styles'
 
+const CATEGORY_LABEL_MAP = categoryOptions.reduce<Record<string, string>>((acc, item) => {
+  acc[item.value] = item.label
+  return acc
+}, {})
+
 type Jewelry = {
   id: string
   reference_name?: string
@@ -27,6 +34,8 @@ type Jewelry = {
   rota?: string
   created_at?: string
   image_url?: string | null
+  collection_id?: string | null
+  collection?: { id: string; name: string } | null
   stones?: unknown
   [key: string]: unknown
 }
@@ -132,6 +141,28 @@ const normalizeSpecialDates = (value: unknown): SpecialDate[] => {
   return []
 }
 
+const parseStonesField = (value: unknown): JewelryStone[] => {
+  if (!value) return []
+  if (typeof value === 'string') {
+    try {
+      return parseStonesField(JSON.parse(value))
+    } catch {
+      return []
+    }
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => item as JewelryStone)
+      .filter((item) => item && typeof item === 'object')
+  }
+  if (typeof value === 'object') {
+    return [value as JewelryStone]
+  }
+  return []
+}
+
+const formatCategory = (category?: string) => CATEGORY_LABEL_MAP[category || ''] || category || '-'
+
 export default function ClienteInfo() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -146,6 +177,18 @@ export default function ClienteInfo() {
   const birth = formatDate(cliente?.data_nascimento)
   const age = birth ? calculateAge(birth.date) : null
   const specialDates = useMemo(() => normalizeSpecialDates(cliente?.datas_especiais), [cliente])
+  const sortedJoias = useMemo(() => {
+    return [...joias].sort((a, b) => {
+      const aHasCollection = Boolean(a.collection_id);
+      const bHasCollection = Boolean(b.collection_id);
+      if (aHasCollection !== bHasCollection) {
+        return aHasCollection ? -1 : 1;
+      }
+      const aDate = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bDate - aDate;
+    });
+  }, [joias]);
 
   useEffect(() => {
     const load = async () => {
@@ -181,7 +224,7 @@ export default function ClienteInfo() {
 
         const { data: joiasData, error: joiasError } = await supabase
           .from('jewelry')
-          .select('*')
+          .select('*, collection:collections(id,name)')
           .ilike('client_name', name)
           .order('created_at', { ascending: false })
 
@@ -425,11 +468,27 @@ export default function ClienteInfo() {
           <EmptyState>Sem joias registradas para este cliente.</EmptyState>
         ) : (
           <JewelryGrid>
-            {joias.map((joia) => (
-              <JewelryCard key={joia.id} type="button" onClick={() => navigate('/info', { state: { product: joia } })}>
+            {sortedJoias.map((joia) => (
+              <JewelryCard
+                key={joia.id}
+                type="button"
+                $highlight={Boolean(joia.collection_id)}
+                onClick={() => navigate('/info', { state: { product: joia } })}
+              >
                 <JewelryTitle>{joia.reference_name || 'Joia'}</JewelryTitle>
                 <JewelryMeta>
-                  {joia.category && <span>Categoria: {joia.category}</span>}
+                  {joia.collection?.name && <span>Coleção: {joia.collection.name}</span>}
+                  {joia.category && <span>Categoria: {formatCategory(joia.category)}</span>}
+                  {parseStonesField(joia.stones)
+                    .map((stone) => stone?.stone_type)
+                    .filter(Boolean)
+                    .reduce<string[]>((acc, current) => {
+                      if (current && !acc.includes(current)) acc.push(current)
+                      return acc
+                    }, [])
+                    .map((stoneType, idx) => (
+                      <span key={`${stoneType}-${idx}`}>Pedra: {stoneType}</span>
+                    ))}
                   {joia.rota && <span>Rota: {joia.rota}</span>}
                   {joia.created_at && <span>Criado em: {formatJewelryDate(joia.created_at)}</span>}
                 </JewelryMeta>

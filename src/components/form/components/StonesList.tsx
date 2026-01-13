@@ -10,13 +10,15 @@ interface StonesListProps {
   onAddStone: () => void;
   onRemoveStone: (index: number) => void;
   onStoneChange: (index: number, stone: Stone) => void;
+  saveSignal?: number;
 }
 
 const StonesList: React.FC<StonesListProps> = ({ 
   stones, 
   onAddStone, 
   onRemoveStone, 
-  onStoneChange 
+  onStoneChange,
+  saveSignal = 0
 }) => {
   return (
     <>
@@ -35,7 +37,8 @@ const StonesList: React.FC<StonesListProps> = ({
             stone={stone}
             onRemove={onRemoveStone}
             onChange={(updatedStone) => onStoneChange(index, updatedStone)}
-            onSave={() => {}}
+            onSave={(updatedStone) => onStoneChange(index, updatedStone)}
+            saveSignal={saveSignal}
           />
         ))}
       </StoneSection>

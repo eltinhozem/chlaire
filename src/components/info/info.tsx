@@ -19,6 +19,26 @@ export default function Info() {
   const location = useLocation();
   const navigate = useNavigate();
   const product = location.state?.product;
+  const normalizeStones = (value: unknown): Stone[] => {
+    if (!value) return [];
+    if (typeof value === 'string') {
+      try {
+        return normalizeStones(JSON.parse(value));
+      } catch {
+        return [];
+      }
+    }
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => item as Stone)
+        .filter((item) => item && typeof item === 'object');
+    }
+    if (typeof value === 'object') {
+      return [value as Stone];
+    }
+    return [];
+  };
+  const stones = normalizeStones(product?.stones);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState('');
@@ -232,14 +252,14 @@ export default function Info() {
       </div>
 
       {/* Stones Section */}
-      {product.stones && product.stones.length > 0 && (
+      {stones.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
             <Ruler className="text-amber-600" size={24} />
             Pedras
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {product.stones.map((stone: Stone, index: number) => (
+            {stones.map((stone: Stone, index: number) => (
               <div
                 key={index}
                 className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-amber-500"
@@ -295,7 +315,7 @@ export default function Info() {
         <CustomButton
           onClick={() =>
             navigate('/calcular-joia', {
-              state: { product }
+              state: { product: { ...product, stones } }
             })
           }
           className="inline-flex items-center gap-2"
@@ -306,7 +326,7 @@ export default function Info() {
         <CustomButton
           onClick={() =>
             navigate('/register', {
-              state: { product, stones: product.stones }
+              state: { product: { ...product, stones }, stones }
             })
           }
           className="inline-flex items-center gap-2"

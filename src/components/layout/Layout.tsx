@@ -8,7 +8,8 @@ import {
   ShoppingBag,
   Calculator,
   ClipboardList,
-  UserCog
+  UserCog,
+  LayoutDashboard
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../../lib/supabase'
@@ -52,6 +53,7 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
 
   const menuItems = useMemo<MenuItem[]>(() => {
     const items: MenuItem[] = [
+      { label: 'Painel de gestão', to: '/painel-gestao', icon: LayoutDashboard },
       { label: 'Lista Clientes', to: '/cadastro-clientes', icon: Users },
       {
         label: 'Pedidos',

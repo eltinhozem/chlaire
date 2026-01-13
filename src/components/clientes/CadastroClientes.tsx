@@ -27,6 +27,14 @@ import {
   SearchContainer,
   SearchInput,
   SearchIcon,
+  FilterPanel,
+  FilterRow,
+  FilterLabel,
+  FilterActionButton,
+  MonthPickerBox,
+  MonthGrid,
+  MonthButton,
+  FilterToggleButton,
   FingerToggle,
   FingerToggleInput,
   HandsGrid,
@@ -49,6 +57,7 @@ import {
   HandSide,
   SpecialDate
 } from './types';
+import { supabase } from '../../lib/supabase';
 import { useClientes } from './hooks/useClientes';
 import FormField from '../form/components/FormField';
 import { PrimaryButton, SecondaryButton } from '../buttons';
@@ -181,8 +190,12 @@ export default function CadastroClientes() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
   const [birthMonthFilter, setBirthMonthFilter] = useState('');
-  const [estadoCivilFilter, setEstadoCivilFilter] = useState('');
+  const [estadoCivilFilter, setEstadoCivilFilter] = useState<'' | 'casado' | 'solteiro'>('');
+  const [collectionFilter, setCollectionFilter] = useState('');
+  const [collections, setCollections] = useState<{ id: string; name: string }[]>([]);
+  const [collectionClientNames, setCollectionClientNames] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [showFingerSizing, setShowFingerSizing] = useState(false);
   const [fingerSizes, setFingerSizes] = useState<NumeracaoDedos>(createEmptyFingerSizes());
   const [specialDates, setSpecialDates] = useState<SpecialDate[]>([]);
@@ -229,6 +242,51 @@ export default function CadastroClientes() {
   useEffect(() => {
     setFilteredClientes(clientes);
   }, [clientes]);
+
+  useEffect(() => {
+    const loadCollections = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('collections')
+          .select('id,name')
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+        setCollections((data || []) as { id: string; name: string }[]);
+      } catch (error) {
+        console.error('Erro ao carregar coleções:', error);
+      }
+    };
+
+    loadCollections();
+  }, []);
+
+  useEffect(() => {
+    const loadCollectionClients = async () => {
+      if (!collectionFilter) {
+        setCollectionClientNames(new Set());
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('jewelry')
+          .select('client_name')
+          .eq('collection_id', collectionFilter);
+
+        if (error) throw error;
+        const names = (data || [])
+          .map((item) => (item?.client_name || '').trim().toLowerCase())
+          .filter(Boolean);
+        setCollectionClientNames(new Set(names));
+      } catch (error) {
+        console.error('Erro ao filtrar coleção:', error);
+        setCollectionClientNames(new Set());
+      }
+    };
+
+    loadCollectionClients();
+  }, [collectionFilter]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -429,8 +487,32 @@ export default function CadastroClientes() {
     if (estadoCivilFilter) {
       if ((cliente.estado_civil || '') !== estadoCivilFilter) return false;
     }
+    if (collectionFilter) {
+      const name = cliente.nome.trim().toLowerCase();
+      if (!collectionClientNames.has(name)) return false;
+    }
     return true;
   });
+  const estadoCivilLabel = estadoCivilFilter === 'casado'
+    ? 'Casado'
+    : estadoCivilFilter === 'solteiro'
+      ? 'Solteiro'
+      : 'Estado civil';
+  const estadoCivilState = estadoCivilFilter || 'none';
+  const cycleEstadoCivil = () => {
+    setEstadoCivilFilter((prev) => {
+      if (!prev) return 'casado';
+      if (prev === 'casado') return 'solteiro';
+      return '';
+    });
+  };
+  const selectedMonthLabel = birthMonthOptions.find((month) => month.value === birthMonthFilter)?.label;
+  const clearFilters = () => {
+    setBirthMonthFilter('');
+    setEstadoCivilFilter('');
+    setCollectionFilter('');
+    setShowMonthPicker(false);
+  };
 
   return (
     <ClienteContainer>
@@ -445,7 +527,14 @@ export default function CadastroClientes() {
         <PageActions>
           {activeTab === 'lista' ? (
             <>
-              <HeaderButtonSecondary type="button" onClick={() => setShowFilters((prev) => !prev)}>
+              <HeaderButtonSecondary
+                type="button"
+                onClick={() => setShowFilters((prev) => {
+                  const next = !prev;
+                  if (!next) setShowMonthPicker(false);
+                  return next;
+                })}
+              >
                 {showFilters ? 'Ocultar filtros' : 'Filtrar'}
               </HeaderButtonSecondary>
               <HeaderButtonPrimary type="button" onClick={handleNewCliente}>
@@ -763,6 +852,59 @@ export default function CadastroClientes() {
         </form>
       ) : (
         <>
+          {showFilters && (
+            <FilterPanel>
+              <FilterRow>
+                <div style={{ minWidth: 220, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <FilterLabel>Aniversário</FilterLabel>
+                  <FilterActionButton
+                    type="button"
+                    onClick={() => setShowMonthPicker((prev) => !prev)}
+                  >
+                    {selectedMonthLabel || 'Selecionar mês'}
+                  </FilterActionButton>
+                </div>
+                <div style={{ minWidth: 220, flex: 1 }}>
+                  <FormField
+                    label="Coleção"
+                    id="filtro-colecao"
+                    name="filtro-colecao"
+                    value={collectionFilter}
+                    onChange={(e) => setCollectionFilter(e.target.value)}
+                    options={collections.map((collection) => ({
+                      value: collection.id,
+                      label: collection.name
+                    }))}
+                  />
+                </div>
+                <FilterToggleButton type="button" $state={estadoCivilState} onClick={cycleEstadoCivil}>
+                  {estadoCivilLabel}
+                </FilterToggleButton>
+                <FilterActionButton type="button" onClick={clearFilters}>
+                  Limpar filtros
+                </FilterActionButton>
+              </FilterRow>
+              {showMonthPicker && (
+                <MonthPickerBox>
+                  <MonthGrid>
+                    {birthMonthOptions.map((month) => (
+                      <MonthButton
+                        key={month.value}
+                        type="button"
+                        $active={birthMonthFilter === month.value}
+                        onClick={() => {
+                          setBirthMonthFilter((prev) => (prev === month.value ? '' : month.value));
+                          setShowMonthPicker(false);
+                        }}
+                      >
+                        {month.label}
+                      </MonthButton>
+                    ))}
+                  </MonthGrid>
+                </MonthPickerBox>
+              )}
+            </FilterPanel>
+          )}
           <SearchContainer>
             <SearchInput
               type="text"
@@ -774,26 +916,6 @@ export default function CadastroClientes() {
               <Search size={16} />
             </SearchIcon>
           </SearchContainer>
-          {showFilters && (
-            <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: '1.5rem' }}>
-              <FormField
-                label="Aniversário (mês)"
-                id="filtro-mes-aniversario"
-                name="filtro-mes-aniversario"
-                value={birthMonthFilter}
-                onChange={(e) => setBirthMonthFilter(e.target.value)}
-                options={birthMonthOptions}
-              />
-              <FormField
-                label="Estado civil"
-                id="filtro-estado-civil"
-                name="filtro-estado-civil"
-                value={estadoCivilFilter}
-                onChange={(e) => setEstadoCivilFilter(e.target.value)}
-                options={estadoCivilOptions}
-              />
-            </FormGrid>
-          )}
 
           {loading ? (
             <p>Carregando...</p>

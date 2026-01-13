@@ -112,6 +112,111 @@ export const SearchIcon = styled.span`
   pointer-events: none;
 `;
 
+export const FilterPanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--white-card);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 2px 8px var(--card-shadow);
+`;
+
+export const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+`;
+
+export const FilterLabel = styled.span`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-text);
+`;
+
+export const FilterActionButton = styled.button`
+  padding: 0.55rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--cream-bg);
+  color: var(--primary-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+`;
+
+export const MonthPickerBox = styled.div`
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--white-card);
+  padding: 0.5rem;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
+  width: fit-content;
+  max-width: 100%;
+`;
+
+export const MonthGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 60px);
+  gap: 0.5rem;
+  justify-content: start;
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(3, 60px);
+  }
+`;
+
+export const MonthButton = styled.button<{ $active?: boolean }>`
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+  border: 1px solid ${({ $active }) => ($active ? 'rgba(197, 160, 89, 0.7)' : 'var(--card-border)')};
+  background: ${({ $active }) => ($active ? 'rgba(250, 238, 212, 0.9)' : 'var(--cream-bg)')};
+  color: var(--primary-text);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+`;
+
+export const FilterToggleButton = styled.button<{ $state?: 'none' | 'casado' | 'solteiro' }>`
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  background: ${({ $state }) => {
+    if ($state === 'casado') return '#d1fae5';
+    if ($state === 'solteiro') return '#dbeafe';
+    return '#f3f4f6';
+  }};
+  color: var(--primary-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  }
+`;
+
 export const FormGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -308,12 +413,12 @@ export const JewelryGrid = styled.div`
   gap: 0.75rem;
 `;
 
-export const JewelryCard = styled.button`
+export const JewelryCard = styled.button<{ $highlight?: boolean }>`
   text-align: left;
   padding: 0.85rem;
   border-radius: 10px;
-  border: 1px solid var(--card-border);
-  background: var(--white-card);
+  border: 1px solid ${({ $highlight }) => ($highlight ? 'rgba(197, 160, 89, 0.6)' : 'var(--card-border)')};
+  background: ${({ $highlight }) => ($highlight ? 'rgba(250, 238, 212, 0.6)' : 'var(--white-card)')};
   color: var(--primary-text);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease,

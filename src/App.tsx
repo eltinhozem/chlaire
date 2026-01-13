@@ -15,6 +15,7 @@ import CalculadoraJoia from './components/calculadora/CalculadoraJoia'
 import CadastroClientes from './components/clientes/CadastroClientes'
 import Usuarios from './components/usuarios/Usuarios'
 import ClienteInfo from './components/clientes/ClienteInfo'
+import PainelGestao from './components/gestao/PainelGestao'
 
 // Rota privada: só permite acesso se houver sessão
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -181,6 +182,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <CadastroClientes />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="painel-gestao"
+              element={
+                <PrivateRoute>
+                  <PainelGestao />
                 </PrivateRoute>
               }
             />

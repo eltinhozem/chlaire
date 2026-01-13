@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { MinusCircle } from 'lucide-react';
 import { Stone, PedraProps } from './types';
 import { usePedraLogic } from './usePedraLogic';
@@ -18,7 +18,7 @@ import {
   SaveButton,
 } from './styles';
 
-const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave }) => {
+const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave, saveSignal = 0 }) => {
   const {
     tipo,
     lapidacao,
@@ -40,6 +40,7 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
     handleSave,
     handleEdit,
   } = usePedraLogic(stone);
+  const hasMounted = useRef(false);
 
   const tiposDePedra = [
     'Diamante', 'Safira', 'Rubi', 'Esmeralda', 'Topázio', 'Ametista', 'Turmalina', 'Opala', 'Pérola', 'Granada',
@@ -71,6 +72,16 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
   const handleEditClick = () => {
     handleEdit();
   };
+
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    const updatedStone = updateStone();
+    handleSave();
+    onSave(updatedStone);
+  }, [saveSignal]);
 
   // Determina se o campo altura é obrigatório
   const isAlturaRequired = lapidacao !== 'Redonda';
@@ -153,6 +164,7 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave 
                 <option value="Princesa">Princesa</option>
                 <option value="Almofada">Esmeralda quadrada</option>
                 <option value="Coração">Coração</option>
+                <option value="Baguete">Baguete</option>
                 <option value="Outra">Outra</option>
               </Select>
             </div>

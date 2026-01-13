@@ -16,6 +16,7 @@ export interface Stone {
     onRemove: (index: number) => void;
     onChange: (updatedStone: Stone) => void;
     onSave: (updatedStone: Stone) => void;
+    saveSignal?: number;
   }
   
   export interface PedraLogic {

@@ -25,6 +25,7 @@ interface JewelryFormData {
   descricao: string;
   stones: Stone[];
   image_url?: string;
+  collection_id?: string | null;
 }
 
 const ROTA_PATTERN = /^[0-9]{2}-[0-9]{2}$/;
@@ -82,13 +83,37 @@ export const useFormLogic = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const product = location.state?.product;
+  const normalizeStones = (value: unknown): Stone[] => {
+    if (!value) return [];
+    if (typeof value === 'string') {
+      try {
+        return normalizeStones(JSON.parse(value));
+      } catch {
+        return [];
+      }
+    }
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => item as Stone)
+        .filter((item) => item && typeof item === 'object');
+    }
+    if (typeof value === 'object') {
+      return [value as Stone];
+    }
+    return [];
+  };
 
   const [loading, setLoading] = useState(false);
-  const [stones, setStones] = useState<Stone[]>(product?.stones || []);
+  const [stones, setStones] = useState<Stone[]>(normalizeStones(product?.stones));
+  const [stoneSaveSignal, setStoneSaveSignal] = useState(0);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(
     product?.image_url || ''
   );
+  const [collections, setCollections] = useState<{ id: string; name: string }[]>([]);
+  const [collectionLoading, setCollectionLoading] = useState(false);
+  const [showNewCollection, setShowNewCollection] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState('');
 
   const [formData, setFormData] = useState<JewelryFormData>({
     id: product?.id,
@@ -107,8 +132,9 @@ export const useFormLogic = () => {
     date: product?.date || new Date().toISOString().split('T')[0],
     observations: product?.observations || '',
     descricao: product?.descricao || '',
-    stones: product?.stones || [],
-    image_url: product?.image_url || ''
+    stones: normalizeStones(product?.stones),
+    image_url: product?.image_url || '',
+    collection_id: product?.collection_id || ''
   });
 
   useEffect(() => {
@@ -131,12 +157,73 @@ export const useFormLogic = () => {
         observations: product.observations,
         descricao: product.descricao,
         stones: product.stones,
-        image_url: product.image_url
+        image_url: product.image_url,
+        collection_id: product.collection_id || ''
       });
-      setStones(product.stones || []);
+      setStones(normalizeStones(product.stones));
       setImagePreviewUrl(product.image_url || '');
     }
   }, [product]);
+
+  useEffect(() => {
+    const loadCollections = async () => {
+      try {
+        setCollectionLoading(true);
+        const { data, error } = await supabase
+          .from('collections')
+          .select('id,name')
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+        setCollections((data || []) as { id: string; name: string }[]);
+      } catch (error) {
+        console.error('Erro ao carregar coleções:', error);
+      } finally {
+        setCollectionLoading(false);
+      }
+    };
+
+    loadCollections();
+  }, []);
+
+  const createCollection = async () => {
+    const trimmedName = newCollectionName.trim();
+    if (!trimmedName) return;
+
+    const existing = collections.find(
+      (collection) => collection.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (existing) {
+      setFormData((prev) => ({ ...prev, collection_id: existing.id }));
+      setShowNewCollection(false);
+      setNewCollectionName('');
+      return;
+    }
+
+    try {
+      setCollectionLoading(true);
+      const { data, error } = await supabase
+        .from('collections')
+        .insert([{ name: trimmedName }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setCollections((prev) =>
+          [...prev, data].sort((a, b) => a.name.localeCompare(b.name))
+        );
+        setFormData((prev) => ({ ...prev, collection_id: data.id }));
+      }
+      setShowNewCollection(false);
+      setNewCollectionName('');
+    } catch (error) {
+      console.error('Erro ao salvar coleção:', error);
+      alert('Não foi possível salvar a coleção.');
+    } finally {
+      setCollectionLoading(false);
+    }
+  };
 
   const handleImageChange = async (file: File) => {
     try {
@@ -216,8 +303,13 @@ export const useFormLogic = () => {
 
   // (Sem upload por pasta) — simplificado conforme solicitado
 
+  const saveAllStones = () => {
+    setStoneSaveSignal((prev) => prev + 1);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    saveAllStones();
     setLoading(true);
 
     try {
@@ -260,7 +352,8 @@ export const useFormLogic = () => {
         rota: normalizedRota,
         stones,
         image_url,
-        user_id: user.id
+        user_id: user.id,
+        collection_id: formData.collection_id || null
       };
 
       if (!payload.id) {
@@ -342,13 +435,14 @@ export const useFormLogic = () => {
   };
 
   const addStone = () => {
-    setStones([
-      ...stones,
+    saveAllStones();
+    setStones((prev) => [
       {
         stone_type: '',
         cut: 'Redonda',
         quantity: 1
-      }
+      },
+      ...prev
     ]);
   };
 
@@ -373,6 +467,15 @@ export const useFormLogic = () => {
     addStone,
     removeStone,
     handleStoneChange,
-    isEditing: !!product
+    saveAllStones,
+    stoneSaveSignal,
+    isEditing: !!product,
+    collections,
+    collectionLoading,
+    showNewCollection,
+    setShowNewCollection,
+    newCollectionName,
+    setNewCollectionName,
+    createCollection
   };
 };

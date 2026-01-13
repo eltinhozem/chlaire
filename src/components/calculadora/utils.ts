@@ -23,12 +23,18 @@ export const parseTxtData = (
   content: string
 ): {
   weight?: number
+  width?: number
+  height?: number
   stones: Array<{ quantity: number; sizeMm: number }>
 } => {
   const normalized = content.replace(/\r/g, '')
 
   const weightMatch = normalized.match(/PESO\s*:\s*([\d.,]+)/i)
   const weight = weightMatch ? parseNumber(weightMatch[1]) || undefined : undefined
+  const widthMatch = normalized.match(/LARGURA\s*:\s*([\d.,]+)/i)
+  const width = widthMatch ? parseNumber(widthMatch[1]) || undefined : undefined
+  const heightMatch = normalized.match(/ALTURA\s*:\s*([\d.,]+)/i)
+  const height = heightMatch ? parseNumber(heightMatch[1]) || undefined : undefined
 
   const stones: Array<{ quantity: number; sizeMm: number }> = []
   const diamondMatches = [...normalized.matchAll(/DIAMANTE\s*:\s*([^\n]+)/gi)]
@@ -44,7 +50,7 @@ export const parseTxtData = (
     })
   })
 
-  return { weight, stones }
+  return { weight, width, height, stones }
 }
 
 export const escapeHtml = (value: string): string => {
@@ -128,3 +134,6 @@ export const mmToCt = (mm: number): number => {
 }
 
 export const ptsToCt = (points: number): number => pointsToCt(points)
+
+// Reexport para consumidores que usam utils como fachada
+export { findConversionByMm } from './stoneConversionTable'
