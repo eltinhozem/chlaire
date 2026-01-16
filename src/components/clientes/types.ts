@@ -25,6 +25,8 @@ export interface Cliente {
   updated_at: Date;
 }
 
+export type ClienteFormData = Omit<Cliente, 'id' | 'created_at' | 'updated_at'>;
+
 export interface SpecialDate {
   data: string;
   descricao: string;

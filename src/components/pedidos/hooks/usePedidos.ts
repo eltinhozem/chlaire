@@ -1,6 +1,28 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../lib/supabase';
-import { Pedido } from '../types';
+import type { AroConfig, Pedido, PedidoStone, ReferenciaModelo } from '../types';
+
+type PedidoDbRow = {
+  id: string;
+  codigo?: string | null;
+  imagem?: string | null;
+  imagens?: unknown;
+  nome_cliente?: string | null;
+  categoria?: string | null;
+  tamanho?: string | null;
+  descricao?: string | null;
+  aramado?: boolean | null;
+  galeria?: boolean | null;
+  para_render?: boolean | null;
+  tipo_ouro_render?: 'branco' | 'rose' | 'amarelo' | null;
+  data_created?: string | null;
+  data_prevista_entrega?: string | null;
+  stones?: PedidoStone[] | null;
+  referencia_modelo?: ReferenciaModelo | null;
+  aro_config?: AroConfig | null;
+  riscado?: boolean | null;
+  prioridade?: number | null;
+};
 
 export const usePedidos = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
@@ -19,26 +41,26 @@ export const usePedidos = () => {
     return [];
   };
 
-  const mapFromDb = (pedido: any): Pedido => ({
+  const mapFromDb = (pedido: PedidoDbRow): Pedido => ({
     id: pedido.id,
-    codigo: pedido.codigo,
-    imagem: pedido.imagem,
-    imagens: normalizeImagens(pedido.imagens, pedido.imagem),
-    nomeCliente: pedido.nome_cliente,
-    categoria: pedido.categoria,
-    tamanho: pedido.tamanho,
-    descricao: pedido.descricao,
-    aramado: pedido.aramado,
-    galeria: pedido.galeria,
-    paraRender: pedido.para_render,
+    codigo: pedido.codigo ?? undefined,
+    imagem: pedido.imagem ?? undefined,
+    imagens: normalizeImagens(pedido.imagens, pedido.imagem ?? undefined),
+    nomeCliente: pedido.nome_cliente ?? '',
+    categoria: pedido.categoria ?? '',
+    tamanho: pedido.tamanho ?? '',
+    descricao: pedido.descricao ?? '',
+    aramado: Boolean(pedido.aramado),
+    galeria: Boolean(pedido.galeria),
+    paraRender: Boolean(pedido.para_render),
     tipoOuroRender: pedido.tipo_ouro_render ?? null,
     dataCreated: pedido.data_created ? new Date(pedido.data_created) : new Date(),
     dataPrevistaEntrega: pedido.data_prevista_entrega ? new Date(pedido.data_prevista_entrega) : undefined,
-    stones: pedido.stones || [],
-    referenciaModelo: pedido.referencia_modelo || { rota: '', cliente: '' },
-    aroConfig: pedido.aro_config || undefined,
-    riscado: pedido.riscado,
-    prioridade: pedido.prioridade
+    stones: pedido.stones ?? [],
+    referenciaModelo: pedido.referencia_modelo ?? { rota: '', cliente: '' },
+    aroConfig: pedido.aro_config ?? undefined,
+    riscado: Boolean(pedido.riscado),
+    prioridade: pedido.prioridade ?? 0
   });
 
   const buildDbPayload = (

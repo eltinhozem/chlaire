@@ -1,57 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search } from 'lucide-react';
 import { 
   ClienteContainer,
   ClienteTitle,
   PageHeader,
   PageActions,
   HeaderButtonPrimary,
-  HeaderButtonSecondary,
-  FormGrid,
-  FormSection,
-  SectionTitle,
-  ClientesList,
-  ClienteCard,
-  ClienteHeader,
-  ClienteAvatar,
-  ClienteInfo,
-  ClienteInfoHeader,
-  ClienteNome,
-  ClienteEmail,
-  ClienteDetails,
-  ClienteDetailItem,
-  ClienteDetailLabel,
-  ClienteDetailValue,
-  InstaButton,
-  SearchContainer,
-  SearchInput,
-  SearchIcon,
-  FilterPanel,
-  FilterRow,
-  FilterLabel,
-  FilterActionButton,
-  MonthPickerBox,
-  MonthGrid,
-  MonthButton,
-  FilterToggleButton,
-  FingerToggle,
-  FingerToggleInput,
-  HandsGrid,
-  HandCard,
-  HandTitle,
-  HandImage,
-  FingerInputs,
-  FingerField,
-  FingerLabel,
-  FingerInput
+  HeaderButtonSecondary
 } from './styles';
 import { 
   Cliente, 
-  generoOptions, 
-  estadoCivilOptions, 
-  tipoPessoaOptions, 
-  origemCadastroOptions,
+  ClienteFormData,
   NumeracaoDedos,
   FingerKey,
   HandSide,
@@ -59,100 +18,19 @@ import {
 } from './types';
 import { supabase } from '../../lib/supabase';
 import { useClientes } from './hooks/useClientes';
-import FormField from '../form/components/FormField';
-import { PrimaryButton, SecondaryButton } from '../buttons';
-import MaoDireita from '../ReferenciasVisuais/dedos/maodi.svg';
-import MaoEsquerda from '../ReferenciasVisuais/dedos/maoes.svg';
-
-type FormData = Omit<Cliente, 'id' | 'created_at' | 'updated_at'>;
-
-const fingerLabels: { key: FingerKey; label: string }[] = [
-  { key: 'polegar', label: 'Polegar' },
-  { key: 'indicador', label: 'Indicador' },
-  { key: 'medio', label: 'Médio' },
-  { key: 'anelar', label: 'Anelar' },
-  { key: 'minimo', label: 'Mindinho' }
-];
-
-const handOptions: { key: HandSide; label: string; image: string }[] = [
-  { key: 'direita', label: 'Mão direita', image: MaoDireita },
-  { key: 'esquerda', label: 'Mão esquerda', image: MaoEsquerda }
-];
-
-const birthMonthOptions = [
-  { value: '01', label: 'Janeiro' },
-  { value: '02', label: 'Fevereiro' },
-  { value: '03', label: 'Março' },
-  { value: '04', label: 'Abril' },
-  { value: '05', label: 'Maio' },
-  { value: '06', label: 'Junho' },
-  { value: '07', label: 'Julho' },
-  { value: '08', label: 'Agosto' },
-  { value: '09', label: 'Setembro' },
-  { value: '10', label: 'Outubro' },
-  { value: '11', label: 'Novembro' },
-  { value: '12', label: 'Dezembro' }
-];
-
-const createEmptyFingerSizes = (): NumeracaoDedos => ({
-  direita: {
-    polegar: '',
-    indicador: '',
-    medio: '',
-    anelar: '',
-    minimo: ''
-  },
-  esquerda: {
-    polegar: '',
-    indicador: '',
-    medio: '',
-    anelar: '',
-    minimo: ''
-  }
-});
-
-const normalizeFingerSizes = (value: unknown): NumeracaoDedos => {
-  if (!value) return createEmptyFingerSizes();
-  if (typeof value === 'string') {
-    try {
-      return normalizeFingerSizes(JSON.parse(value));
-    } catch {
-      return createEmptyFingerSizes();
-    }
-  }
-  if (typeof value === 'object') {
-    const record = value as Partial<NumeracaoDedos>;
-    const empty = createEmptyFingerSizes();
-    return {
-      direita: { ...empty.direita, ...(record.direita || {}) },
-      esquerda: { ...empty.esquerda, ...(record.esquerda || {}) }
-    };
-  }
-  return createEmptyFingerSizes();
-};
-
-const hasFingerSizing = (sizes: NumeracaoDedos) =>
-  Object.values(sizes).some((hand) => Object.values(hand).some((value) => String(value).trim().length > 0));
-
-const normalizeSpecialDates = (value: unknown): SpecialDate[] => {
-  if (!value) return [];
-  if (typeof value === 'string') {
-    try {
-      return normalizeSpecialDates(JSON.parse(value));
-    } catch {
-      return [];
-    }
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => ({
-        data: item?.data || '',
-        descricao: item?.descricao || ''
-      }))
-      .filter((item) => item.data || item.descricao);
-  }
-  return [];
-};
+import { getBirthMonth } from '../../lib/dateUtils';
+import { birthMonthOptions } from './constants';
+import {
+  coerceFingerSizes,
+  createEmptyFingerSizes,
+  formatCPF,
+  formatPhone,
+  hasFingerSizing,
+  normalizeSpecialDates
+} from './utils';
+import CadastroClientesForm from './components/CadastroClientesForm';
+import ClientesListView from './components/ClientesListView';
+type FormData = ClienteFormData;
 
 const initialFormData: FormData = {
   nome: '',
@@ -205,7 +83,7 @@ export default function CadastroClientes() {
     if (clienteId) {
       const cliente = clientes.find(c => c.id === clienteId);
       if (cliente) {
-        const normalizedFingerSizes = normalizeFingerSizes(cliente.numeracao_dedos);
+        const normalizedFingerSizes = coerceFingerSizes(cliente.numeracao_dedos);
         const shouldShowFingerSizing = hasFingerSizing(normalizedFingerSizes);
         setFormData({
           nome: cliente.nome,
@@ -325,18 +203,25 @@ export default function CadastroClientes() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedName = formData.nome.trim();
+    if (!trimmedName) {
+      alert('Nome do cliente é obrigatório.');
+      return;
+    }
     setSubmitting(true);
 
     try {
       const payload = {
         ...formData,
+        nome: trimmedName,
         numeracao_dedos: showFingerSizing ? fingerSizes : null,
         datas_especiais: specialDates.length ? specialDates : null
       };
-      if (editingId) {
-        await updateCliente(editingId, payload);
-      } else {
-        await saveCliente(payload);
+      const result = editingId
+        ? await updateCliente(editingId, payload)
+        : await saveCliente(payload);
+      if (result?.error) {
+        throw result.error;
       }
       setFormData(initialFormData);
       setFingerSizes(createEmptyFingerSizes());
@@ -345,7 +230,9 @@ export default function CadastroClientes() {
       setEditingId(null);
       setActiveTab('lista');
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao salvar cliente.';
       console.error('Erro ao salvar cliente:', error);
+      alert(message);
     } finally {
       setSubmitting(false);
     }
@@ -364,33 +251,6 @@ export default function CadastroClientes() {
     navigate('/cadastro-clientes');
   };
 
-  const formatCPF = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 11) {
-      return numbers
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,2})/, '$1-$2');
-    }
-    return numbers
-      .replace(/(\d{2})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1/$2')
-      .replace(/(\d{4})(\d{1,2})/, '$1-$2');
-  };
-
-  const formatPhone = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    if (numbers.length <= 10) {
-      return numbers
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{4})(\d)/, '$1-$2');
-    }
-    return numbers
-      .replace(/(\d{2})(\d)/, '($1) $2')
-      .replace(/(\d{5})(\d)/, '$1-$2');
-  };
-
   const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const formatted = formatCPF(e.target.value);
     setFormData(prev => ({ ...prev, cpf: formatted }));
@@ -399,26 +259,6 @@ export default function CadastroClientes() {
   const handlePhoneChange = (field: 'telefone' | 'celular') => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const formatted = formatPhone(e.target.value);
     setFormData(prev => ({ ...prev, [field]: formatted }));
-  };
-
-  const formatDate = (value?: string) => {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return { date, label: `${day}/${month}/${year}` };
-  };
-
-  const calculateAge = (date: Date) => {
-    const today = new Date();
-    let age = today.getFullYear() - date.getFullYear();
-    const monthDiff = today.getMonth() - date.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
-      age -= 1;
-    }
-    return age;
   };
 
   const handleFingerToggle = (checked: boolean) => {
@@ -453,30 +293,6 @@ export default function CadastroClientes() {
     setEditingId(null);
     setActiveTab('cadastro');
     navigate('/cadastro-clientes');
-  };
-
-  const getInitials = (name: string) => {
-    const parts = name.split(' ').filter(Boolean);
-    const initials = parts.slice(0, 2).map((part) => part[0]).join('');
-    return initials.toUpperCase() || '-';
-  };
-
-  const getBirthMonth = (value?: string | null) => {
-    if (!value) return null;
-    const parts = value.split('-');
-    if (parts.length >= 2 && parts[1]) {
-      return parts[1].padStart(2, '0');
-    }
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
-    return String(date.getMonth() + 1).padStart(2, '0');
-  };
-
-  const buildWhatsAppLink = (rawPhone: string) => {
-    const digits = rawPhone.replace(/\D/g, '');
-    if (!digits) return '';
-    const shouldAddCountry = (digits.length === 10 || digits.length === 11) && !digits.startsWith('55');
-    return `https://wa.me/${shouldAddCountry ? `55${digits}` : digits}`;
   };
 
   const filteredByCriteria = filteredClientes.filter((cliente) => {
@@ -550,477 +366,52 @@ export default function CadastroClientes() {
       </PageHeader>
 
       {activeTab === 'cadastro' ? (
-        <form onSubmit={handleSubmit}>
-          <FormSection>
-            <SectionTitle>Dados Pessoais</SectionTitle>
-            <FormGrid style={{ gridTemplateColumns: '3fr 1fr', marginBottom: '1rem' }}>
-              <FormField
-                label="Nome Completo"
-                id="nome"
-                name="nome"
-                value={formData.nome}
-                onChange={handleChange}
-                required
-                placeholder="Nome do cliente"
-              />
-            <FormField
-              label="Data de Nascimento"
-              id="data_nascimento"
-              name="data_nascimento"
-              type="date"
-              value={formData.data_nascimento || ''}
-              onChange={handleChange}
-            />
-          </FormGrid>
-          <div style={{ gridColumn: '1 / -1', marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-              <button
-                type="button"
-                onClick={addSpecialDate}
-                style={{ padding: '0.35rem 0.75rem', borderRadius: 6, border: '1px solid #d1d5db', background: '#f9fafb', cursor: 'pointer' }}
-              >
-                + Datas Especiais
-              </button>
-              <span style={{ color: '#6b7280', fontSize: 14 }}>Cadastre datas importantes e o motivo</span>
-            </div>
-            {specialDates.length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {specialDates.map((item, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns: '160px 1fr 36px',
-                      gap: '0.5rem',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <input
-                      type="date"
-                      value={item.data}
-                      onChange={(e) => updateSpecialDate(idx, 'data', e.target.value)}
-                      style={{ padding: '0.55rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db' }}
-                    />
-                    <input
-                      type="text"
-                      value={item.descricao}
-                      placeholder="Ex: Aniversário de casamento"
-                      onChange={(e) => updateSpecialDate(idx, 'descricao', e.target.value)}
-                      style={{ padding: '0.55rem 0.75rem', borderRadius: 8, border: '1px solid #d1d5db' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeSpecialDate(idx)}
-                      style={{ border: '1px solid #ef4444', color: '#ef4444', background: 'white', borderRadius: 8, height: '100%' }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
-            <FormField
-              label="Gênero"
-              id="genero"
-              name="genero"
-                value={formData.genero || ''}
-                onChange={handleChange}
-                options={generoOptions}
-              />
-              <FormField
-                label="Estado Civil"
-                id="estado_civil"
-                name="estado_civil"
-                value={formData.estado_civil || ''}
-                onChange={handleChange}
-                options={estadoCivilOptions}
-              />
-            <FormField
-              label="Profissão/Ocupação"
-              id="profissao"
-              name="profissao"
-              value={formData.profissao || ''}
-              onChange={handleChange}
-              placeholder="Ex: Empresário"
-            />
-          </FormGrid>
-            {isCasado && (
-              <div style={{ marginBottom: '1rem' }}>
-                <FormField
-                  label="Cônjuge"
-                  id="conjuge_id"
-                  name="conjuge_id"
-                  value={formData.conjuge_id || ''}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, conjuge_id: e.target.value || null }))}
-                  options={spouseOptions}
-                />
-                {formData.conjuge_id && (
-                  <div style={{ marginTop: '0.5rem' }}>
-                    <SecondaryButton type="button" onClick={() => navigate(`/clientes/${formData.conjuge_id}`)}>
-                      Ver informações do cônjuge
-                    </SecondaryButton>
-                  </div>
-                )}
-              </div>
-            )}
-            <FormGrid style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '1rem' }}>
-              <FormField
-                label="Nacionalidade"
-                id="nacionalidade"
-                name="nacionalidade"
-                value={formData.nacionalidade || ''}
-                onChange={handleChange}
-                placeholder="Ex: Brasileira"
-              />
-              <FormField
-                label="Tipo de Pessoa"
-                id="tipo_pessoa"
-                name="tipo_pessoa"
-                value={formData.tipo_pessoa}
-                onChange={handleChange}
-                options={tipoPessoaOptions}
-                required
-              />
-              <FormField
-                label="CPF/CNPJ"
-                id="cpf"
-                name="cpf"
-                value={formData.cpf || ''}
-                onChange={handleCPFChange}
-                placeholder={formData.tipo_pessoa === 'fisica' ? '000.000.000-00' : '00.000.000/0000-00'}
-                maxLength={formData.tipo_pessoa === 'fisica' ? 14 : 18}
-              />
-            </FormGrid>
-            <div style={{ marginTop: '0.5rem' }}>
-              <FingerToggle>
-                <FingerToggleInput
-                  type="checkbox"
-                  checked={showFingerSizing}
-                  onChange={(e) => handleFingerToggle(e.target.checked)}
-                />
-                Numeração dos dedos
-              </FingerToggle>
-              {showFingerSizing && (
-                <HandsGrid>
-                  {handOptions.map((hand) => (
-                    <HandCard key={hand.key}>
-                      <HandTitle>{hand.label}</HandTitle>
-                      <HandImage src={hand.image} alt={hand.label} />
-                      <FingerInputs>
-                        {fingerLabels.map((finger) => {
-                          const fieldId = `dedos-${hand.key}-${finger.key}`;
-                          return (
-                            <FingerField key={fieldId}>
-                              <FingerLabel htmlFor={fieldId}>{finger.label}</FingerLabel>
-                              <FingerInput
-                                id={fieldId}
-                                type="text"
-                                inputMode="decimal"
-                                value={fingerSizes[hand.key][finger.key]}
-                                onChange={handleFingerSizeChange(hand.key, finger.key)}
-                                placeholder="--"
-                              />
-                            </FingerField>
-                          );
-                        })}
-                      </FingerInputs>
-                    </HandCard>
-                  ))}
-                </HandsGrid>
-              )}
-            </div>
-          </FormSection>
-
-          <FormSection>
-            <SectionTitle>Contato</SectionTitle>
-            <FormGrid>
-              <FormField
-                label="Email"
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email || ''}
-                onChange={handleChange}
-                placeholder="email@exemplo.com"
-              />
-              <FormField
-                label="Telefone Fixo"
-                id="telefone"
-                name="telefone"
-                value={formData.telefone || ''}
-                onChange={handlePhoneChange('telefone')}
-                placeholder="(00) 0000-0000"
-                maxLength={14}
-              />
-              <FormField
-                label="Celular"
-                id="celular"
-                name="celular"
-                value={formData.celular || ''}
-                onChange={handlePhoneChange('celular')}
-                placeholder="(00) 00000-0000"
-                maxLength={15}
-              />
-              <FormField
-                label="Endereço"
-                id="endereco"
-                name="endereco"
-                value={formData.endereco || ''}
-                onChange={handleChange}
-                placeholder="Rua, número, bairro, cidade - UF"
-              />
-              <FormField
-                label="Instagram"
-                id="instagram"
-                name="instagram"
-                type="url"
-                value={formData.instagram || ''}
-                onChange={handleChange}
-                placeholder="https://instagram.com/usuario"
-              />
-              <FormField
-                label="Facebook"
-                id="facebook"
-                name="facebook"
-                type="url"
-                value={formData.facebook || ''}
-                onChange={handleChange}
-                placeholder="https://facebook.com/usuario"
-              />
-              <FormField
-                label="Site da Empresa"
-                id="site_empresa"
-                name="site_empresa"
-                type="url"
-                value={formData.site_empresa || ''}
-                onChange={handleChange}
-                placeholder="https://www.empresa.com.br"
-              />
-            </FormGrid>
-          </FormSection>
-
-          <FormSection>
-            <SectionTitle>Origem do Cadastro</SectionTitle>
-            <FormGrid style={{ gridTemplateColumns: '1fr 3fr'}}>
-              <FormField
-                label="Como conheceu?"
-                id="origem_cadastro"
-                name="origem_cadastro"
-                value={formData.origem_cadastro || ''}
-                onChange={handleChange}
-                options={origemCadastroOptions}
-              />
-              <FormField
-                label="Indicado por"
-                id="indicado_por"
-                name="indicado_por"
-                value={formData.indicado_por || ''}
-                onChange={handleChange}
-                placeholder="Nome de quem indicou (se aplicável)"
-              />
-            </FormGrid>
-          </FormSection>
-
-          <FormSection>
-            <SectionTitle>Observações</SectionTitle>
-            <FormGrid>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <FormField
-                  label="Obs."
-                  id="observacao"
-                  name="observacao"
-                  value={formData.observacao || ''}
-                  onChange={handleChange}
-                  isTextArea
-                  rows={4}
-                  placeholder="Observações adicionais sobre o cliente"
-                />
-              </div>
-            </FormGrid>
-          </FormSection>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
-            <SecondaryButton type="button" onClick={handleCancel}>
-              Cancelar
-            </SecondaryButton>
-            <PrimaryButton type="submit" disabled={submitting}>
-              {submitting ? 'Salvando...' : editingId ? 'Atualizar' : 'Cadastrar'}
-            </PrimaryButton>
-          </div>
-        </form>
+        <CadastroClientesForm
+          formData={formData}
+          submitting={submitting}
+          isEditing={Boolean(editingId)}
+          isCasado={isCasado}
+          spouseOptions={spouseOptions}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          onSpouseChange={(value) => setFormData((prev) => ({ ...prev, conjuge_id: value || null }))}
+          onViewSpouse={(id) => navigate(`/clientes/${id}`)}
+          specialDates={specialDates}
+          onAddSpecialDate={addSpecialDate}
+          onUpdateSpecialDate={updateSpecialDate}
+          onRemoveSpecialDate={removeSpecialDate}
+          showFingerSizing={showFingerSizing}
+          fingerSizes={fingerSizes}
+          onToggleFingerSizing={handleFingerToggle}
+          onFingerSizeChange={handleFingerSizeChange}
+          onCPFChange={handleCPFChange}
+          onPhoneChange={handlePhoneChange}
+        />
       ) : (
-        <>
-          {showFilters && (
-            <FilterPanel>
-              <FilterRow>
-                <div style={{ minWidth: 220, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <FilterLabel>Aniversário</FilterLabel>
-                  <FilterActionButton
-                    type="button"
-                    onClick={() => setShowMonthPicker((prev) => !prev)}
-                  >
-                    {selectedMonthLabel || 'Selecionar mês'}
-                  </FilterActionButton>
-                </div>
-                <div style={{ minWidth: 220, flex: 1 }}>
-                  <FormField
-                    label="Coleção"
-                    id="filtro-colecao"
-                    name="filtro-colecao"
-                    value={collectionFilter}
-                    onChange={(e) => setCollectionFilter(e.target.value)}
-                    options={collections.map((collection) => ({
-                      value: collection.id,
-                      label: collection.name
-                    }))}
-                  />
-                </div>
-                <FilterToggleButton type="button" $state={estadoCivilState} onClick={cycleEstadoCivil}>
-                  {estadoCivilLabel}
-                </FilterToggleButton>
-                <FilterActionButton type="button" onClick={clearFilters}>
-                  Limpar filtros
-                </FilterActionButton>
-              </FilterRow>
-              {showMonthPicker && (
-                <MonthPickerBox>
-                  <MonthGrid>
-                    {birthMonthOptions.map((month) => (
-                      <MonthButton
-                        key={month.value}
-                        type="button"
-                        $active={birthMonthFilter === month.value}
-                        onClick={() => {
-                          setBirthMonthFilter((prev) => (prev === month.value ? '' : month.value));
-                          setShowMonthPicker(false);
-                        }}
-                      >
-                        {month.label}
-                      </MonthButton>
-                    ))}
-                  </MonthGrid>
-                </MonthPickerBox>
-              )}
-            </FilterPanel>
-          )}
-          <SearchContainer>
-            <SearchInput
-              type="text"
-              placeholder="Pesquisar clientes..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-            />
-            <SearchIcon>
-              <Search size={16} />
-            </SearchIcon>
-          </SearchContainer>
-
-          {loading ? (
-            <p>Carregando...</p>
-          ) : filteredByCriteria.length === 0 ? (
-            <p>Nenhum cliente encontrado.</p>
-          ) : (
-            <ClientesList>
-              {filteredByCriteria.map((cliente) => {
-                const rawPhone = cliente.celular || cliente.telefone || '';
-                const phone = rawPhone || '-';
-                const instagram = (cliente.instagram || '').trim();
-                const instagramLink = instagram
-                  ? instagram.startsWith('http')
-                    ? instagram
-                    : `https://instagram.com/${instagram.replace('@', '')}`
-                  : '';
-                const facebook = (cliente.facebook || '').trim();
-                const facebookLink = facebook
-                  ? facebook.startsWith('http')
-                    ? facebook
-                    : `https://facebook.com/${facebook.replace('@', '')}`
-                  : '';
-                const site = (cliente.site_empresa || '').trim();
-                const siteLink = site
-                  ? site.startsWith('http')
-                    ? site
-                    : `https://${site}`
-                  : '';
-                const whatsappLink = buildWhatsAppLink(rawPhone);
-                const initials = getInitials(cliente.nome);
-                const birthInfo = formatDate(cliente.data_nascimento);
-
-                return (
-                  <ClienteCard key={cliente.id} onClick={() => handleOpenDetails(cliente)}>
-                    <ClienteHeader>
-                      <ClienteAvatar>{initials}</ClienteAvatar>
-                      <ClienteInfoHeader>
-                        <ClienteNome>{cliente.nome}</ClienteNome>
-                        <ClienteEmail>{phone}</ClienteEmail>
-                      </ClienteInfoHeader>
-                    </ClienteHeader>
-                    <ClienteInfo>
-                      <ClienteDetails>
-                        {birthInfo?.label && (
-                          <ClienteDetailItem>
-                            <span>
-                              <ClienteDetailLabel>Aniversário:</ClienteDetailLabel>
-                              <ClienteDetailValue>{birthInfo.label}</ClienteDetailValue>
-                            </span>
-                          </ClienteDetailItem>
-                        )}
-                        {(instagramLink || facebookLink || siteLink || whatsappLink) && (
-                          <ClienteDetailItem>
-                            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                              {instagramLink && (
-                                <InstaButton
-                                  href={instagramLink}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  Instagram
-                                </InstaButton>
-                              )}
-                              {facebookLink && (
-                                <InstaButton
-                                  href={facebookLink}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  Facebook
-                                </InstaButton>
-                              )}
-                              {siteLink && (
-                                <InstaButton
-                                  href={siteLink}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  Site
-                                </InstaButton>
-                              )}
-                              {whatsappLink && (
-                                <InstaButton
-                                  href={whatsappLink}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  WhatsApp
-                                </InstaButton>
-                              )}
-                            </div>
-                          </ClienteDetailItem>
-                        )}
-                      </ClienteDetails>
-                    </ClienteInfo>
-                  </ClienteCard>
-                );
-              })}
-            </ClientesList>
-          )}
-        </>
+        <ClientesListView
+          showFilters={showFilters}
+          showMonthPicker={showMonthPicker}
+          selectedMonthLabel={selectedMonthLabel}
+          birthMonthFilter={birthMonthFilter}
+          collectionFilter={collectionFilter}
+          collections={collections}
+          estadoCivilLabel={estadoCivilLabel}
+          estadoCivilState={estadoCivilState}
+          searchQuery={searchQuery}
+          loading={loading}
+          clientes={filteredByCriteria}
+          onToggleMonthPicker={() => setShowMonthPicker((prev) => !prev)}
+          onSelectMonth={(value) => {
+            setBirthMonthFilter((prev) => (prev === value ? '' : value));
+            setShowMonthPicker(false);
+          }}
+          onCollectionFilterChange={setCollectionFilter}
+          onCycleEstadoCivil={cycleEstadoCivil}
+          onClearFilters={clearFilters}
+          onSearch={handleSearch}
+          onOpenDetails={handleOpenDetails}
+        />
       )}
     </ClienteContainer>
   );

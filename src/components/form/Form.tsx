@@ -29,6 +29,7 @@ export default function JewelryForm() {
     handleStoneChange,
     stoneSaveSignal,
     isEditing,
+    isCloning,
     collections,
     collectionLoading,
     showNewCollection,
@@ -47,7 +48,9 @@ export default function JewelryForm() {
 
   return (
     <FormContainer>
-      <FormTitle>{isEditing ? 'Editar Joia' : 'Cadastrar Nova Joia'}</FormTitle>
+      <FormTitle>
+        {isEditing ? 'Editar Joia' : isCloning ? 'Clonar Joia' : 'Cadastrar Nova Joia'}
+      </FormTitle>
       <form onSubmit={handleSubmit}>
         {/* Primeira linha: Imagem da Joia e Data */}
         <FormSection>
@@ -131,8 +134,14 @@ export default function JewelryForm() {
             onChange={handleChange}
             placeholder={formData.collection_id ? 'Digite a referência' : 'Automatico'}
             required
-            readOnly={!formData.collection_id}
-            title={formData.collection_id ? 'Editável para joias em coleção' : 'Gerado automaticamente ao selecionar a categoria'}
+            readOnly={isCloning ? false : !formData.collection_id}
+            title={
+              isCloning
+                ? 'Você pode ajustar a referência ao clonar'
+                : formData.collection_id
+                  ? 'Editável para joias em coleção'
+                  : 'Gerado automaticamente ao selecionar a categoria'
+            }
           />
           <FormField
             label="Categoria"
@@ -270,6 +279,7 @@ export default function JewelryForm() {
           onRemoveStone={removeStone}
           onStoneChange={handleStoneChange}
           saveSignal={stoneSaveSignal}
+          forceEditMode={isCloning}
         />
 
         {/* Botões de Ação */}

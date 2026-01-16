@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getNextReference } from './styles';
 import { Stone } from '../pedra/types';
 import { compressImage } from '../../lib/imageUtils';
+import { normalizeStones } from '../../lib/jewelryUtils';
 
 
 interface JewelryFormData {
@@ -82,29 +83,22 @@ const buildRotaFromChunks = (first?: string, second?: string): string | null => 
 export const useFormLogic = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const product = location.state?.product;
-  const normalizeStones = (value: unknown): Stone[] => {
-    if (!value) return [];
-    if (typeof value === 'string') {
-      try {
-        return normalizeStones(JSON.parse(value));
-      } catch {
-        return [];
-      }
+  const locationState = location.state as
+    | { product?: JewelryFormData; clone?: boolean }
+    | undefined;
+  const isCloning = Boolean(locationState?.clone);
+  const product = useMemo(() => {
+    const stateProduct = locationState?.product;
+    if (!stateProduct) return undefined;
+    if (isCloning) {
+      return { ...stateProduct, id: undefined };
     }
-    if (Array.isArray(value)) {
-      return value
-        .map((item) => item as Stone)
-        .filter((item) => item && typeof item === 'object');
-    }
-    if (typeof value === 'object') {
-      return [value as Stone];
-    }
-    return [];
-  };
+    return stateProduct;
+  }, [isCloning, locationState?.product]);
+  const isEditing = Boolean(product && !isCloning);
 
   const [loading, setLoading] = useState(false);
-  const [stones, setStones] = useState<Stone[]>(normalizeStones(product?.stones));
+  const [stones, setStones] = useState<Stone[]>(normalizeStones<Stone>(product?.stones));
   const [stoneSaveSignal, setStoneSaveSignal] = useState(0);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(
@@ -132,7 +126,7 @@ export const useFormLogic = () => {
     date: product?.date || new Date().toISOString().split('T')[0],
     observations: product?.observations || '',
     descricao: product?.descricao || '',
-    stones: normalizeStones(product?.stones),
+    stones: normalizeStones<Stone>(product?.stones),
     image_url: product?.image_url || '',
     collection_id: product?.collection_id || ''
   });
@@ -156,11 +150,11 @@ export const useFormLogic = () => {
         date: product.date || new Date().toISOString().split('T')[0],
         observations: product.observations,
         descricao: product.descricao,
-        stones: product.stones,
+        stones: normalizeStones<Stone>(product.stones),
         image_url: product.image_url,
         collection_id: product.collection_id || ''
       });
-      setStones(normalizeStones(product.stones));
+      setStones(normalizeStones<Stone>(product.stones));
       setImagePreviewUrl(product.image_url || '');
     }
   }, [product]);
@@ -245,7 +239,7 @@ export const useFormLogic = () => {
         ...prev,
         ...(rota ? { rota: normalizeRotaForState(rota) } : {}),
         ...(client_name ? { client_name } : {}),
-        ...(!product ? { date: dateFromImage } : {})
+        ...(!isEditing ? { date: dateFromImage } : {})
       }));
     } catch (error) {
       console.error('Erro ao comprimir imagem:', error);
@@ -260,7 +254,7 @@ export const useFormLogic = () => {
         ...prev,
         ...(rota ? { rota: normalizeRotaForState(rota) } : {}),
         ...(client_name ? { client_name } : {}),
-        ...(!product ? { date: dateFromImage } : {})
+        ...(!isEditing ? { date: dateFromImage } : {})
       }));
     }
   };
@@ -469,7 +463,8 @@ export const useFormLogic = () => {
     handleStoneChange,
     saveAllStones,
     stoneSaveSignal,
-    isEditing: !!product,
+    isEditing,
+    isCloning,
     collections,
     collectionLoading,
     showNewCollection,

@@ -18,7 +18,7 @@ import {
   SaveButton,
 } from './styles';
 
-const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave, saveSignal = 0 }) => {
+const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave, saveSignal = 0, forceEditMode = false }) => {
   const {
     tipo,
     lapidacao,
@@ -72,6 +72,12 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
   const handleEditClick = () => {
     handleEdit();
   };
+
+  useEffect(() => {
+    if (forceEditMode) {
+      handleEdit();
+    }
+  }, [forceEditMode]);
 
   useEffect(() => {
     if (!hasMounted.current) {

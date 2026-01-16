@@ -2,9 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { PrimaryButton, SecondaryButton, DangerButton } from '../buttons'
-import type { Cliente, FingerKey, HandSide, NumeracaoDedos, SpecialDate } from './types'
+import type { Cliente } from './types'
 import { categoryOptions } from '../form/formOptions'
 import { Stone as JewelryStone } from '../pedra/types'
+import { formatDateLabel, formatDateString, calculateAge } from '../../lib/dateUtils'
+import { normalizeStones } from '../../lib/jewelryUtils'
+import { fingerLabels, handLabels } from './constants'
+import { hasFingerSizing, normalizeSpecialDates, parseFingerSizes } from './utils'
 import {
   ClienteContainer,
   FormSection,
@@ -40,127 +44,6 @@ type Jewelry = {
   [key: string]: unknown
 }
 
-const fingerLabels: { key: FingerKey; label: string }[] = [
-  { key: 'polegar', label: 'Polegar' },
-  { key: 'indicador', label: 'Indicador' },
-  { key: 'medio', label: 'Médio' },
-  { key: 'anelar', label: 'Anelar' },
-  { key: 'minimo', label: 'Mindinho' }
-]
-
-const handLabels: { key: HandSide; label: string }[] = [
-  { key: 'direita', label: 'Mão direita' },
-  { key: 'esquerda', label: 'Mão esquerda' }
-]
-
-const normalizeFingerSizes = (value: unknown): NumeracaoDedos | null => {
-  if (!value) return null
-  if (typeof value === 'string') {
-    try {
-      return normalizeFingerSizes(JSON.parse(value))
-    } catch {
-      return null
-    }
-  }
-  if (typeof value === 'object') {
-    const record = value as Partial<NumeracaoDedos>
-    return {
-      direita: {
-        polegar: record.direita?.polegar || '',
-        indicador: record.direita?.indicador || '',
-        medio: record.direita?.medio || '',
-        anelar: record.direita?.anelar || '',
-        minimo: record.direita?.minimo || ''
-      },
-      esquerda: {
-        polegar: record.esquerda?.polegar || '',
-        indicador: record.esquerda?.indicador || '',
-        medio: record.esquerda?.medio || '',
-        anelar: record.esquerda?.anelar || '',
-        minimo: record.esquerda?.minimo || ''
-      }
-    }
-  }
-  return null
-}
-
-const hasFingerSizing = (sizes: NumeracaoDedos | null) => {
-  if (!sizes) return false
-  return Object.values(sizes).some((hand) =>
-    Object.values(hand).some((value) => String(value).trim().length > 0)
-  )
-}
-
-const formatDate = (value?: string) => {
-  if (!value) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return { date, label: `${day}/${month}/${year}` }
-}
-
-const calculateAge = (date: Date) => {
-  const today = new Date()
-  let age = today.getFullYear() - date.getFullYear()
-  const monthDiff = today.getMonth() - date.getMonth()
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
-    age -= 1
-  }
-  return age
-}
-
-const formatJewelryDate = (value?: string) => {
-  if (!value) return null
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
-
-const normalizeSpecialDates = (value: unknown): SpecialDate[] => {
-  if (!value) return []
-  if (typeof value === 'string') {
-    try {
-      return normalizeSpecialDates(JSON.parse(value))
-    } catch {
-      return []
-    }
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => ({
-        data: item?.data || '',
-        descricao: item?.descricao || ''
-      }))
-      .filter((item) => item.data || item.descricao)
-  }
-  return []
-}
-
-const parseStonesField = (value: unknown): JewelryStone[] => {
-  if (!value) return []
-  if (typeof value === 'string') {
-    try {
-      return parseStonesField(JSON.parse(value))
-    } catch {
-      return []
-    }
-  }
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => item as JewelryStone)
-      .filter((item) => item && typeof item === 'object')
-  }
-  if (typeof value === 'object') {
-    return [value as JewelryStone]
-  }
-  return []
-}
-
 const formatCategory = (category?: string) => CATEGORY_LABEL_MAP[category || ''] || category || '-'
 
 export default function ClienteInfo() {
@@ -172,9 +55,9 @@ export default function ClienteInfo() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')
 
-  const fingerSizes = useMemo(() => normalizeFingerSizes(cliente?.numeracao_dedos), [cliente])
+  const fingerSizes = useMemo(() => parseFingerSizes(cliente?.numeracao_dedos), [cliente])
   const hasFingerData = hasFingerSizing(fingerSizes)
-  const birth = formatDate(cliente?.data_nascimento)
+  const birth = formatDateLabel(cliente?.data_nascimento)
   const age = birth ? calculateAge(birth.date) : null
   const specialDates = useMemo(() => normalizeSpecialDates(cliente?.datas_especiais), [cliente])
   const sortedJoias = useMemo(() => {
@@ -443,7 +326,7 @@ export default function ClienteInfo() {
         ) : (
           <DetailGrid>
             {specialDates.map((item, idx) => {
-              const formatted = formatDate(item.data)?.label || item.data
+              const formatted = formatDateLabel(item.data)?.label || item.data
               return (
                 <DetailItem key={`${item.data}-${idx}`}>
                   <DetailLabel>{formatted || 'Data'}</DetailLabel>
@@ -479,7 +362,7 @@ export default function ClienteInfo() {
                 <JewelryMeta>
                   {joia.collection?.name && <span>Coleção: {joia.collection.name}</span>}
                   {joia.category && <span>Categoria: {formatCategory(joia.category)}</span>}
-                  {parseStonesField(joia.stones)
+                  {normalizeStones<JewelryStone>(joia.stones)
                     .map((stone) => stone?.stone_type)
                     .filter(Boolean)
                     .reduce<string[]>((acc, current) => {
@@ -490,7 +373,7 @@ export default function ClienteInfo() {
                       <span key={`${stoneType}-${idx}`}>Pedra: {stoneType}</span>
                     ))}
                   {joia.rota && <span>Rota: {joia.rota}</span>}
-                  {joia.created_at && <span>Criado em: {formatJewelryDate(joia.created_at)}</span>}
+                  {joia.created_at && <span>Criado em: {formatDateString(joia.created_at)}</span>}
                 </JewelryMeta>
               </JewelryCard>
             ))}

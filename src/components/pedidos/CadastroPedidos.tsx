@@ -103,7 +103,6 @@ const CadastroPedidos: React.FC = () => {
 
     fetchPedido();
     // getPedidoById is stable enough for this effect; dependency omitted to avoid unnecessary refetch loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, navigate]);
 
   const addStone = () => {

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { translate } from '../Styles';
 import { supabase } from '../../lib/supabase';
+import { normalizeStones } from '../../lib/jewelryUtils';
 import type { Stone } from '../pedra/types';
-import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package, Calculator } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package, Calculator, Copy } from 'lucide-react';
 import {
   ActionButton,
   CustomButton,
@@ -19,26 +20,7 @@ export default function Info() {
   const location = useLocation();
   const navigate = useNavigate();
   const product = location.state?.product;
-  const normalizeStones = (value: unknown): Stone[] => {
-    if (!value) return [];
-    if (typeof value === 'string') {
-      try {
-        return normalizeStones(JSON.parse(value));
-      } catch {
-        return [];
-      }
-    }
-    if (Array.isArray(value)) {
-      return value
-        .map((item) => item as Stone)
-        .filter((item) => item && typeof item === 'object');
-    }
-    if (typeof value === 'object') {
-      return [value as Stone];
-    }
-    return [];
-  };
-  const stones = normalizeStones(product?.stones);
+  const stones = normalizeStones<Stone>(product?.stones);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [password, setPassword] = useState('');
@@ -100,6 +82,53 @@ export default function Info() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">
           {product.reference_name}
         </h1>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-4 justify-end mb-8">
+        <CustomButton
+          onClick={() =>
+            navigate('/calcular-joia', {
+              state: { product: { ...product, stones } }
+            })
+          }
+          className="inline-flex items-center gap-2"
+        >
+          <Calculator size={16} />
+          Calcular valor dessa joia
+        </CustomButton>
+        <CustomButton
+          onClick={() =>
+            navigate('/register', {
+              state: {
+                product: { ...product, id: undefined, stones },
+                clone: true
+              }
+            })
+          }
+          className="inline-flex items-center gap-2"
+        >
+          <Copy size={16} />
+          Clonar
+        </CustomButton>
+        <CustomButton
+          onClick={() =>
+            navigate('/register', {
+              state: { product: { ...product, stones }, stones }
+            })
+          }
+          className="inline-flex items-center gap-2"
+        >
+          <Edit size={16} />
+          Alterar
+        </CustomButton>
+        <RedButton 
+          onClick={handleDeleteClick}
+          className="inline-flex items-center gap-2"
+        >
+          <Trash2 size={16} />
+          Excluir
+        </RedButton>
       </div>
 
       {/* Main Content Grid */}
@@ -309,39 +338,6 @@ export default function Info() {
         </div>
       )}
 
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap gap-4 justify-end">
-        <CustomButton
-          onClick={() =>
-            navigate('/calcular-joia', {
-              state: { product: { ...product, stones } }
-            })
-          }
-          className="inline-flex items-center gap-2"
-        >
-          <Calculator size={16} />
-          Calcular valor dessa joia
-        </CustomButton>
-        <CustomButton
-          onClick={() =>
-            navigate('/register', {
-              state: { product: { ...product, stones }, stones }
-            })
-          }
-          className="inline-flex items-center gap-2"
-        >
-          <Edit size={16} />
-          Alterar
-        </CustomButton>
-        <RedButton 
-          onClick={handleDeleteClick}
-          className="inline-flex items-center gap-2"
-        >
-          <Trash2 size={16} />
-          Excluir
-        </RedButton>
-      </div>
 
       {/* Delete Modal */}
       {showDeleteModal && (

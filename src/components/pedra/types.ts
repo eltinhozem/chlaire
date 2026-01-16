@@ -10,13 +10,14 @@ export interface Stone {
    // tipo_cravacao?: string;
   }
   
-  export interface PedraProps {
+export interface PedraProps {
     index: number;
     stone: Stone;
     onRemove: (index: number) => void;
     onChange: (updatedStone: Stone) => void;
     onSave: (updatedStone: Stone) => void;
     saveSignal?: number;
+    forceEditMode?: boolean;
   }
   
   export interface PedraLogic {
