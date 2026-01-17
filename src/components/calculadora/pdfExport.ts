@@ -1,4 +1,4 @@
-import type { Supplier } from './fornecedor';
+import type { Supplier, SupplierPriceEntry } from './fornecedor';
 import { getStonePriceByMm } from './fornecedor';
 import type { Stone, ProductData } from './types';
 import { escapeHtml, findConversionByMm } from './utils';
@@ -15,6 +15,7 @@ interface CalculationPdfOptions {
   totalValue: number;
   stones: Stone[];
   supplier: Supplier;
+  fallbackSupplierPrices?: SupplierPriceEntry[];
   product?: ProductData;
 }
 
@@ -30,6 +31,7 @@ export const openCalculationPdf = ({
   totalValue,
   stones,
   supplier,
+  fallbackSupplierPrices,
   product
 }: CalculationPdfOptions) => {
   const goldFormula = `${goldWeight.toFixed(2)}g × R$ ${goldPrice18k.toFixed(2)}/g × margem ${margin.toFixed(2)} = R$ ${goldValue.toFixed(2)}`;
@@ -38,7 +40,7 @@ export const openCalculationPdf = ({
       ? 'Sem pedras'
       : stones
           .map((s) => {
-            const basePrice = getStonePriceByMm(s.sizeMm, supplier.prices);
+            const basePrice = getStonePriceByMm(s.sizeMm, supplier.prices, fallbackSupplierPrices);
             return `${s.quantity} × (R$ ${basePrice.toFixed(2)} × ${s.ct.toFixed(3)}ct × dollar ${dollarStone.toFixed(2)} × margem ${margin.toFixed(2)}) = R$ ${s.totalPrice.toFixed(2)}`;
           })
           .join('<br/>');
@@ -61,7 +63,7 @@ export const openCalculationPdf = ({
       ? '<p>Sem pedras.</p>'
       : `<ol>${stones
           .map((s, idx) => {
-            const basePrice = getStonePriceByMm(s.sizeMm, supplier.prices);
+            const basePrice = getStonePriceByMm(s.sizeMm, supplier.prices, fallbackSupplierPrices);
             const calcDetail = `R$ ${basePrice.toFixed(2)} × ${s.ct.toFixed(3)}ct × dollar ${dollarStone.toFixed(2)} × margem ${margin.toFixed(2)}`;
             return `<li>
               <strong>Pedra ${idx + 1}</strong><br/>

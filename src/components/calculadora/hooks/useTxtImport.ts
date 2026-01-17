@@ -1,10 +1,11 @@
 import { useCallback, useRef, useState, ChangeEvent } from 'react';
 import { getStonePriceByMm, SupplierPriceEntry } from '../fornecedor';
 import { Stone } from '../types';
-import { generateId, mmToCt, parseTxtData } from '../utils';
+import { createEmptyStone, generateId, mmToCt, parseTxtData } from '../utils';
 
 interface UseTxtImportParams {
   supplierPrices: SupplierPriceEntry[];
+  fallbackSupplierPrices?: SupplierPriceEntry[];
   dollarStone: number;
   margin: number;
   onGoldWeightChange: (value: number) => void;
@@ -13,6 +14,7 @@ interface UseTxtImportParams {
 
 export const useTxtImport = ({
   supplierPrices,
+  fallbackSupplierPrices,
   dollarStone,
   margin,
   onGoldWeightChange,
@@ -31,6 +33,13 @@ export const useTxtImport = ({
     async (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
+
+      // Garante que um novo TXT começa com a página zerada
+      onGoldWeightChange(0);
+      onStonesChange([createEmptyStone()]);
+      setTxtFolderCode('');
+      setParsedWidth(null);
+      setParsedHeight(null);
 
       try {
         const content = await file.text();
@@ -60,7 +69,7 @@ export const useTxtImport = ({
         if (parsed.stones.length > 0) {
           const importedStones: Stone[] = parsed.stones.map(({ quantity, sizeMm }) => {
             const ct = mmToCt(sizeMm);
-            const basePrice = getStonePriceByMm(sizeMm, supplierPrices);
+            const basePrice = getStonePriceByMm(sizeMm, supplierPrices, fallbackSupplierPrices);
             const pricePerUnit = basePrice * (ct || 0) * dollarStone * margin;
             const totalPrice = pricePerUnit * quantity;
             return {
@@ -79,7 +88,7 @@ export const useTxtImport = ({
         event.target.value = '';
       }
     },
-    [supplierPrices, dollarStone, margin, onGoldWeightChange, onStonesChange]
+    [supplierPrices, fallbackSupplierPrices, dollarStone, margin, onGoldWeightChange, onStonesChange]
   );
 
   return {

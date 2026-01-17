@@ -21,6 +21,7 @@ import {
 interface StoneEntryProps {
   stone: Stone
   fornecedor: SupplierPriceEntry[]
+  fallbackFornecedor?: SupplierPriceEntry[]
   margin: number
   dollarStone: number
   onUpdate: (stone: Stone) => void
@@ -28,7 +29,16 @@ interface StoneEntryProps {
   canRemove: boolean
 }
 
-export function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, onRemove, canRemove }: StoneEntryProps) {
+export function StoneEntry({
+  stone,
+  fornecedor,
+  fallbackFornecedor,
+  margin,
+  dollarStone,
+  onUpdate,
+  onRemove,
+  canRemove
+}: StoneEntryProps) {
   const [quantity, setQuantity] = useState<number>(stone.quantity || 1)
   const [sizeMm, setSizeMm] = useState<number>(stone.sizeMm || 0)
 
@@ -43,7 +53,7 @@ export function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, o
   }, [stonePoints])
 
   useEffect(() => {
-    const basePrice = getStonePriceByMm(sizeMm, fornecedor)
+    const basePrice = getStonePriceByMm(sizeMm, fornecedor, fallbackFornecedor)
     const pricePerUnit = basePrice * (stoneCt || 0) * dollarStone * margin
     const totalPrice = pricePerUnit * quantity
 
@@ -55,7 +65,7 @@ export function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, o
       pricePerUnit,
       totalPrice
     })
-  }, [quantity, sizeMm, fornecedor, stoneCt, dollarStone, margin, onUpdate, stone.id])
+  }, [quantity, sizeMm, fornecedor, fallbackFornecedor, stoneCt, dollarStone, margin, onUpdate, stone.id])
 
   return (
     <StoneCard>

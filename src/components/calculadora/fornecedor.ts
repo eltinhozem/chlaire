@@ -66,17 +66,31 @@ export const suppliers: Supplier[] = [
 ]
 
 // Retorna o preço da pedra por unidade baseado no tamanho (mm)
-export function getStonePriceByMm(mm: number, fornecedor: SupplierPriceEntry[]): number {
-  if (mm <= 0 || fornecedor.length === 0) return 0
+export function getStonePriceByMm(
+  mm: number,
+  fornecedor: SupplierPriceEntry[],
+  fallbackFornecedor?: SupplierPriceEntry[]
+): number {
+  if (mm <= 0) return 0
+  if (fornecedor.length === 0) {
+    return fallbackFornecedor ? getStonePriceByMm(mm, fallbackFornecedor) : 0
+  }
 
   // Ordena por mm
   const sorted = [...fornecedor].sort((a, b) => a.mm - b.mm)
+  const minMm = sorted[0].mm
+  const maxMm = sorted[sorted.length - 1].mm
+
+  // Se o fornecedor não cobrir o tamanho, usa o fallback (ex: Fornecedor 2 com GIA)
+  if (fallbackFornecedor && mm > maxMm) {
+    return getStonePriceByMm(mm, fallbackFornecedor)
+  }
 
   // Se for menor que o primeiro, retorna o primeiro
-  if (mm <= sorted[0].mm) return sorted[0].price
+  if (mm <= minMm) return sorted[0].price
 
   // Se for maior que o último, retorna o último
-  if (mm >= sorted[sorted.length - 1].mm) return sorted[sorted.length - 1].price
+  if (mm >= maxMm) return sorted[sorted.length - 1].price
 
   // Encontra o mais próximo
   let closest = sorted[0]

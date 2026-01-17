@@ -79,6 +79,13 @@ export default function CalculadoraJoia() {
     }
   }, [selectedSupplierId, fornecedorMap])
 
+  const fallbackSupplierPrices = useMemo(() => {
+    if (selectedSupplierId !== 'fornecedor1') return undefined
+    const fallbackSupplier = getSupplierById('fornecedor2')
+    if (!fallbackSupplier) return undefined
+    return fornecedorMap[fallbackSupplier.id] || fallbackSupplier.prices
+  }, [selectedSupplierId, fornecedorMap])
+
   const {
     txtFolderCode,
     parsedWidth,
@@ -88,6 +95,7 @@ export default function CalculadoraJoia() {
     handleImportTxtClick
   } = useTxtImport({
     supplierPrices: selectedSupplier.prices,
+    fallbackSupplierPrices,
     dollarStone,
     margin,
     onGoldWeightChange: setGoldWeight,
@@ -334,7 +342,7 @@ export default function CalculadoraJoia() {
           const ctFromPts = Number.isFinite(ptsValue) && ptsValue > 0 ? ptsToCt(ptsValue) : 0
           const ct = Number.isFinite(quilates) && quilates > 0 ? quilates : ctFromPts
           const sizeMm = ctToMm(ct)
-          const basePrice = getStonePriceByMm(sizeMm, selectedSupplier.prices)
+          const basePrice = getStonePriceByMm(sizeMm, selectedSupplier.prices, fallbackSupplierPrices)
           const pricePerUnit = basePrice * (ct || 0) * dollarStone * margin
           return {
             id: generateId(),
@@ -351,7 +359,7 @@ export default function CalculadoraJoia() {
         setStones(mapped)
       }
     }
-  }, [product, selectedSupplier.prices, dollarStone, margin])
+  }, [product, selectedSupplier.prices, fallbackSupplierPrices, dollarStone, margin])
 
   const handleExportPdf = useCallback(() => {
     openCalculationPdf({
@@ -366,6 +374,7 @@ export default function CalculadoraJoia() {
       totalValue,
       stones,
       supplier: selectedSupplier,
+      fallbackSupplierPrices,
       product
     })
   }, [
@@ -377,6 +386,7 @@ export default function CalculadoraJoia() {
     dollarStone,
     product,
     selectedSupplier,
+    fallbackSupplierPrices,
     stones,
     stonesValue,
     totalQty,
@@ -474,6 +484,7 @@ export default function CalculadoraJoia() {
             stones={stones}
             supplierName={selectedSupplier.name}
             supplierPrices={selectedSupplier.prices}
+            fallbackSupplierPrices={fallbackSupplierPrices}
             margin={margin}
             dollarStone={dollarStone}
             stonesValue={stonesValue}

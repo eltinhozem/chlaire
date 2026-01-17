@@ -19,6 +19,7 @@ interface StonesSectionProps {
   stones: Stone[];
   supplierName: string;
   supplierPrices: SupplierPriceEntry[];
+  fallbackSupplierPrices?: SupplierPriceEntry[];
   margin: number;
   dollarStone: number;
   stonesValue: number;
@@ -32,6 +33,7 @@ const StonesSection: React.FC<StonesSectionProps> = ({
   stones,
   supplierName,
   supplierPrices,
+  fallbackSupplierPrices,
   margin,
   dollarStone,
   stonesValue,
@@ -62,6 +64,7 @@ const StonesSection: React.FC<StonesSectionProps> = ({
             key={stone.id}
             stone={stone}
             fornecedor={supplierPrices}
+            fallbackFornecedor={fallbackSupplierPrices}
             margin={margin}
             dollarStone={dollarStone}
             onUpdate={onUpdateStone}
