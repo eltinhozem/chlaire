@@ -31,8 +31,14 @@ export const parseTxtData = (
 
   const weightMatch = normalized.match(/PESO\s*:\s*([\d.,]+)/i)
   const weight = weightMatch ? parseNumber(weightMatch[1]) || undefined : undefined
-  const widthMatch = normalized.match(/LARGURA\s*:\s*([\d.,]+)/i)
-  const width = widthMatch ? parseNumber(widthMatch[1]) || undefined : undefined
+  // captura valores de largura; se houver múltiplos (ex: "2.00mm / 2.76mm"), mantém o maior
+  const widthLineMatch = normalized.match(/LARGURA\s*:\s*([^\n]+)/i)
+  const parsedWidths = widthLineMatch
+    ? [...widthLineMatch[1].matchAll(/([\d.,]+)/g)]
+        .map((m) => parseNumber(m[1]))
+        .filter((n): n is number => Number.isFinite(n))
+    : []
+  const width = parsedWidths.length > 0 ? Math.max(...parsedWidths) : undefined
   const heightMatch = normalized.match(/ALTURA\s*:\s*([\d.,]+)/i)
   const height = heightMatch ? parseNumber(heightMatch[1]) || undefined : undefined
 

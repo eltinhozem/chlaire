@@ -192,22 +192,34 @@ export const exportDescriptionPdf = async ({
     ? stones.map((s) => `${s.quantity} de ${s.sizeMm.toFixed(1)}mm`).join(' / ')
     : 'Sem pedras';
 
+  const formatPoints = (points: number) => {
+    if (!points || points <= 0) return '';
+    return Number.isInteger(points) ? points.toFixed(0) : points.toFixed(2).replace(/\.?0+$/, '');
+  };
+
   const totalPoints = stones.reduce((sum, s) => {
     const conv = findConversionByMm(s.sizeMm);
     return sum + (conv?.points || 0) * s.quantity;
   }, 0);
   const totalCt = stones.reduce((sum, s) => sum + (s.ct || 0) * s.quantity, 0);
-
+  const largestStonePoints = stones.reduce((max, s) => {
+    const conv = findConversionByMm(s.sizeMm);
+    return Math.max(max, conv?.points || 0);
+  }, 0);
   const pontosDiamante = `Total de ${totalPoints.toFixed(2)} pontos`;
   const pesoMedioDiamantes = `Média de ${totalCt.toFixed(3)} ct`;
+  const fichaTitlePoints = formatPoints(largestStonePoints);
+  const fichaTitle = `Ficha Técnica - Anel Solitário Diamante ${
+    fichaTitlePoints ? `${fichaTitlePoints}pts ` : ''
+  }Ouro Amarelo 18k`;
 
   const descricaoHtml = `
 <h2 class="description-title"><strong>Descrição e Composição</strong></h2>
-Par de Alianças de Casamento Ouro 18k Patos de Minas. Confeccionadas artesanalmente, cada detalhe das nossas alianças de casamento em ouro 18k carrega sofisticação, durabilidade e significado. Uma escolha perfeita para eternizar seu compromisso com elegância e autenticidade. Cada aliança de casamento é feita em ouro 18k com acabamento polido, garantindo brilho e durabilidade.
+${escapeHtml(fichaTitle)}
 <p data-start="742" data-end="888"><strong data-start="745" data-end="780">Gravação personalizada gratuita</strong><br data-start="780" data-end="783" /><strong data-start="786" data-end="821">Frete grátis para todo o Brasil</strong></p>
-<p data-start="742" data-end="888">Escolha Seu Solitário ouro Amarelo 18K com a exclusividade que você merece.</p>
+<p data-start="742" data-end="888">Escolha seu Solitário Ouro Amarelo 18K com a exclusividade que você merece.</p>
 
-<h2><strong>Ficha Técnica - Alianças de Casamento Ouro 18k Patos de Minas</strong></h2>
+<h2><strong>${escapeHtml(fichaTitle)}</strong></h2>
 <ul class="description-composition">
   <li class="description-composition__item">Produto: Solitário</li>
 </ul>
@@ -248,7 +260,7 @@ Par de Alianças de Casamento Ouro 18k Patos de Minas. Confeccionadas artesanalm
   <li>Peso Médio Diamantes: ${pesoMedioDiamantes}</li>
 </ul>
 <ul class="description-composition">
-  <li>Observação: Valor referente ao par de alianças. Imagens meramente ilustrativas. Todas as medidas são aproximadas e podem variar de acordo com a produção.</li>
+  <li>Observação: Imagens meramente ilustrativas. Todas as medidas são aproximadas e podem variar de acordo com a produção.</li>
 </ul>
 `.trim();
 

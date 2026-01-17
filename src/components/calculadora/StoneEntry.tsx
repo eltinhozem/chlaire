@@ -3,7 +3,7 @@ import { Gem, Trash2 } from 'lucide-react'
 import { DangerButton } from '../buttons/DangerButton'
 import { getStonePriceByMm, SupplierPriceEntry } from './fornecedor'
 import { Stone } from './types'
-import { mmToCt } from './utils'
+import { mmToCt, findConversionByMm } from './utils'
 import {
   StoneCard,
   StoneHeader,
@@ -33,6 +33,14 @@ export function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, o
   const [sizeMm, setSizeMm] = useState<number>(stone.sizeMm || 0)
 
   const stoneCt = useMemo(() => mmToCt(sizeMm), [sizeMm])
+  const stonePoints = useMemo(() => findConversionByMm(sizeMm)?.points || 0, [sizeMm])
+  const formattedPoints = useMemo(() => {
+    if (!stonePoints) return ''
+    const pointsString = Number.isInteger(stonePoints)
+      ? stonePoints.toFixed(0)
+      : stonePoints.toFixed(2).replace(/\.?0+$/, '')
+    return `${pointsString}pts`
+  }, [stonePoints])
 
   useEffect(() => {
     const basePrice = getStonePriceByMm(sizeMm, fornecedor)
@@ -57,6 +65,7 @@ export function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, o
           <span>Pedra</span>
           {sizeMm > 0 && <Tag>{sizeMm.toFixed(1)}mm</Tag>}
           {stoneCt > 0 && <Tag>{stoneCt.toFixed(3)}ct</Tag>}
+          {stonePoints > 0 && <Tag>{formattedPoints}</Tag>}
         </div>
 
         <InlineActions>
@@ -94,6 +103,10 @@ export function StoneEntry({ stone, fornecedor, margin, dollarStone, onUpdate, o
 
       {sizeMm > 0 && (
         <StoneMetricsGrid>
+          <Metric>
+            <MetricLabel>Pontuação estimada</MetricLabel>
+            <MetricValue>{formattedPoints || '-'}</MetricValue>
+          </Metric>
           <Metric>
             <MetricLabel>Preço/unidade</MetricLabel>
             <MetricValue>R$ {stone.pricePerUnit.toFixed(2)}</MetricValue>
