@@ -89,9 +89,6 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
     onSave(updatedStone);
   }, [saveSignal]);
 
-  // Determina se o campo altura é obrigatório
-  const isAlturaRequired = lapidacao !== 'Redonda';
-
   return (
     <StoneContainer>
       <StoneHeader>
@@ -149,8 +146,8 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
         <div>
           <GridMain>
             <div>
-              <Label>Tipo *</Label>
-              <Select name="stone_type" value={tipo} onChange={handleTipoChange} required>
+              <Label>Tipo</Label>
+              <Select name="stone_type" value={tipo} onChange={handleTipoChange}>
                 {tiposDePedra.map((pedra) => (
                   <option key={pedra} value={pedra}>
                     {pedra}
@@ -159,8 +156,8 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
               </Select>
             </div>
             <div>
-              <Label>Lapidação *</Label>
-              <Select name="cut" value={lapidacao} onChange={handleLapidacaoChange} required>
+              <Label>Lapidação</Label>
+              <Select name="cut" value={lapidacao} onChange={handleLapidacaoChange}>
                 <option value="Redonda">Redonda</option>
                 <option value="Quadrada">Quadrada</option>
                 <option value="Oval">Oval</option>
@@ -175,18 +172,17 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
               </Select>
             </div>
             <div>
-              <Label>Quantidade *</Label>
+              <Label>Quantidade</Label>
               <Input
                 type="number"
                 name="quantity"
                 min="1"
                 value={quantidade}
                 onChange={handleQuantidadeChange}
-                required
               />
             </div>
             <div>
-              <Label>{lapidacao === 'Redonda' ? 'Diâmetro (mm) *' : 'Largura (mm) *'}</Label>
+              <Label>{lapidacao === 'Redonda' ? 'Diâmetro (mm)' : 'Largura (mm)'}</Label>
               <Input
                 type="number"
                 name="largura"
@@ -194,14 +190,13 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
                 placeholder={lapidacao === 'Redonda' ? 'Diâmetro' : 'Largura'}
                 value={largura}
                 onChange={handleLarguraChange}
-                required
               />
             </div>
           </GridMain>
           <GridMain>
             {lapidacao !== 'Redonda' && (
               <div>
-                <Label>Comprimento *</Label>
+                <Label>Comprimento</Label>
                 <Input
                   type="number"
                   name="comprimento"
@@ -209,12 +204,11 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
                   placeholder="Comprimento"
                   value={comprimento}
                   onChange={handleComprimentoChange}
-                  required
                 />
               </div>
             )}
             <div>
-              <Label>Altura {isAlturaRequired ? ' *' : ''}</Label>
+              <Label>Altura</Label>
               <Input 
                 type="number" 
                 name="altura" 
@@ -222,7 +216,6 @@ const Pedra: React.FC<PedraProps> = ({ index, stone, onRemove, onChange, onSave,
                 value={altura} 
                 onChange={handleAlturaChange}
                 placeholder={lapidacao === 'Redonda' ? 'Opcional ' : 'Altura'}
-                required={isAlturaRequired}
               />
             </div>
             <div>

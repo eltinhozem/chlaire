@@ -2,7 +2,6 @@ import React from 'react';
 import { MinusCircle, Save, Edit } from 'lucide-react';
 import { PedidoStone } from '../types';
 import { useStoneForm } from '../hooks/useStoneForm';
-import { isStoneFormValid } from '../utils/stoneValidation';
 import StonePreview from './StonePreview';
 import StoneFormFields from './StoneFormFields';
 import { SecondaryButton, SuccessButton, DangerButton } from '../../buttons';
@@ -43,7 +42,7 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
     if (autoSaveSignal === lastAutoSaveRef.current) return;
     lastAutoSaveRef.current = autoSaveSignal;
 
-    if (isEditing && isStoneFormValid(stone)) {
+    if (isEditing) {
       handleSaveStone();
     }
   }, [autoSaveSignal, handleSaveStone, isEditing, stone]);
@@ -71,7 +70,6 @@ const PedidoStoneComponent: React.FC<PedidoStoneProps> = ({
               size="sm"
               type="button"
               onClick={handleSaveStone}
-              disabled={!isStoneFormValid(stone)}
               className="flex items-center gap-2"
             >
               <Save size={16} />

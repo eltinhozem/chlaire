@@ -156,6 +156,7 @@ export const useFormLogic = () => {
       });
       setStones(normalizeStones<Stone>(product.stones));
       setImagePreviewUrl(product.image_url || '');
+      setImageFile(null);
     }
   }, [product]);
 

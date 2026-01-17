@@ -192,6 +192,7 @@ const CadastroPedidos: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAutoSaveStoneSignal((prev) => prev + 1);
     if (!nomeCliente || !categoria || !descricao) {
       alert('Por favor, preencha todos os campos obrigatórios: Cliente, Categoria e Descrição.');
       return;

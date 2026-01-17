@@ -183,27 +183,7 @@ export const exportDescriptionPdf = async ({
   parsedHeight,
   stones
 }: DescriptionPdfOptions) => {
-  let jsPDFLib: typeof import('jspdf').jsPDF;
-  try {
-    ({ jsPDF: jsPDFLib } = await import('jspdf'));
-  } catch (error) {
-    console.error('Erro ao carregar jsPDF:', error);
-    alert('Não foi possível carregar o gerador de PDF.');
-    return;
-  }
-
-  const pdf = new jsPDFLib({ unit: 'pt', format: 'a4' });
-  const left = 48;
-  let y = 60;
-  const line = (text: string, size = 12, gap = 12) => {
-    pdf.setFontSize(size);
-    const lines = pdf.splitTextToSize(text, 520);
-    pdf.text(lines, left, y);
-    y += lines.length * (size + 2) + gap - 2;
-  };
-  const bullet = (text: string) => line(`• ${text}`, 12, 6);
-
-  const codigo = txtFolderCode || '-';
+  const codigo = escapeHtml(txtFolderCode || '-');
   const pesoMedio = `${goldWeight.toFixed(2)} g`;
   const largura = parsedWidth ? `${parsedWidth.toFixed(2)} mm` : '-';
   const altura = parsedHeight ? `${parsedHeight.toFixed(2)} mm` : '-';
@@ -221,35 +201,130 @@ export const exportDescriptionPdf = async ({
   const pontosDiamante = `Total de ${totalPoints.toFixed(2)} pontos`;
   const pesoMedioDiamantes = `Média de ${totalCt.toFixed(3)} ct`;
 
-  pdf.setFontSize(18);
-  pdf.text('Descrição e Composição', left, y);
-  y += 28;
+  const descricaoHtml = `
+<h2 class="description-title"><strong>Descrição e Composição</strong></h2>
+Par de Alianças de Casamento Ouro 18k Patos de Minas. Confeccionadas artesanalmente, cada detalhe das nossas alianças de casamento em ouro 18k carrega sofisticação, durabilidade e significado. Uma escolha perfeita para eternizar seu compromisso com elegância e autenticidade. Cada aliança de casamento é feita em ouro 18k com acabamento polido, garantindo brilho e durabilidade.
+<p data-start="742" data-end="888"><strong data-start="745" data-end="780">Gravação personalizada gratuita</strong><br data-start="780" data-end="783" /><strong data-start="786" data-end="821">Frete grátis para todo o Brasil</strong></p>
+<p data-start="742" data-end="888">Escolha Seu Solitário ouro Amarelo 18K com a exclusividade que você merece.</p>
 
-  pdf.setFontSize(13);
-  pdf.text('Gravação personalizada gratuita', left, y);
-  y += 18;
-  pdf.text('Frete grátis para todo o Brasil', left, y);
-  y += 28;
+<h2><strong>Ficha Técnica - Alianças de Casamento Ouro 18k Patos de Minas</strong></h2>
+<ul class="description-composition">
+  <li class="description-composition__item">Produto: Solitário</li>
+</ul>
+<ul class="description-composition">
+  <li class="description-composition__item">Garantia: 12 meses</li>
+</ul>
+<ul class="description-composition">
+  <li class="description-composition__item">Sugestão: Para Ela</li>
+</ul>
+<ul class="description-composition">
+  <li class="description-composition__item">Ouro: Amarelo 18K 750</li>
+</ul>
+<ul class="description-composition">
+  <li class="description-composition__item">Personalize: A escolha do comprador: Ouro Branco / Ouro Amarelo / Ouro Rose, todos em 18K 750</li>
+</ul>
+<ul class="description-composition">
+  <li class="description-composition__item">Cód: ${codigo}</li>
+</ul>
+<ul class="description-composition">
+  <li class="description-composition__item">Pedras: Diamantes</li>
+</ul>
+<ul class="description-composition">
+  <li>Peso Médio: ${pesoMedio}</li>
+</ul>
+<ul class="description-composition">
+  <li>Largura: ${largura}</li>
+</ul>
+<ul class="description-composition">
+  <li>Altura: ${altura}</li>
+</ul>
+<ul class="description-composition">
+  <li>Número de Pedras: ${escapeHtml(stoneSummary)}</li>
+</ul>
+<ul class="description-composition">
+  <li>Pontuação do Diamante: ${pontosDiamante}</li>
+</ul>
+<ul class="description-composition">
+  <li>Peso Médio Diamantes: ${pesoMedioDiamantes}</li>
+</ul>
+<ul class="description-composition">
+  <li>Observação: Valor referente ao par de alianças. Imagens meramente ilustrativas. Todas as medidas são aproximadas e podem variar de acordo com a produção.</li>
+</ul>
+`.trim();
 
-  pdf.setFontSize(16);
-  pdf.text('Ficha Técnica – Anel Solitário Ouro 18k', left, y);
-  y += 22;
+  const popup = window.open('', '_blank', 'width=1000,height=800');
+  if (!popup) {
+    alert('Não foi possível abrir a janela de descrição. Verifique o bloqueador de pop-ups.');
+    return;
+  }
+  popup.opener = null;
 
-  bullet('Produto: Anel Solitário');
-  bullet('Garantia: 12 meses');
-  bullet('Sugestão: Para Ela');
-  bullet('Ouro: Amarelo 18K 750');
-  bullet('Personalize: A escolha do comprador: Ouro Branco / Ouro Amarelo / Ouro Rose, todos em 18K 750');
-  bullet(`Cód.: ${codigo}`);
-  bullet('Pedras: Diamantes');
-  bullet(`Peso Médio: ${pesoMedio}`);
-  bullet(`Largura: ${largura}`);
-  bullet(`Altura: ${altura}`);
-  bullet(`Número de Pedras: ${stoneSummary}`);
-  bullet(`Pontuação do Diamante: ${pontosDiamante}`);
-  bullet(`Peso Médio Diamantes: ${pesoMedioDiamantes}, de acordo com a numeração feminina`);
-  bullet('Observação: Valor referente ao par de alianças. Imagens meramente ilustrativas. Todas as medidas são aproximadas e podem variar de acordo com a produção.');
+  const pageHtml = `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Descrição HTML</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
+          h1 { font-size: 18px; margin: 0 0 10px; }
+          p { font-size: 13px; margin: 0 0 12px; color: #4b5563; }
+          textarea {
+            width: 100%;
+            height: 520px;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #f9fafb;
+          }
+          .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+          button {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+          }
+          .status { font-size: 12px; color: #6b7280; }
+        </style>
+      </head>
+      <body>
+        <h1>Descrição HTML</h1>
+        <p>Copie o HTML abaixo.</p>
+        <div class="toolbar">
+          <button id="copy-btn">Copiar</button>
+          <span id="status" class="status"></span>
+        </div>
+        <textarea id="descricao-html" readonly></textarea>
+        <script>
+          const descricaoHtml = ${JSON.stringify(descricaoHtml)};
+          const textarea = document.getElementById('descricao-html');
+          const status = document.getElementById('status');
+          const copyBtn = document.getElementById('copy-btn');
+          textarea.value = descricaoHtml;
+          copyBtn.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(textarea.value);
+              status.textContent = 'Copiado.';
+              setTimeout(() => { status.textContent = ''; }, 1500);
+            } catch (error) {
+              status.textContent = 'Não foi possível copiar.';
+            }
+          });
+          textarea.focus();
+          textarea.setSelectionRange(0, 0);
+        </script>
+      </body>
+    </html>
+  `;
 
-  const fileName = `descricao-${codigo || 'joia'}.pdf`;
-  pdf.save(fileName);
+  popup.document.open();
+  popup.document.write(pageHtml);
+  popup.document.close();
+  popup.focus();
 };

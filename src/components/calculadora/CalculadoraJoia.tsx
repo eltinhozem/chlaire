@@ -417,7 +417,7 @@ export default function CalculadoraJoia() {
           </SecondaryButton>
           <SecondaryButton type="button" onClick={handleExportDescriptionPdf} disabled={pricingLoading}>
             <FileText size={16} style={{ marginRight: 6 }} />
-            PDF Descrição
+            Descrição HTML
           </SecondaryButton>
           <input
             ref={importInputRef}

@@ -231,6 +231,12 @@ export const FormSection = styled.div`
   margin-bottom: 1.5rem;
   border: 1px solid var(--card-border);
   box-shadow: 0 2px 8px var(--card-shadow);
+
+  input,
+  select,
+  textarea {
+    text-align: left;
+  }
 `;
 
 export const SectionTitle = styled.h2`

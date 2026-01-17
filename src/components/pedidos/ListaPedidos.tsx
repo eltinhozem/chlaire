@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon, Loader2, Edit, Copy, Download } from 'lucide-react';
-import { jsPDF } from 'jspdf';
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 import { usePedidos } from './hooks/usePedidos';
 import PositionModal from './components/PositionModal';
@@ -43,110 +42,96 @@ const getPedidoImages = (pedido: Pedido) => {
   return [];
 };
 
-const fetchImageDataUrl = async (url: string) => {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    const format = blob.type === 'image/png' ? 'PNG' : 'JPEG';
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error('Falha ao ler imagem'));
-      reader.readAsDataURL(blob);
-    });
-    return { dataUrl, format };
-  } catch (error) {
-    console.error('Erro ao carregar imagem:', error);
-    return null;
-  }
-};
+const normalizeDescricao = (descricao: string) =>
+  descricao.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
 
-const buildPedidoPdf = async (pedido: Pedido) => {
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const marginX = 40;
-  const lineHeight = 16;
-  const maxWidth = 515;
-  let y = 40;
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
-  const addText = (text: string, size = 12, spacing = 8) => {
-    doc.setFontSize(size);
-    const lines = doc.splitTextToSize(text, maxWidth);
-    doc.text(lines, marginX, y);
-    y += lines.length * lineHeight + spacing;
-  };
+const openDescricaoPopup = (descricao: string, codigo?: string) => {
+  const normalized = normalizeDescricao(descricao);
+  if (!normalized.trim()) return;
 
-  const categoriaLabel = categoryLabelMap[pedido.categoria] || pedido.categoria;
-  addText(`Pedido ${pedido.codigo || ''}`.trim(), 16, 10);
-  addText(`Cliente: ${pedido.nomeCliente}`, 12, 4);
-  addText(`Categoria: ${categoriaLabel}`, 12, 4);
-  if (pedido.tamanho) addText(`Tamanho: ${pedido.tamanho}`, 12, 4);
-  if (pedido.descricao) addText(`Descrição: ${pedido.descricao}`, 12, 6);
-  addText(`Aramado: ${formatBool(pedido.aramado)} | Galeria: ${formatBool(pedido.galeria)} | Para Render: ${formatBool(pedido.paraRender)}${pedido.paraRender && pedido.tipoOuroRender ? ` (${ouroLabels[pedido.tipoOuroRender] || pedido.tipoOuroRender})` : ''}`, 11, 8);
-
-  if (pedido.dataPrevistaEntrega) {
-    addText(`Entrega: ${new Date(pedido.dataPrevistaEntrega).toLocaleDateString('pt-BR')} (${getDeliveryStatusText(pedido.dataPrevistaEntrega)})`, 11, 8);
+  const popup = window.open('', '_blank', 'width=900,height=700');
+  if (!popup) {
+    alert('Não foi possível abrir a janela de descrição. Verifique o bloqueador de pop-ups.');
+    return;
   }
 
-  if (pedido.referenciaModelo?.rota || pedido.referenciaModelo?.cliente) {
-    addText(`Ref. modelo: ${pedido.referenciaModelo?.rota || '-'} | Cliente ref.: ${pedido.referenciaModelo?.cliente || '-'}`, 11, 8);
-  }
+  popup.opener = null;
+  const title = codigo ? `Descrição HTML - ${codigo}` : 'Descrição HTML';
+  const safeTitle = escapeHtml(title);
+  const safeDescricao = escapeHtml(normalized);
 
-  if (pedido.stones && pedido.stones.length > 0) {
-    addText('Pedras:', 13, 6);
-    pedido.stones.forEach((stone, index) => {
-      const dims = [stone.largura, stone.comprimento, stone.altura].filter(Boolean).join(' x ');
-      addText(
-        `${index + 1}) ${stone.tipo} - ${stone.lapidacao} | Qtd: ${stone.quantidade || 'Livre'}${stone.tipoQuantidade ? ` (${stone.tipoQuantidade})` : ''} | Onde: ${stone.onde}${dims ? ` | Dimensões: ${dims} mm` : ''}${stone.pts ? ` | PTS: ${stone.pts}` : ''}${stone.tipoCravacao ? ` | Cravação: ${stone.tipoCravacao}` : ''}`,
-        10,
-        4
-      );
-    });
-    y += 6;
-  }
+  const html = `
+    <html>
+      <head>
+        <title>${safeTitle}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
+          h1 { font-size: 18px; margin: 0 0 10px; }
+          p { font-size: 13px; margin: 0 0 12px; color: #4b5563; }
+          textarea {
+            width: 100%;
+            height: 520px;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #f9fafb;
+          }
+          .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+          button {
+            background: #111827;
+            color: #ffffff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+          }
+          .status { font-size: 12px; color: #6b7280; }
+        </style>
+      </head>
+      <body>
+        <h1>${safeTitle}</h1>
+        <p>Copie o HTML abaixo.</p>
+        <div class="toolbar">
+          <button id="copy-btn">Copiar</button>
+          <span id="status" class="status"></span>
+        </div>
+        <textarea id="descricao-html" readonly>${safeDescricao}</textarea>
+        <script>
+          const button = document.getElementById('copy-btn');
+          const textarea = document.getElementById('descricao-html');
+          const status = document.getElementById('status');
+          button.addEventListener('click', async () => {
+            try {
+              await navigator.clipboard.writeText(textarea.value);
+              status.textContent = 'Copiado.';
+              setTimeout(() => { status.textContent = ''; }, 1500);
+            } catch (error) {
+              status.textContent = 'Não foi possível copiar.';
+            }
+          });
+          textarea.focus();
+          textarea.setSelectionRange(0, 0);
+        </script>
+      </body>
+    </html>
+  `;
 
-  const images = getPedidoImages(pedido);
-  if (images.length > 0) {
-    addText('Imagens:', 13, 6);
-    const maxImageWidth = 160;
-    const maxImageHeight = 120;
-    let x = marginX;
-    let rowHeight = 0;
-
-    for (const url of images) {
-      const imageData = await fetchImageDataUrl(url);
-      if (!imageData) continue;
-      if (y + maxImageHeight > 780) {
-        doc.addPage();
-        y = 40;
-        x = marginX;
-        rowHeight = 0;
-      }
-      doc.addImage(imageData.dataUrl, imageData.format, x, y, maxImageWidth, maxImageHeight);
-      rowHeight = Math.max(rowHeight, maxImageHeight);
-      x += maxImageWidth + 10;
-      if (x + maxImageWidth > 555) {
-        x = marginX;
-        y += rowHeight + 10;
-        rowHeight = 0;
-      }
-    }
-  }
-
-  return doc.output('blob');
-};
-
-const savePedidoPdf = async (pedido: Pedido) => {
-  const blob = await buildPedidoPdf(pedido);
-  const fileName = `pedido-${pedido.codigo || pedido.id}.pdf`;
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  popup.document.open();
+  popup.document.write(html);
+  popup.document.close();
+  popup.focus();
 };
 
 const Tag: React.FC<{ children: React.ReactNode, color: string }> = ({ children, color }) => (
@@ -223,10 +208,14 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
 
   const handleSavePdf = async () => {
     try {
-      await savePedidoPdf(pedido);
+      if (pedido.descricao) {
+        openDescricaoPopup(pedido.descricao, pedido.codigo || pedido.id);
+      } else {
+        alert('Este pedido não possui descrição para copiar.');
+      }
     } catch (error) {
-      console.error('Erro ao gerar PDF:', error);
-      alert('Não foi possível gerar o PDF do pedido.');
+      console.error('Erro ao abrir a descrição:', error);
+      alert('Não foi possível abrir a descrição.');
     }
   };
 

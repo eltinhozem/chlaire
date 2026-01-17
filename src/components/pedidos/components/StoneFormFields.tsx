@@ -56,20 +56,18 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
     <div className="flex flex-col gap-6">
       {/* Primeira linha: Informações básicas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Field label="Onde" required>
+        <Field label="Onde">
           <Input
             type="text"
             value={stone.onde}
             onChange={(e) => onChange('onde', e.target.value)}
-            required
           />
         </Field>
         
-        <Field label="Tipo" required>
+        <Field label="Tipo">
           <Select
             value={stone.tipo}
             onChange={(e) => onChange('tipo', e.target.value)}
-            required
           >
             {tiposDePedra.map((tipo) => (
               <option key={tipo} value={tipo}>
@@ -79,11 +77,10 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
           </Select>
         </Field>
         
-        <Field label="Lapidação" required>
+        <Field label="Lapidação">
           <Select
             value={stone.lapidacao}
             onChange={(e) => onChange('lapidacao', e.target.value)}
-            required
           >
             <option value="Redonda">Redonda</option>
             <option value="Quadrada">Quadrada</option>
@@ -126,7 +123,7 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
           
           {stone.tipoQuantidade !== 'livre' && (
             <div className="mt-2">
-              <Field label="Quantidade" required>
+              <Field label="Quantidade">
                 <Input
                   type="number"
                   min="1"
@@ -136,7 +133,6 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
                     onChange('quantidade', value === '' ? 0 : Number(value));
                   }}
                   placeholder="Digite a quantidade"
-                  required
                 />
               </Field>
             </div>
@@ -166,24 +162,22 @@ const StoneFormFields: React.FC<StoneFormFieldsProps> = ({ stone, index, onChang
           />
         </Field>
         
-        <Field label={`${stone.lapidacao === 'Redonda' ? 'Diâmetro (mm)' : 'Largura (mm)'}`} required>
+        <Field label={`${stone.lapidacao === 'Redonda' ? 'Diâmetro (mm)' : 'Largura (mm)'}`}>
           <Input
             type="number"
             step="0.1"
             value={stone.largura}
             onChange={(e) => onChange('largura', e.target.value)}
-            required
             placeholder={stone.lapidacao === 'Redonda' ? 'Digite o diâmetro' : 'Largura'}
           />
         </Field>   
         
-        <Field label="Comprimento (mm)" required>
+        <Field label="Comprimento (mm)">
           <Input
             type="number"
             step="0.1"
             value={stone.comprimento}
             onChange={(e) => onChange('comprimento', e.target.value)}
-            required
             placeholder="Comprimento"
           />
         </Field>
