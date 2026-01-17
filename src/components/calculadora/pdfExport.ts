@@ -192,8 +192,10 @@ export const exportDescriptionPdf = async ({
     ? stones.map((s) => `${s.quantity} de ${s.sizeMm.toFixed(1)}mm`).join(' / ')
     : 'Sem pedras';
 
-  const formatPoints = (points: number) => {
-    if (!points || points <= 0) return '';
+  const formatPoints = (points: number, { allowZero = false } = {}) => {
+    if (!Number.isFinite(points)) return allowZero ? '0' : '';
+    if (points <= 0 && !allowZero) return '';
+    if (points === 0) return '0';
     return Number.isInteger(points) ? points.toFixed(0) : points.toFixed(2).replace(/\.?0+$/, '');
   };
 
@@ -206,7 +208,7 @@ export const exportDescriptionPdf = async ({
     const conv = findConversionByMm(s.sizeMm);
     return Math.max(max, conv?.points || 0);
   }, 0);
-  const pontosDiamante = `Total de ${totalPoints.toFixed(2)} pontos`;
+  const pontosDiamante = `Total de ${formatPoints(totalPoints, { allowZero: true })} pontos`;
   const pesoMedioDiamantes = `Média de ${totalCt.toFixed(3)} ct`;
   const fichaTitlePoints = formatPoints(largestStonePoints);
   const fichaTitle = `Ficha Técnica - Anel Solitário Diamante ${

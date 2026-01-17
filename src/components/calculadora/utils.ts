@@ -43,7 +43,8 @@ export const parseTxtData = (
   const height = heightMatch ? parseNumber(heightMatch[1]) || undefined : undefined
 
   const stones: Array<{ quantity: number; sizeMm: number }> = []
-  const diamondMatches = [...normalized.matchAll(/DIAMANTE\s*:\s*([^\n]+)/gi)]
+  // aceita "DIAMANTE:" e "DIAMANTES:" (com ou sem hífen no início)
+  const diamondMatches = [...normalized.matchAll(/-?\s*DIAMANTES?\s*:\s*([^\n]+)/gi)]
 
   diamondMatches.forEach((match) => {
     const line = match[1]
