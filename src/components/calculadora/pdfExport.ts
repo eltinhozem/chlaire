@@ -213,9 +213,17 @@ export const exportDescriptionPdf = async ({
   const pontosDiamante = `Total de ${formatPoints(totalPoints, { allowZero: true })} pontos`;
   const pesoMedioDiamantes = `Média de ${totalCt.toFixed(3)} ct`;
   const fichaTitlePoints = formatPoints(largestStonePoints);
-  const fichaTitle = `Ficha Técnica - Anel Solitário Diamante ${
-    fichaTitlePoints ? `${fichaTitlePoints}pts ` : ''
+  const giaSuffix = largestStonePoints >= 30 ? 'com GIA' : '';
+  const fichaTitle = ` Anel Solitário Diamante ${
+    fichaTitlePoints ? `${fichaTitlePoints}pts ${giaSuffix} ` : ''
   }Ouro Amarelo 18k`;
+  const giaLine =
+    largestStonePoints >= 30
+      ? `
+<ul class="description-composition">
+  <li>Diamante Central com GIA na Classificação VS Cor J</li>
+</ul>`
+      : '';
 
   const descricaoHtml = `
 <h2 class="description-title"><strong>Descrição e Composição</strong></h2>
@@ -223,7 +231,7 @@ ${escapeHtml(fichaTitle)}
 <p data-start="742" data-end="888"><strong data-start="745" data-end="780">Gravação personalizada gratuita</strong><br data-start="780" data-end="783" /><strong data-start="786" data-end="821">Frete grátis para todo o Brasil</strong></p>
 <p data-start="742" data-end="888">Escolha seu Solitário Ouro Amarelo 18K com a exclusividade que você merece.</p>
 
-<h2><strong>${escapeHtml(fichaTitle)}</strong></h2>
+<h2><strong>Ficha Técnica -${escapeHtml(fichaTitle)}</strong></h2>
 <ul class="description-composition">
   <li class="description-composition__item">Produto: Solitário</li>
 </ul>
@@ -254,6 +262,7 @@ ${escapeHtml(fichaTitle)}
 <ul class="description-composition">
   <li>Altura: ${altura}</li>
 </ul>
+${giaLine}
 <ul class="description-composition">
   <li>Número de Pedras: ${escapeHtml(stoneSummary)}</li>
 </ul>

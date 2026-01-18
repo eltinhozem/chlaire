@@ -326,7 +326,7 @@ export default function CalculadoraJoia() {
 
   const { goldValue, totalQty, stonesValue, totalValue, validStones } = pricingSummary
 
-  // Carregar dados do produto
+  // Carregar dados do produto (apenas uma vez por produto recebido)
   useEffect(() => {
     if (!product) return
 
@@ -359,7 +359,7 @@ export default function CalculadoraJoia() {
         setStones(mapped)
       }
     }
-  }, [product, selectedSupplier.prices, fallbackSupplierPrices, dollarStone, margin])
+  }, [product])
 
   const handleExportPdf = useCallback(() => {
     openCalculationPdf({
