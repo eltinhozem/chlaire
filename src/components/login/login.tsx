@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase, isLoginAllowed, trackLoginAttempt, resetLoginAttempts } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'
 import { loginSchema } from '../../lib/validation'
 import Logo from '../logo/Logo'
 import { Loginbutton } from './styles'
@@ -11,39 +11,10 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [locked, setLocked] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [lastAttempt, setLastAttempt] = useState<Date | null>(null)
-  const [lockoutTimer, setLockoutTimer] = useState<number | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    const loginStatus = isLoginAllowed()
-    setLocked(!loginStatus.allowed)
-    
-    if (!loginStatus.allowed && loginStatus.lastAttempt) {
-      setLastAttempt(new Date(loginStatus.lastAttempt))
-      
-      const remainingTime = 15 * 60 - Math.floor((Date.now() - loginStatus.lastAttempt) / 1000)
-      if (remainingTime > 0) {
-        setLockoutTimer(remainingTime)
-        
-        const interval = setInterval(() => {
-          setLockoutTimer(prev => {
-            if (prev && prev > 1) {
-              return prev - 1
-            } else {
-              clearInterval(interval)
-              setLocked(false)
-              return null
-            }
-          })
-        }, 1000)
-        
-        return () => clearInterval(interval)
-      }
-    }
-
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession()
       if (data.session) navigate('/cadastro-clientes')
@@ -55,28 +26,6 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    
-    if (locked) {
-      const formattedTime = lockoutTimer ? 
-        `${Math.floor(lockoutTimer / 60)}:${(lockoutTimer % 60).toString().padStart(2, '0')}` : 
-        '15:00';
-      setError(`Conta temporariamente bloqueada. Tente novamente em ${formattedTime}.`)
-      return
-    }
-
-    const trackingResult = trackLoginAttempt()
-    if (!trackingResult.allowed) {
-      setLocked(true)
-      setLastAttempt(new Date()) // Use lastAttempt state when setting a new attempt
-      setLockoutTimer(15 * 60)
-      
-      const formattedLastAttempt = lastAttempt 
-        ? `Última tentativa: ${lastAttempt.toLocaleString()}` 
-        : ''
-      
-      setError(`Muitas tentativas de login. Sua conta foi bloqueada por 15 minutos. ${formattedLastAttempt}`.trim())
-      return
-    }
 
     setLoading(true)
 
@@ -103,7 +52,6 @@ export default function Login() {
         }
       }
 
-      resetLoginAttempts()
       navigate('/cadastro-clientes')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro ao fazer login'
@@ -115,13 +63,6 @@ export default function Login() {
   }
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword)
-
-  const formatLockoutTime = () => {
-    if (!lockoutTimer) return null
-    const minutes = Math.floor(lockoutTimer / 60)
-    const seconds = lockoutTimer % 60
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`
-  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -210,10 +151,10 @@ export default function Login() {
             <div>
               <Loginbutton
                 type="submit"
-                disabled={loading || locked}
+                disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {loading ? 'Entrando...' : locked ? `Conta bloqueada (${formatLockoutTime()})` : 'Entrar'}
+                {loading ? 'Entrando...' : 'Entrar'}
               </Loginbutton>
             </div>
           </form>

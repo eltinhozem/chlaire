@@ -104,14 +104,14 @@ export default function Layout({ toggleTheme, theme }: LayoutProps) {
 
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('display_name')
+        .select('display_name, role')
         .eq('email', email)
         .maybeSingle()
 
       const fallback = email.split('@')[0] || ''
       const resolvedName = profile?.display_name || fallback
       setDisplayName(resolvedName)
-      setIsAdmin(resolvedName === 'Elton')
+      setIsAdmin(profile?.role === 'admin')
     }
 
     loadDisplayName()

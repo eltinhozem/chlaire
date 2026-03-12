@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PlusCircle, Trash2, Calendar, Circle, Square, Egg, Droplet, Diamond, Gem, Heart, Hexagon, Loader2, Edit, Copy, Download } from 'lucide-react';
 import { getDeliveryStatusColor, getDeliveryStatusText } from './utils/dateUtils';
 import { usePedidos } from './hooks/usePedidos';
+import { resolveImageUrl } from '../../lib/storage';
 import PositionModal from './components/PositionModal';
 import type { Pedido } from './types';
 import { PrimaryButton, DangerButton, SecondaryButton } from '../buttons';
@@ -149,6 +150,27 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
   const statusText = getDeliveryStatusText(dataPrevistaEntrega);
   const categoriaLabel = categoryLabelMap[pedido.categoria] || pedido.categoria;
   const imageUrls = getPedidoImages(pedido);
+  const [thumbnailUrls, setThumbnailUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadThumbs = async () => {
+      const resolved = await Promise.all(
+        imageUrls.slice(0, 4).map(async (value) => await resolveImageUrl(value))
+      );
+
+      if (active) {
+        setThumbnailUrls(resolved.filter((url): url is string => Boolean(url)));
+      }
+    };
+
+    loadThumbs();
+
+    return () => {
+      active = false;
+    };
+  }, [imageUrls]);
   
   const cardBorderColor = riscado ? 'border-l-danger' : statusColor;
   const copyToClipboard = async () => {
@@ -272,9 +294,9 @@ const PedidoCard: React.FC<{ pedido: Pedido; index: number; onPositionClick: Fun
           </div>
         </div>
 
-        {imageUrls.length > 0 && (
+        {thumbnailUrls.length > 0 && (
           <div className="mt-3 pl-14 flex flex-wrap gap-2">
-            {imageUrls.slice(0, 4).map((url, idx) => (
+            {thumbnailUrls.map((url, idx) => (
               <img
                 key={`${url}-${idx}`}
                 src={url}

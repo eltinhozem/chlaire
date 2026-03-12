@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
+import { resolveImageUrl } from '../../lib/storage';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getNextReference } from './styles';
 import { Stone } from '../pedra/types';
@@ -101,9 +102,7 @@ export const useFormLogic = () => {
   const [stones, setStones] = useState<Stone[]>(normalizeStones<Stone>(product?.stones));
   const [stoneSaveSignal, setStoneSaveSignal] = useState(0);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>(
-    product?.image_url || ''
-  );
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
   const [collections, setCollections] = useState<{ id: string; name: string }[]>([]);
   const [collectionLoading, setCollectionLoading] = useState(false);
   const [showNewCollection, setShowNewCollection] = useState(false);
@@ -155,10 +154,26 @@ export const useFormLogic = () => {
         collection_id: product.collection_id || ''
       });
       setStones(normalizeStones<Stone>(product.stones));
-      setImagePreviewUrl(product.image_url || '');
+      setImagePreviewUrl('');
       setImageFile(null);
     }
   }, [product]);
+
+  useEffect(() => {
+    let active = true;
+    const loadPreview = async () => {
+      const url = await resolveImageUrl(product?.image_url || null);
+      if (active) {
+        setImagePreviewUrl(url || '');
+      }
+    };
+
+    loadPreview();
+
+    return () => {
+      active = false;
+    };
+  }, [product?.image_url]);
 
   useEffect(() => {
     const loadCollections = async () => {
@@ -289,11 +304,7 @@ export const useFormLogic = () => {
       throw uploadError;
     }
 
-    const { data } = supabase.storage
-      .from('jewelry-images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    return filePath;
   };
 
   // (Sem upload por pasta) — simplificado conforme solicitado

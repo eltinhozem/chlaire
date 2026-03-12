@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search as SearchIcon, X, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
+import { resolveImageUrl } from '../../lib/storage'
 import semImagem from '../logo/semImagem.png'
 import {
   SearchContainer,
@@ -42,6 +43,7 @@ interface Jewelry {
   observations: string | null
   stones: Stone[]
   image_url: string | null
+  image_display_url?: string | null
   created_at: string
 }
 
@@ -84,22 +86,17 @@ export default function JewelrySearch() {
 
       if (error) throw error
 
-      const jewelryWithPublicUrls = await Promise.all(
+      const jewelryWithSignedUrls = await Promise.all(
         (data || []).map(async (item) => {
-          if (item.image_url) {
-            const { data: publicUrlData } = supabase.storage
-              .from('jewelry-images')
-              .getPublicUrl(item.image_url.split('/').pop() || '')
-            return {
-              ...item,
-              image_url: publicUrlData.publicUrl
-            }
+          const imageDisplayUrl = await resolveImageUrl(item.image_url)
+          return {
+            ...item,
+            image_display_url: imageDisplayUrl
           }
-          return item
         })
       )
 
-      setJewelry(jewelryWithPublicUrls)
+      setJewelry(jewelryWithSignedUrls)
     } catch (error) {
       console.error('Error fetching jewelry:', error)
     } finally {
@@ -380,9 +377,9 @@ export default function JewelrySearch() {
           {filteredAndSortedJewelry.map((item) => (
             <ResultCard key={item.id} onClick={() => handleItemClick(item)}>
               <ResultImageContainer>
-  {item.image_url ? (
+  {item.image_display_url ? (
     <ResultImage
-      src={item.image_url}
+      src={item.image_display_url}
       alt={item.reference_name}
       onError={(e) => {
         const target = e.target as HTMLImageElement;

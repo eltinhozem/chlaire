@@ -64,12 +64,12 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('display_name')
+        .select('role')
         .eq('email', email)
         .maybeSingle()
 
       if (active) {
-        setStatus(profile?.display_name === 'Elton' ? 'allowed' : 'denied')
+        setStatus(profile?.role === 'admin' ? 'allowed' : 'denied')
       }
     }
 

@@ -11,6 +11,7 @@ import { SecondaryButton, PrimaryButton, SuccessButton } from '../buttons';
 import { usePedidos } from './hooks/usePedidos';
 import FormField from '../form/components/FormField';
 import { compressImage } from '../../lib/imageUtils';
+import { resolveImageUrl } from '../../lib/storage';
 import { supabase } from '../../lib/supabase';
 
 const defaultAroConfig: AroConfig = {
@@ -27,6 +28,7 @@ const defaultAroConfig: AroConfig = {
 type ImageItem = {
   id: string;
   url: string;
+  storageValue?: string;
   file?: File;
 };
 
@@ -92,10 +94,14 @@ const CadastroPedidos: React.FC = () => {
         const imagens = Array.isArray(pedido.imagens) && pedido.imagens.length > 0
           ? pedido.imagens
           : (pedido.imagem ? [pedido.imagem] : []);
-        setImageItems(imagens.map((url, index) => ({
-          id: `existing-${index}-${url}`,
-          url
-        })));
+        const resolvedImages = await Promise.all(
+          imagens.map(async (storageValue, index) => ({
+            id: `existing-${index}-${storageValue}`,
+            storageValue,
+            url: (await resolveImageUrl(storageValue)) || ''
+          }))
+        );
+        setImageItems(resolvedImages.filter((item) => item.url));
       } finally {
         setPrefillLoading(false);
       }
@@ -183,11 +189,7 @@ const CadastroPedidos: React.FC = () => {
       throw uploadError;
     }
 
-    const { data } = supabase.storage
-      .from('jewelry-images')
-      .getPublicUrl(filePath);
-
-    return data.publicUrl;
+    return filePath;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -201,8 +203,8 @@ const CadastroPedidos: React.FC = () => {
     try {
       const existingUrls = imageItems
         .filter((item) => !item.file)
-        .map((item) => item.url)
-        .filter((url) => url);
+        .map((item) => item.storageValue)
+        .filter((url): url is string => Boolean(url));
       const newFiles = imageItems
         .filter((item) => item.file)
         .map((item) => item.file as File);

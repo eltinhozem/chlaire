@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { translate } from '../Styles';
 import { supabase } from '../../lib/supabase';
+import { resolveImageUrl } from '../../lib/storage';
 import { normalizeStones } from '../../lib/jewelryUtils';
 import type { Stone } from '../pedra/types';
 import { Edit, Trash2, ArrowLeft, Calendar, User, Gem, Palette, Ruler, Package, Calculator, Copy } from 'lucide-react';
@@ -10,7 +11,6 @@ import {
   CustomButton,
   InfoContainer,
   ModalContent,
-  ModalInput,
   ModalOverlay,
   RedButton,
   formatarData
@@ -23,8 +23,19 @@ export default function Info() {
   const stones = normalizeStones<Stone>(product?.stones);
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const loadImage = async () => {
+      const url = await resolveImageUrl(product?.image_url || null);
+      if (active) setImageUrl(url);
+    };
+    loadImage();
+    return () => {
+      active = false;
+    };
+  }, [product?.image_url]);
 
   const handleDeleteClick = () => {
     setShowDeleteModal(true);
@@ -32,26 +43,22 @@ export default function Info() {
 
   const handleCloseModal = () => {
     setShowDeleteModal(false);
-    setPassword('');
-    setErrorMessage('');
   };
 
   const handleConfirmDelete = async () => {
-    if (password === '1020') {
-      try {
-        const { error } = await supabase
-          .from('jewelry')
-          .delete()
-          .eq('id', product.id);
-        if (error) throw error;
-        alert('Joia excluída com sucesso!');
-        navigate('/search');
-      } catch (err) {
-        console.error('Erro ao excluir a joia:', err);
-        alert('Erro ao excluir a joia.');
-      }
-    } else {
-      setErrorMessage('Senha incorreta. Tente novamente.');
+    try {
+      const { error } = await supabase
+        .from('jewelry')
+        .delete()
+        .eq('id', product.id);
+
+      if (error) throw error;
+
+      alert('Joia excluída com sucesso!');
+      navigate('/search');
+    } catch (err) {
+      console.error('Erro ao excluir a joia:', err);
+      alert('Sem permissão para excluir esta joia ou erro ao processar.');
     }
   };
 
@@ -136,9 +143,9 @@ export default function Info() {
         {/* Image Card */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            {product.image_url ? (
+            {imageUrl ? (
               <img
-                src={product.image_url}
+                src={imageUrl}
                 alt={product.reference_name}
                 className="w-full h-80 object-cover"
                 onError={(e) => {
@@ -344,16 +351,9 @@ export default function Info() {
         <ModalOverlay>
           <ModalContent>
             <h3 className="text-lg font-semibold mb-2">Confirmar Exclusão</h3>
-            <p className="mb-4 text-gray-600">Digite a senha para confirmar a exclusão:</p>
-            <ModalInput
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite a senha"
-            />
-            {errorMessage && (
-              <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
-            )}
+            <p className="mb-4 text-gray-600">
+              Esta ação é permanente. A exclusão só será permitida se seu usuário tiver permissão no banco.
+            </p>
             <div className="mt-6 flex justify-end space-x-4">
               <ActionButton onClick={handleCloseModal}>Cancelar</ActionButton>
               <RedButton onClick={handleConfirmDelete}>Confirmar</RedButton>

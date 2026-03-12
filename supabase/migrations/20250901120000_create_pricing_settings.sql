@@ -47,6 +47,7 @@ create policy "Authenticated users can update pricing settings"
   using (true)
   with check (true);
 
+drop trigger if exists set_pricing_settings_updated_at on pricing_settings;
 create trigger set_pricing_settings_updated_at
   before update on pricing_settings
   for each row
